@@ -110,12 +110,6 @@ def etl():
 
     spark.table("mappint_fail_3").write.mode("overwrite").insertInto("stg.tb_emedia_vip_otd_mapping_fail")
 
-
-
-
-
-
-
     tb_emedia_vip_otd_ad_fact_df = spark.sql(f"""select date_format(date, 'yyyyMMdd') as ad_date ,
                         req_advertiser_id as store_id,
                         '' as account_name ,
