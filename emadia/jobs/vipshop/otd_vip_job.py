@@ -46,7 +46,8 @@ def etl():
 
     vip_report_df = spark.read.csv(f"wasbs://{input_blob_container_name}@{input_blob_account_name}.blob.{input_blob_endpoint_suffix}/{otd_vip_input_path}",
         header=True, multiLine=True, sep="|")
-    vip_report_df.createOrReplaceTempView("daily_reports")
+    fail_df = spark.table("stg.tb_emedia_vip_otd_mapping_fail")
+    vip_report_df.union(fail_df).createOrReplaceTempView("daily_reports")
     vip_report_df.cache()
 
     mapping1_df = spark.read.csv(
@@ -181,7 +182,7 @@ def etl():
                         dw_batch_number as dw_batch_id,
                         channel from dws.tb_emedia_vip_otd_mapping_success where req_level = "REPORT_LEVEL_CAMPAIGN" and date >= '{days_ago912}' and date <= '{date}'""").coalesce(1)
     campaign_output_temp_path = output_temp_path + "campaign"
-
+    tb_emedia_vip_otd_ad_fact_df.write.csv()
     #ad_output_temp_path write
     data_writer.write_to_blob(tb_emedia_vip_otd_ad_fact_df,
                               "wasbs://{}@{}.blob.{}/{}".format(target_blob_container_name, target_blob_account_name,

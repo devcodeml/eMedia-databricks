@@ -61,10 +61,8 @@ PARTITIONED BY (date)
 LOCATION  'dbfs:/mnt/qa/data_warehouse/media_dws.db/tb_emedia_vip_otd_mapping_success'
 
 
-%sql
-
-drop table `dws`.`tb_emedia_vip_otd_mapping_fail`;
-CREATE TABLE `dws`.`tb_emedia_vip_otd_mapping_fail` (
+drop table `stg`.`tb_emedia_vip_otd_mapping_fail`;
+CREATE TABLE `stg`.`tb_emedia_vip_otd_mapping_fail` (
   date String ,
   channel String ,
   campaign_id String ,
@@ -118,4 +116,4 @@ CREATE TABLE `dws`.`tb_emedia_vip_otd_mapping_fail` (
   dw_resource String ,
   effect String )
 USING delta
-LOCATION  'dbfs:/mnt/qa/data_warehouse/media_dws.db/tb_emedia_vip_otd_mapping_fail'
+LOCATION  'dbfs:/mnt/qa/data_warehouse/media_stg.db/tb_emedia_vip_otd_mapping_fail'
