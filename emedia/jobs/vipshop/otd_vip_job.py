@@ -1,7 +1,7 @@
 import datetime
 import sys
 from pyspark.sql import SparkSession
-from emadia.common import read_conf
+from emedia.common import read_conf
 from pyspark.sql.functions import current_date,current_timestamp
 from databricks_util.data_processing import data_writer
 from azure.storage.blob import BlockBlobService

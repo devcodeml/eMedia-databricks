@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 import datetime
-from emadia.common import read_conf
+from emedia.common import read_conf
 from databricks_util.data_processing import data_writer
 
 def etl():
