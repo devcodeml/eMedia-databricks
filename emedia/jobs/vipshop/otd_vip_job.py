@@ -110,6 +110,12 @@ def etl():
 
     spark.table("mappint_fail_3").write.mode("overwrite").insertInto("stg.tb_emedia_vip_otd_mapping_fail")
 
+
+
+
+
+
+
     tb_emedia_vip_otd_ad_fact_df = spark.sql(f"""select date_format(date, 'yyyyMMdd') as ad_date ,
                         req_advertiser_id as store_id,
                         '' as account_name ,
@@ -187,7 +193,7 @@ def etl():
     data_writer.write_to_blob(tb_emedia_vip_otd_ad_fact_df,
                               "wasbs://{}@{}.blob.{}/{}".format(target_blob_container_name, target_blob_account_name,
                                                                 target_blob_endpoint_suffix, ad_output_temp_path),
-                              mode="overwrite", format="csv", header=True, sep="\001")
+                              mode="overwrite", format="csv", header=True, sep=r"\\001")
     data_writer.delete_blob_mark_file(ad_output_temp_path, target_blob_container_name, target_blob_account_name,
                                       target_blob_sas_token, target_blob_endpoint_suffix)
     ad_flag = data_writer.rename_blob_file(ad_output_temp_path, "part", otd_vip_output_path, "TB_EMEDIA_VIP_OTD_AD_FACT.CSV",
@@ -198,7 +204,7 @@ def etl():
     data_writer.write_to_blob(tb_emedia_vip_otd_campaign_fact_df,
                               "wasbs://{}@{}.blob.{}/{}".format(target_blob_container_name, target_blob_account_name,
                                                                 target_blob_endpoint_suffix, campaign_output_temp_path),
-                              mode="overwrite", format="csv", header=True, sep="\001")
+                              mode="overwrite", format="csv", header=True, sep=r"\\001")
     data_writer.delete_blob_mark_file(campaign_output_temp_path, target_blob_container_name, target_blob_account_name,
                                       target_blob_sas_token, target_blob_endpoint_suffix)
     campaign_flag = data_writer.rename_blob_file(campaign_output_temp_path, "part", otd_vip_output_path,
