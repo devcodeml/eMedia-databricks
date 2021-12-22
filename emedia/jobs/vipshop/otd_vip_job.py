@@ -23,22 +23,22 @@ def etl():
     input_blob_endpoint_suffix = read_conf.get_conf('vipshop', 'input_blob_endpoint_suffix')
 
     otd_vip_input_path = read_conf.get_conf('vipshop', 'otd_vip_input_path')
-    otd_vip_output_path = read_conf.get_conf('vipshop', 'otd_vip_output_path').format(date,date_time)
+    otd_vip_output_path = read_conf.get_conf('vipshop', 'otd_vip_output_path').format(date, date_time)
     output_temp_path = read_conf.get_conf('vipshop', 'output_temp_path')
 
-    mapping_blob_container_name = read_conf.get_conf('vipshop', 'input_blob_container_name')
-    mapping_blob_account_name = read_conf.get_conf('vipshop', 'input_blob_account_name')
-    mapping_blob_sas_token = read_conf.get_conf('vipshop', 'input_blob_sas_token')
-    mapping_blob_endpoint_suffix = read_conf.get_conf('vipshop', 'input_blob_endpoint_suffix')
+    mapping_blob_container_name = read_conf.get_conf('vipshop', 'mapping_blob_container_name')
+    mapping_blob_account_name = read_conf.get_conf('vipshop', 'mapping_blob_account_name')
+    mapping_blob_sas_token = read_conf.get_conf('vipshop', 'mapping_blob_sas_token')
+    mapping_blob_endpoint_suffix = read_conf.get_conf('vipshop', 'mapping_blob_endpoint_suffix')
 
     otd_vip_mapping1_path = read_conf.get_conf('vipshop', 'otd_vip_mapping1_path')
-    otd_vip_mapping2_path = read_conf.get_conf('vipshop', 'otd_vip_mapping1_path')
-    otd_vip_mapping3_path = read_conf.get_conf('vipshop', 'otd_vip_mapping1_path')
+    otd_vip_mapping2_path = read_conf.get_conf('vipshop', 'otd_vip_mapping2_path')
+    otd_vip_mapping3_path = read_conf.get_conf('vipshop', 'otd_vip_mapping3_path')
 
-    target_blob_container_name = read_conf.get_conf('vipshop', 'input_blob_container_name')
-    target_blob_account_name = read_conf.get_conf('vipshop', 'input_blob_account_name')
-    target_blob_sas_token = read_conf.get_conf('vipshop', 'input_blob_sas_token')
-    target_blob_endpoint_suffix = read_conf.get_conf('vipshop', 'input_blob_endpoint_suffix')
+    target_blob_container_name = read_conf.get_conf('vipshop', 'target_blob_container_name')
+    target_blob_account_name = read_conf.get_conf('vipshop', 'target_blob_account_name')
+    target_blob_sas_token = read_conf.get_conf('vipshop', 'target_blob_sas_token')
+    target_blob_endpoint_suffix = read_conf.get_conf('vipshop', 'target_blob_endpoint_suffix')
 
     spark.conf.set(f"fs.azure.sas.{input_blob_container_name}.{input_blob_account_name}.blob.{input_blob_endpoint_suffix}",input_blob_sas_token)
     spark.conf.set(f"fs.azure.sas.{mapping_blob_container_name}.{mapping_blob_account_name}.blob.{mapping_blob_endpoint_suffix}",mapping_blob_sas_token)
@@ -108,7 +108,7 @@ def etl():
       THEN INSERT *
     """)
 
-    spark.table("mappint_fail_3").write.mode("overwrite").insertInto("dws.tb_emedia_vip_otd_mapping_fail")
+    spark.table("mappint_fail_3").write.mode("overwrite").insertInto("stg.tb_emedia_vip_otd_mapping_fail")
 
     tb_emedia_vip_otd_ad_fact_df = spark.sql(f"""select date_format(date, 'yyyyMMdd') as ad_date ,
                         req_advertiser_id as store_id,
@@ -182,7 +182,7 @@ def etl():
                         dw_batch_number as dw_batch_id,
                         channel from dws.tb_emedia_vip_otd_mapping_success where req_level = "REPORT_LEVEL_CAMPAIGN" and date >= '{days_ago912}' and date <= '{date}'""").coalesce(1)
     campaign_output_temp_path = output_temp_path + "campaign"
-    tb_emedia_vip_otd_ad_fact_df.write.csv()
+
     #ad_output_temp_path write
     data_writer.write_to_blob(tb_emedia_vip_otd_ad_fact_df,
                               "wasbs://{}@{}.blob.{}/{}".format(target_blob_container_name, target_blob_account_name,

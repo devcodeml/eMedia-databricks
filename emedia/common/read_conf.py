@@ -2,11 +2,11 @@ import configparser
 
 databricks_conf_path = "/dbfs/mnt/databricks_conf.ini"
 
-# conf_path = "/dbfs/etl-projects/eMedia-databricks/"
-conf_path = "/Users/yaosheng/workspace/eMedia-databricks/"
+conf_path = "/dbfs/etl-projects/"
+# conf_path = "/Users/yaosheng/workspace/eMedia-databricks/"
 
 def get_env():
-    configParser = configparser.ConfigParser()
+    configParser = cf = configparser.RawConfigParser()
     # ini 文件路径
     databricks_conf_path = "/dbfs/mnt/databricks_conf.ini"
     # 读取 ini 文件
@@ -18,10 +18,11 @@ def get_env():
 
 
 def get_conf(path,key):
-    configParser = configparser.ConfigParser()
+    configParser = configparser.RawConfigParser()
+
     # ini 文件路径
-    databricks_conf_path = conf_path + f"/emadia/config/{path}/etl.conf"
-    env = get_env().isupper()
+    databricks_conf_path = conf_path + f"/emedia/config/{path}/etl.conf"
+    env = get_env().upper()
     configParser.read(databricks_conf_path)
     if env == "PROD":
         value = configParser.get(env, key)
@@ -31,8 +32,8 @@ def get_conf(path,key):
 
 
 if __name__ == '__main__':
-    value = get_conf("vipshop","input_blob_container_name")
-    print(value)
+    from emedia.common import read_conf
+    print(read_conf.get_conf('vipshop', 'input_blob_sas_token'))
 
 
 
