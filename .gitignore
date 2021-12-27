@@ -42,3 +42,8 @@ derby.log
 
 ### Word Excel Temp files
 \~*
+
+
+### sample data
+docs/**/*.csv
+docs/**/*.CSV
