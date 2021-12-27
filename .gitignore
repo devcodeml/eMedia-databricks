@@ -1,0 +1,44 @@
+HELP.md
+/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+derby.log
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
+/node_modules/
+
+### VS Code ###
+.vscode/
+
+### Python ###
+/venv/
+
+##### App file ######
+*.db
+.mongodb
+
+**/__pycache__/
+
+**egg-info/
+
+### Word Excel Temp files
+\~*
