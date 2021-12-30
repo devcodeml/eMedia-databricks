@@ -26,4 +26,11 @@ def _get_dbr_env():
     else:
         return 'prod'
 
+
 dbr_env = _get_dbr_env()
+
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+
