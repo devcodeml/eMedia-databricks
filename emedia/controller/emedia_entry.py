@@ -9,6 +9,8 @@ from emedia.processing.jd.jd_ht import jd_ht_campaign_etl
 
 from emedia.processing.jd.jd_jst import jd_jst_campaign_etl
 
+from emedia.processing.jd.jd_sem_adgroup import jd_sem_adgroup_etl
+
 def emedia_etl(etl_action, airflow_execution_date):
 
     if etl_action == 'vip_etl':
@@ -22,6 +24,9 @@ def emedia_etl(etl_action, airflow_execution_date):
 
     elif etl_action == 'jd_jst_campaign_etl':
         jd_jst_campaign_etl(airflow_execution_date)
+
+    elif etl_action == 'jd_sem_adgroup_etl':
+        jd_sem_adgroup_etl(airflow_execution_date)
 
     return 0
 
