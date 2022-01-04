@@ -142,7 +142,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
             , req_groupId
             , campaign_dim.campaignName AS campaignName
             , adgroup_dim.adGroupName AS adGroupName
-        FROM jd_sem_keyword_daily LEFT JOIN campaign_dim ON jd_sem_keyword_daily.req_campaignId = campaign_dim.req_campaignId
+        FROM jd_sem_keyword_daily LEFT JOIN campaign_dim ON jd_sem_keyword_daily.req_campaignId = campaign_dim.campaignId
         LEFT JOIN adgroup_dim ON jd_sem_keyword_daily.req_groupId = adgroup_dim.adGroupId
     ''')
 
@@ -246,7 +246,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
             , mapping_2.brand_id
         FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.req_pin = mapping_2.account_id
         AND (
-            INSTR(mapping_fail_1.adgroupName, mapping_2.keyword) > 0
+            INSTR(mapping_fail_1.adGroupName, mapping_2.keyword) > 0
                 OR
             INSTR(mapping_fail_1.campaignName, mapping_2.keyword) > 0
         )
@@ -273,9 +273,9 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
             , mapping_3.brand_id
         FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.req_pin = mapping_3.account_id
         AND (
-            INSTR(mapping_fail_1.adgroupName, mapping_2.keyword) > 0
+            INSTR(mapping_fail_2.adGroupName, mapping_3.keyword) > 0
                 OR
-            INSTR(mapping_fail_1.campaignName, mapping_2.keyword) > 0
+            INSTR(mapping_fail_2.campaignName, mapping_3.keyword) > 0
         )
     ''')
 
