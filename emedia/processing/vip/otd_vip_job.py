@@ -1,30 +1,15 @@
+# coding: utf-8
+
 import datetime
-import sys
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_date, current_timestamp
-from databricks_util.data_processing import data_writer
-from azure.storage.blob import BlockBlobService
 
 
-from emedia.config.emedia_vip_conf import emedia_conf_dict
+from emedia.config.emedia_conf import emedia_conf_dict
+from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 
 
-def create_blob_by_text(full_file_path, text, container_name, account_name, sas_token, encoding = 'utf-8'):
-    blob_service = BlockBlobService(
-                    account_name = account_name
-                    , sas_token = sas_token
-                    , endpoint_suffix = 'core.chinacloudapi.cn'
-    )
-    
-    blob_service.create_blob_from_text(
-                    container_name
-                    , full_file_path
-                    , text
-                    , encoding=encoding
-    )
-
-
-def etl():
+def vip_etl():
     spark = SparkSession.builder.getOrCreate()
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     days_ago912 = (datetime.datetime.now() - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
@@ -37,10 +22,6 @@ def etl():
                     , input_blob_sas)
     
 
-    otd_vip_input_path = 'fetchResultFiles/scheduled__2021-12-090800000800/vip-otd_getDailyReports_2021-12-09.csv.gz'
-    otd_vip_output_path = f'{date}/{date_time}/otd/'
-    output_temp_path = 'test/otd/otd_vip/'
-
     mapping_blob_account = emedia_conf_dict.get('mapping_blob_account')
     mapping_blob_container = emedia_conf_dict.get('mapping_blob_container')
     mapping_blob_sas = emedia_conf_dict.get('mapping_blob_sas')
@@ -48,11 +29,7 @@ def etl():
                     , mapping_blob_sas)
     
 
-    target_blob_account = emedia_conf_dict.get('target_blob_account')
-    target_blob_container = emedia_conf_dict.get('target_blob_container')
-    target_blob_sas = emedia_conf_dict.get('target_blob_sas')
-    spark.conf.set(f"fs.azure.sas.{target_blob_container}.{target_blob_account}.blob.core.chinacloudapi.cn"
-                    , target_blob_sas)
+    otd_vip_input_path = 'fetchResultFiles/scheduled__2021-12-090800000800/vip-otd_getDailyReports_2021-12-09.csv.gz'
 
     vip_report_df = spark.read.csv(
                     f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{otd_vip_input_path}"
@@ -60,13 +37,15 @@ def etl():
                     , multiLine = True
                     , sep = "|"
     )
+    
     fail_df = spark.table("stg.tb_emedia_vip_otd_mapping_fail") \
                 .drop('category_id') \
                 .drop('brand_id') \
                 .drop('etl_date') \
                 .drop('etl_create_time')
+
+    # Union unmapped records
     vip_report_df.union(fail_df).createOrReplaceTempView("daily_reports")
-    vip_report_df.cache()
 
 
     # Loading Mapping tbls
@@ -97,6 +76,7 @@ def etl():
         , sep = "="
     )
     mapping3_df.createOrReplaceTempView("mapping3")
+
 
     # First map result
     mappint1_result_df = spark.sql('''
@@ -175,9 +155,11 @@ def etl():
             THEN INSERT *
     """)
 
+    # save the unmapped record
     spark.table("mappint_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(['date', 'req_advertiser_id', 'campaign_id', 'ad_id', 'effect']) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
@@ -232,37 +214,9 @@ def etl():
         WHERE req_level = "REPORT_LEVEL_AD"
               AND date >= '{days_ago912}'
               AND date <= '{date}'
-    ''') \
-    .coalesce(1)
-    ad_output_temp_path = output_temp_path + "ad"
+    ''').dropDuplicates(['ad_date', 'store_id', 'campaign_id', 'adgroup_id', 'effect'])
 
-    data_writer.write_to_blob(
-                tb_emedia_vip_otd_ad_fact_df
-                , f"wasbs://{target_blob_container}@{target_blob_account}.blob.core.chinacloudapi.cn/{ad_output_temp_path}"
-                , mode = "overwrite"
-                , format = "csv"
-                , header = True
-                , sep = r"\\001"
-    )
-
-    data_writer.delete_blob_mark_file(
-                    ad_output_temp_path
-                    , target_blob_container
-                    , target_blob_account
-                    , target_blob_sas
-                    , 'core.chinacloudapi.cn'
-    )
-
-    ad_flag = data_writer.rename_blob_file(
-                    ad_output_temp_path
-                    , "part"
-                    , otd_vip_output_path
-                    , "TB_EMEDIA_VIP_OTD_AD_FACT.CSV"
-                    , target_blob_container
-                    , target_blob_account
-                    , target_blob_sas
-                    , 'core.chinacloudapi.cn'
-    )
+    output_to_emedia(tb_emedia_vip_otd_ad_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_AD_FACT.CSV')
 
 
     # campaign_output_temp_path write
@@ -311,47 +265,12 @@ def etl():
         WHERE req_level = "REPORT_LEVEL_CAMPAIGN"
             AND date >= '{days_ago912}'
             AND date <= '{date}'
-    ''').coalesce(1)
-    campaign_output_temp_path = output_temp_path + "campaign"                             
+    ''').dropDuplicates(['ad_date', 'store_id', 'campaign_id', 'adgroup_id', 'effect'])                        
 
-    data_writer.write_to_blob(
-                tb_emedia_vip_otd_campaign_fact_df
-                , f"wasbs://{target_blob_container}@{target_blob_account}.blob.core.chinacloudapi.cn/{campaign_output_temp_path}"
-                , mode = "overwrite"
-                , format = "csv"
-                , header = True
-                , sep = r"\\001"
-    )
-
-    data_writer.delete_blob_mark_file(
-                    campaign_output_temp_path
-                    , target_blob_container
-                    , target_blob_account
-                    , target_blob_sas
-                    , 'core.chinacloudapi.cn'
-    )
-
-    campaign_flag = data_writer.rename_blob_file(
-                        campaign_output_temp_path
-                        , "part"
-                        , otd_vip_output_path
-                        , "TB_EMEDIA_VIP_OTD_CAMPAIGN_FACT.CSV"
-                        , target_blob_container
-                        , target_blob_account
-                        , target_blob_sas
-                        , 'core.chinacloudapi.cn'
-    )
-    
-
-    if ad_flag and campaign_flag:
-        create_blob_by_text(
-            f"{date}/flag.txt"
-            , date_time
-            , target_blob_container
-            , target_blob_account
-            , target_blob_sas
-        )
+    output_to_emedia(tb_emedia_vip_otd_campaign_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_CAMPAIGN_FACT.CSV')
 
 
-if __name__ == '__main__':
-    etl()
+    create_blob_by_text(f"{date}/flag.txt", date_time)
+
+    return 0
+
