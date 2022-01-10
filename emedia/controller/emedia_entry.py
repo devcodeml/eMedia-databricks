@@ -9,6 +9,10 @@ from emedia.processing.jd.jd_ht import jd_ht_campaign_etl
 
 from emedia.processing.jd.jd_jst import jd_jst_campaign_etl
 
+from emedia.processing.jd.jd_ha import jd_ha_campaign_etl
+
+from emedia.processing.jd.jd_dmp import jd_dmp_campaign_etl
+
 from emedia.processing.jd.jd_sem_adgroup import jd_sem_adgroup_etl
 
 from emedia.processing.jd.jd_sem_keyword import jd_sem_keyword_etl
@@ -28,6 +32,12 @@ def emedia_etl(etl_action, airflow_execution_date):
 
     elif etl_action == 'jd_jst_campaign_etl':
         jd_jst_campaign_etl(airflow_execution_date)
+
+    elif etl_action == 'jd_ha_campaign_etl':
+        jd_ha_campaign_etl(airflow_execution_date)
+
+    elif etl_action == 'jd_dmp_campaign_etl':
+        jd_dmp_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'jd_sem_adgroup_etl':
         jd_sem_adgroup_etl(airflow_execution_date)
