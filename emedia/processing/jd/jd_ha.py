@@ -251,9 +251,9 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
             totalDealOrderSum as total_deal_order_sum ,
             category_id ,
             brand_id ,
-            {output_date_time} as dw_batch_id ,
+            '{output_date_time}' as dw_batch_id ,
             'jd' as data_source ,
-            {curr_date} as dw_etl_date ,
+            '{curr_date}' as dw_etl_date ,
             pin as pin_name 
 
         FROM (

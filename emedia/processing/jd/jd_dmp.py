@@ -18,6 +18,7 @@ jd_dmp_campaign_pks = [
     , 'req_pin'
     , 'campaignId'
     , 'groupId'
+    ,'adId'
     ,'req_clickOrOrderDay'
     ,'mobileType'
 ]
@@ -28,6 +29,7 @@ output_jd_dmp_campaign_pks = [
     , 'pin_name'
     , 'campaign_id'
     , 'adgroup_id'
+    ,'creative_id'
     , 'effect_days'
     ,'mobiletype'
 ]
@@ -246,6 +248,8 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
         AND dws.tb_emedia_jd_dmp_campaign_mapping_success.campaignId = all_mapping_success.campaignId
 
         AND dws.tb_emedia_jd_dmp_campaign_mapping_success.groupId = all_mapping_success.groupId
+        
+        AND dws.tb_emedia_jd_dmp_campaign_mapping_success.adId = all_mapping_success.adId
         
         AND dws.tb_emedia_jd_dmp_campaign_mapping_success.req_clickOrOrderDay = all_mapping_success.req_clickOrOrderDay
         
