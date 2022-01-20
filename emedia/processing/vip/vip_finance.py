@@ -9,29 +9,29 @@ from emedia.config.emedia_conf import emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 
 
-jd_ha_campaign_mapping_success_tbl = 'dws.tb_emedia_jd_ha_campaign_mapping_success'
-jd_ha_campaign_mapping_fail_tbl = 'stg.tb_emedia_jd_ha_campaign_mapping_fail'
+vip_finance_mapping_success_tbl = 'dws.tb_emedia_vip_finance_mapping_success'
+vip_finance_mapping_fail_tbl = 'stg.tb_emedia_vip_finance_mapping_fail'
 
 
-jd_ha_campaign_pks = [
-    'date'
-    , 'brandName'
-    , 'campaignName'
-    , 'spaceName'
-    ,'pin'
+vip_finance_pks = [
+    'fundType'
+    , 'date'
+    , 'req_advertiser_id'
+    , 'accountType'
+    ,'advertiserId'
 ]
 
 
-output_jd_ha_campaign_pks = [
-    'ad_date'
-    , 'brand_name'
-    , 'campaign_name'
-    , 'space_name'
-    , 'pin_name'
+out_vip_finance_pks = [
+    'fundType'
+    , 'ad_date'
+    , 'store_id'
+    , 'accountType'
+    , 'advertiserId'
 ]
 
 
-def jd_ha_campaign_etl(airflow_execution_date:str = ''):
+def vip_finance_etl(airflow_execution_date:str = ''):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -63,25 +63,25 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
 
     file_date = etl_date - dt.timedelta(days=1)
 
-    jd_ha_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/ha_daily_effectreport/jd-ha_reportGetEffectReportcsv_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    vip_finance_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/vip_otd/get_finance_record/vip-otd_getFinanceRecord_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'jd ha campaign file: {jd_ha_campaign_path}')
+    log.info(f'vip finance file: {vip_finance_path}')
 
-    jd_ha_campaign_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_ha_campaign_path}"
+    vip_finance_daily_df = spark.read.csv(
+                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{vip_finance_path}"
                     , header = True
                     , multiLine = True
                     , sep = "|"
     )
     
-    jd_ha_campaign_fail_df = spark.table("stg.tb_emedia_jd_ha_campaign_mapping_fail") \
+    vip_finance_fail_df = spark.table("stg.tb_emedia_vip_finance_mapping_fail") \
                 .drop('category_id') \
                 .drop('brand_id') \
                 .drop('etl_date') \
                 .drop('etl_create_time')
 
     # Union unmapped records
-    jd_ha_campaign_daily_df.union(jd_ha_campaign_fail_df).createOrReplaceTempView("jd_ha_campaign_daily")
+    vip_finance_daily_df.union(vip_finance_fail_df).createOrReplaceTempView("vip_finance_daily")
 
 
     # Loading Mapping tbls
@@ -113,24 +113,24 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
     # First stage mapping
     mapping_1_result_df = spark.sql('''
         SELECT
-            brandName,
-            campaignName,
-            clicks,
-            ctr,
+            fundType,
             date,
-            firstCateName,
-            impressions,
-            realPrice,
-            spaceName,
-            queries,
-            secondCateName,
-            totalCartCnt,
-            totalDealOrderCnt,
-            totalDealOrderSum,
-            pin,
+            amount,
+            accountType,
+            description,
+            tradeType,
+            advertiserId,
+            req_advertiser_id,
+            req_account_type,
+            req_start_date,
+            req_end_date,
+            dw_batch_number,
+            dw_create_time,
+            dw_resource,
+            effect,
             mapping_1.category_id,
             mapping_1.brand_id  
-        FROM jd_ha_campaign_daily LEFT JOIN mapping_1 ON jd_ha_campaign_daily.pin = mapping_1.account_id
+        FROM vip_finance_daily LEFT JOIN mapping_1 ON vip_finance_daily.advertiserId = mapping_1.account_id
     ''')
 
     ## First stage unmapped
@@ -152,8 +152,7 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
             mapping_fail_1.*
             , mapping_2.category_id
             , mapping_2.brand_id
-        FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.pin = mapping_2.account_id
-        AND INSTR(mapping_fail_1.campaignName, mapping_2.keyword) > 0
+        FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.advertiserId = mapping_2.account_id
     ''')
 
     ## Second stage mapped
@@ -175,8 +174,7 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
             mapping_fail_2.*
             , mapping_3.category_id
             , mapping_3.brand_id
-        FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.pin = mapping_3.account_id
-        AND INSTR(mapping_fail_2.campaignName, mapping_3.keyword) > 0
+        FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.advertiserId = mapping_3.account_id
     ''')
 
     ## Third stage mapped
@@ -190,31 +188,31 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
         .createOrReplaceTempView("mapping_fail_3")
 
 
-    jd_ha_mapped_df = spark.table("mapping_success_1") \
+    vip_finance_mapped_df = spark.table("mapping_success_1") \
                 .union(spark.table("mapping_success_2")) \
                 .union(spark.table("mapping_success_3")) \
                 .withColumn("etl_date", current_date()) \
                 .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(jd_ha_campaign_pks)
+                .dropDuplicates(vip_finance_pks)
                 
-    jd_ha_mapped_df.createOrReplaceTempView("all_mapping_success")
+    vip_finance_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
     spark.sql("""
-        MERGE INTO dws.tb_emedia_jd_ha_campaign_mapping_success
-
+        MERGE INTO dws.tb_emedia_vip_finance_mapping_success
+        
         USING all_mapping_success
-
-        ON dws.tb_emedia_jd_ha_campaign_mapping_success.date = all_mapping_success.date
-
-        AND dws.tb_emedia_jd_ha_campaign_mapping_success.brandName = all_mapping_success.brandName
         
-        AND dws.tb_emedia_jd_ha_campaign_mapping_success.campaignName = all_mapping_success.campaignName
+        ON dws.tb_emedia_vip_finance_mapping_success.fundType = all_mapping_success.fundType
         
-        AND dws.tb_emedia_jd_ha_campaign_mapping_success.spaceName = all_mapping_success.spaceName
-
-        AND dws.tb_emedia_jd_ha_campaign_mapping_success.pin = all_mapping_success.pin
-
+            AND dws.tb_emedia_vip_finance_mapping_success.date = all_mapping_success.date
+        
+            AND dws.tb_emedia_vip_finance_mapping_success.req_advertiser_id = all_mapping_success.req_advertiser_id
+           
+            AND dws.tb_emedia_vip_finance_mapping_success.accountType = all_mapping_success.accountType
+            
+            AND dws.tb_emedia_vip_finance_mapping_success.advertiserId = all_mapping_success.advertiserId
+        
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED
@@ -226,48 +224,44 @@ def jd_ha_campaign_etl(airflow_execution_date:str = ''):
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(jd_ha_campaign_pks) \
+        .dropDuplicates(vip_finance_pks) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
-        .insertInto("stg.tb_emedia_jd_ha_campaign_mapping_fail")
+        .insertInto("stg.tb_emedia_vip_finance_mapping_fail")
 
 
     # Query output result
-    tb_emedia_jd_ha_campaign_df = spark.sql(f'''
+    tb_emedia_vip_finance_df = spark.sql(f'''
         SELECT
-            date as ad_date ,
-            brandName as brand_name ,
-            campaignName as campaign_name ,
-            clicks as click ,
-            ctr ,
-            firstCateName as first_cate_name ,
-            impressions as impression ,
-            queries ,
-            realPrice as real_price ,
-            spaceName as space_name ,
-            totalCartCnt as total_cart_cnt ,
-            totalDealOrderCnt as total_deal_order_cnt ,
-            totalDealOrderSum as total_deal_order_sum ,
-            category_id ,
-            brand_id ,
-            '{output_date_time}' as dw_batch_id ,
-            'jd' as data_source ,
-            '{curr_date}' as dw_etl_date ,
-            pin as pin_name 
-
+            	fundType as fundType,
+                date_format(date, 'yyyyMMdd') as ad_date,
+                amount as cost,
+                req_advertiser_id as store_id,
+                accountType as accountType,
+                description as description,
+                tradeType as tradeType,
+                advertiserId as advertiserId,
+                req_advertiser_id as req_advertiser_id,
+                req_account_type as req_account_type,
+                req_start_date as req_start_date,
+                req_end_date as req_end_date,
+                dw_batch_number as dw_batch_number,
+                dw_batch_number as dw_batch_number,
+                dw_resource as dw_resource,
+                effect as effect
         FROM (
             SELECT *
-            FROM dws.tb_emedia_jd_ha_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{curr_date}'
+            FROM dws.tb_emedia_vip_finance_mapping_success WHERE date >= '{days_ago912}' AND date <= '{curr_date}'
                 UNION
             SELECT *
-            FROM stg.tb_emedia_jd_ha_campaign_mapping_fail
+            FROM stg.tb_emedia_vip_finance_mapping_fail
         )
         WHERE date >= '{days_ago912}'
               AND date <= '{curr_date}'
-    ''').dropDuplicates(output_jd_ha_campaign_pks)
+    ''').dropDuplicates(out_vip_finance_pks)
 
-    output_to_emedia(tb_emedia_jd_ha_campaign_df, f'{output_date}/{output_date_time}/jdha', 'TB_EMEDIA_JD_HA_FACT.CSV')
+    output_to_emedia(tb_emedia_vip_finance_df, f'{output_date}/{output_date_time}/otdfa', 'TB_EMEDIA_VIP_OTD_FA_FACT.CSV')
 
     create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 

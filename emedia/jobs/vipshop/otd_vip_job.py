@@ -37,7 +37,7 @@ def etl():
                     , input_blob_sas)
     
 
-    otd_vip_input_path = 'fetchResultFiles/scheduled__2021-12-090800000800/vip-otd_getDailyReports_2021-12-09.csv.gz'
+    otd_vip_input_path = 'fetchResultFiles/2022-01-10/vip_otd/get_daily_reports/'
     otd_vip_output_path = f'{date}/{date_time}/otd/'
     output_temp_path = 'test/otd/otd_vip/'
 
@@ -157,18 +157,18 @@ def etl():
                 .union(spark.table("mappint_success_3")) \
                 .withColumn("etl_date", current_date()) \
                 .withColumn("etl_create_time", current_timestamp())
-    out1.createOrReplaceTempView("all_mappint_success")
+    out1.createOrReplaceTempView("all_mapping_success")
 
     spark.sql("""
         MERGE INTO dws.tb_emedia_vip_otd_mapping_success
-        USING all_mappint_success
-        ON dws.tb_emedia_vip_otd_mapping_success.date = all_mappint_success.date
-            AND dws.tb_emedia_vip_otd_mapping_success.req_advertiser_id = all_mappint_success.req_advertiser_id
-            AND dws.tb_emedia_vip_otd_mapping_success.campaign_id = all_mappint_success.campaign_id
-            AND ((dws.tb_emedia_vip_otd_mapping_success.ad_id = all_mappint_success.ad_id)
+        USING all_mapping_success
+        ON dws.tb_emedia_vip_otd_mapping_success.date = all_mapping_success.date
+            AND dws.tb_emedia_vip_otd_mapping_success.req_advertiser_id = all_mapping_success.req_advertiser_id
+            AND dws.tb_emedia_vip_otd_mapping_success.campaign_id = all_mapping_success.campaign_id
+            AND ((dws.tb_emedia_vip_otd_mapping_success.ad_id = all_mapping_success.ad_id)
                     OR
-                 (dws.tb_emedia_vip_otd_mapping_success.ad_id IS null and all_mappint_success.ad_id IS null))
-            AND dws.tb_emedia_vip_otd_mapping_success.effect = all_mappint_success.effect
+                 (dws.tb_emedia_vip_otd_mapping_success.ad_id IS null and all_mapping_success.ad_id IS null))
+            AND dws.tb_emedia_vip_otd_mapping_success.effect = all_mapping_success.effect
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED

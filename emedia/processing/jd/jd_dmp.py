@@ -67,12 +67,12 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
 
     file_date = etl_date - dt.timedelta(days=1)
 
-    jd_dmp_campagin_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/dmp_daily_creativereport/jd_dmp_creativeReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    jd_dmp_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/dmp_daily_creativereport/jd_dmp_creativeReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'jd dmp campaign file: {jd_dmp_campagin_path}')
+    log.info(f'jd dmp campaign file: {jd_dmp_campaign_path}')
 
-    jd_dmp_campagin_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_dmp_campagin_path}"
+    jd_dmp_campaign_daily_df = spark.read.csv(
+                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_dmp_campaign_path}"
                     , header = True
                     , multiLine = True
                     , sep = "|"
@@ -85,7 +85,7 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
                 .drop('etl_create_time')
 
     # Union unmapped records
-    jd_dmp_campagin_daily_df.union(jd_dmp_campaign_fail_df).createOrReplaceTempView("jd_dmp_campaign_daily")
+    jd_dmp_campaign_daily_df.union(jd_dmp_campaign_fail_df).createOrReplaceTempView("jd_dmp_campaign_daily")
 
 
     # Loading Mapping tbls

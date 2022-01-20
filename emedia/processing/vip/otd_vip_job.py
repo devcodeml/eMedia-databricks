@@ -137,18 +137,18 @@ def vip_etl():
                 .union(spark.table("mappint_success_3")) \
                 .withColumn("etl_date", current_date()) \
                 .withColumn("etl_create_time", current_timestamp())
-    out1.createOrReplaceTempView("all_mappint_success")
+    out1.createOrReplaceTempView("all_mapping_success")
 
     spark.sql("""
         MERGE INTO dws.tb_emedia_vip_otd_mapping_success
-        USING all_mappint_success
-        ON dws.tb_emedia_vip_otd_mapping_success.date = all_mappint_success.date
-            AND dws.tb_emedia_vip_otd_mapping_success.req_advertiser_id = all_mappint_success.req_advertiser_id
-            AND dws.tb_emedia_vip_otd_mapping_success.campaign_id = all_mappint_success.campaign_id
-            AND ((dws.tb_emedia_vip_otd_mapping_success.ad_id = all_mappint_success.ad_id)
+        USING all_mapping_success
+        ON dws.tb_emedia_vip_otd_mapping_success.date = all_mapping_success.date
+            AND dws.tb_emedia_vip_otd_mapping_success.req_advertiser_id = all_mapping_success.req_advertiser_id
+            AND dws.tb_emedia_vip_otd_mapping_success.campaign_id = all_mapping_success.campaign_id
+            AND ((dws.tb_emedia_vip_otd_mapping_success.ad_id = all_mapping_success.ad_id)
                     OR
-                 (dws.tb_emedia_vip_otd_mapping_success.ad_id IS null and all_mappint_success.ad_id IS null))
-            AND dws.tb_emedia_vip_otd_mapping_success.effect = all_mappint_success.effect
+                 (dws.tb_emedia_vip_otd_mapping_success.ad_id IS null and all_mapping_success.ad_id IS null))
+            AND dws.tb_emedia_vip_otd_mapping_success.effect = all_mapping_success.effect
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED
