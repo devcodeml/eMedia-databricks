@@ -307,7 +307,7 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
                     '{output_date_time}'  as dw_batch_id ,
                     '{curr_date}' as dw_etl_date ,
                     '' as effect_cart_cnt ,
-                    CASE req_clickOrOrderDay WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
+                    CASE req_clickOrOrderDay WHEN '0' THEN '0'  WHEN '7' THEN '8'  WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
                     '' as effect_order_quantity ,
                     '' as effect_order_value ,
                     goodsAttentionCnt as favorite_item_quantity ,

@@ -403,7 +403,7 @@ def jd_sem_creative_etl(airflow_execution_date:str = ''):
             adId as creative_id,
             adName as creative_name,
             req_isDaily as req_isdaily,
-            CASE req_clickOrOrderDay WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
+            CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
             '' as req_isorderorclick,
             req_giftFlag as gift_flag,
             req_orderStatusCategory as req_orderstatuscategory,

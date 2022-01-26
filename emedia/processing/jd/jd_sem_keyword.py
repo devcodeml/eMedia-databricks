@@ -355,7 +355,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
             , '' AS req_isorderorclick
             , req_clickOrOrderDay AS req_clickororderday
             , req_clickOrOrderDay AS effect
-            , CASE req_clickOrOrderDay WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days
+            , CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days
             , req_orderstatuscategory
             , '' AS mobiletype
             , clicks

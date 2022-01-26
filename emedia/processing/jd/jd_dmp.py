@@ -290,7 +290,7 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
             '' as sku_id,
             '' as req_isorderorclick,
             '' as req_istodayor15days,
-            CASE req_clickOrOrderDay WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
+            CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8'  WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
             req_orderStatusCategory as req_orderstatuscategory,
             mobiletype,
             impressions,
