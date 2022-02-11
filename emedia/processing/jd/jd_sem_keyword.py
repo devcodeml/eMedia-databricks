@@ -41,7 +41,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
     '''
     airflow_execution_date: to identify upstream file
     '''
-
+    # "2022-01-23 22:15:00+00:00"
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -388,7 +388,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
 
     output_to_emedia(tb_emedia_jd_sem_keyword_df, f'{output_date}/{output_date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
 
-    create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 

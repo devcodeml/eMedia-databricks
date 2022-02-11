@@ -580,7 +580,7 @@ def jd_sem_creative_etl(airflow_execution_date:str = ''):
 
     output_to_emedia(blob_df, f'{output_date}/{output_date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')
 
-    create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 

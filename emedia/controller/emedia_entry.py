@@ -1,6 +1,7 @@
 # coding: utf-8
 
-
+import sys
+from emedia.utils import output_df
 from emedia.processing.vip.otd_vip_job import vip_etl
 
 from emedia.processing.jd.jd_gwcd import jd_gwcd_campaign_etl
@@ -65,5 +66,12 @@ def emedia_etl(etl_action, airflow_execution_date):
     elif etl_action == 'jd_zt_campaign_etl':
         jd_zt_campaign_etl(airflow_execution_date)
 
+    elif etl_action == 'update_flag':
+        # "2022-01-23 22:15:00+00:00"
+        output_date = airflow_execution_date[0:10]
+        output_date_time = output_date + "T" + airflow_execution_date[11:19]
+        output_df.create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
     return 0
 
+if __name__ == '__main__':
+    emedia_etl(sys.argv[1], sys.argv[2])

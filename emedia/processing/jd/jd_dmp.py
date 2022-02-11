@@ -341,7 +341,7 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
 
     output_to_emedia(tb_emedia_jd_dmp_campaign_df, f'{output_date}/{output_date_time}/dmp', 'EMEDIA_JD_DMP_DAILY_CREATIVE_REPORT_FACT.CSV')
 
-    create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 

@@ -270,7 +270,7 @@ def vip_etl():
     output_to_emedia(tb_emedia_vip_otd_campaign_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_CAMPAIGN_FACT.CSV')
 
 
-    create_blob_by_text(f"{date}/flag.txt", date_time)
+    #create_blob_by_text(f"{date}/flag.txt", date_time)
 
     return 0
 
