@@ -1,7 +1,7 @@
 # coding: utf-8
 
 
-from emedia.controller.emedia_entry import emedia_etl
+from emedia.jobs.emedia_entry import emedia_etl
 
 
 if __name__ == '__main__':
