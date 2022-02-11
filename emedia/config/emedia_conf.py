@@ -11,20 +11,19 @@ dbutils = get_dbutils()
 
 
 def get_emedia_conf_dict():
-
     dev = {
-        'input_blob_account': 'b2bcdlrawblobqa01'
-        , 'input_blob_container': 'media'
-        , 'input_blob_sas': 'sv=2020-08-04&si=media-17DC10EB7E2&sr=c&sig=i79Tke8H%2FMAEB9HWXKplIQ99uGLxNVMI2oZ46cWUppE%3D'
-        
-        , 'mapping_blob_account':'b2bmptbiprd01'
-        , 'mapping_blob_container':'emedia-resouce-dbs-qa'
-        , 'mapping_blob_sas':'sv=2020-04-08&st=2021-12-08T09%3A47%3A31Z&se=2030-12-31T09%3A53%3A00Z&sr=c&sp=racwdl&sig=vd2yx048lHH1QWDkMIQdo0DaD77yb8BwC4cNz4GROPk%3D'
+        'input_blob_account': dbutils.secrets.get("qa-media-scope", "input-blob-account")
+        , 'input_blob_container': dbutils.secrets.get("qa-media-scope", "input-blob-container")
+        , 'input_blob_sas': dbutils.secrets.get("qa-media-scope", "input-blob-sas")
 
-        , 'target_blob_account':'b2bmptbiprd01'
-        , 'target_blob_container':'emedia-resouce-dbs-qa'
-        , 'target_blob_sas':'sv=2020-04-08&st=2021-12-08T09%3A47%3A31Z&se=2030-12-31T09%3A53%3A00Z&sr=c&sp=racwdl&sig=vd2yx048lHH1QWDkMIQdo0DaD77yb8BwC4cNz4GROPk%3D'
-    
+        , 'mapping_blob_account': dbutils.secrets.get("qa-media-scope", "target-blob-account")
+        , 'mapping_blob_container': dbutils.secrets.get("qa-media-scope", "target-blob-container")
+        , 'mapping_blob_sas': dbutils.secrets.get("qa-media-scope", "target-blob-sas")
+
+        , 'target_blob_account': dbutils.secrets.get("qa-media-scope", "target-blob-account")
+        , 'target_blob_container': dbutils.secrets.get("qa-media-scope", "target-blob-container")
+        , 'target_blob_sas': dbutils.secrets.get("qa-media-scope", "target-blob-sas")
+
         , 'emedia_input_scope': ''
         , 'emedia_input_key': ''
 
