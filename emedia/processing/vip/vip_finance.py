@@ -247,7 +247,6 @@ def vip_finance_etl(airflow_execution_date:str = ''):
                 req_start_date as req_start_date,
                 req_end_date as req_end_date,
                 dw_batch_number as dw_batch_number,
-                dw_batch_number as dw_batch_number,
                 dw_resource as dw_resource,
                 effect as effect
         FROM (
