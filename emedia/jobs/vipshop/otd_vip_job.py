@@ -123,7 +123,7 @@ def etl():
             , m2.category_id
             , m2.brand_id
         FROM mappint_fail_1 mfr1 LEFT JOIN mapping2 m2 ON mfr1.req_advertiser_id = m2.account_id
-        AND instr(mfr1.campaign_title, m2.keyword) > 0
+        AND instr(upper(mfr1.campaign_title), upper(m2.keyword)) > 0
     ''')
 
     mappint2_result_df \
@@ -142,7 +142,7 @@ def etl():
             , m3.category_id
             , m3.brand_id
         FROM mappint_fail_2 mfr2 LEFT JOIN mapping3 m3 ON mfr2.req_advertiser_id = m3.account_id
-        AND instr(mfr2.campaign_title, m3.keyword) > 0
+        AND instr(upper(mfr2.campaign_title), upper(m3.keyword)) > 0
     ''')
 
     mappint3_result_df \

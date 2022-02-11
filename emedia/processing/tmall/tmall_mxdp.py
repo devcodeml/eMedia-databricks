@@ -176,7 +176,7 @@ def tmall_mxdp_campaign_etl(airflow_execution_date:str = ''):
             , mapping_2.category_id
             , mapping_2.brand_id
         FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.req_storeId = mapping_2.account_id
-        AND INSTR(mapping_fail_1.campaigntitle, mapping_2.keyword) > 0
+        AND INSTR(upper(mapping_fail_1.campaigntitle), upper(mapping_2.keyword)) > 0
     ''')
 
     ## Second stage mapped
@@ -199,7 +199,7 @@ def tmall_mxdp_campaign_etl(airflow_execution_date:str = ''):
             , mapping_3.category_id
             , mapping_3.brand_id
         FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.req_storeId = mapping_3.account_id
-        AND INSTR(mapping_fail_2.campaigntitle, mapping_3.keyword) > 0
+        AND INSTR(upper(mapping_fail_2.campaigntitle), upper(mapping_3.keyword)) > 0
     ''')
 
     ## Third stage mapped

@@ -189,7 +189,7 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
             , mapping_2.category_id
             , mapping_2.brand_id
         FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.req_pin = mapping_2.account_id
-        AND INSTR(mapping_fail_1.groupName, mapping_2.keyword) > 0
+        AND INSTR(upper(mapping_fail_1.groupName), upper(mapping_2.keyword)) > 0
     ''')
 
     ## Second stage mapped
@@ -212,7 +212,7 @@ def jd_dmp_campaign_etl(airflow_execution_date:str = ''):
             , mapping_3.category_id
             , mapping_3.brand_id
         FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.req_pin = mapping_3.account_id
-        AND INSTR(mapping_fail_2.groupName, mapping_3.keyword) > 0
+        AND INSTR(upper(mapping_fail_2.groupName), upper(mapping_3.keyword)) > 0
     ''')
 
     ## Third stage mapped
