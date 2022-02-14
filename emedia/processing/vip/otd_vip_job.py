@@ -36,9 +36,10 @@ def vip_etl(airflow_execution_date):
     mapping_blob_sas = emedia_conf_dict.get('mapping_blob_sas')
     spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn"
                     , mapping_blob_sas)
-    
 
-    otd_vip_input_path = 'fetchResultFiles/scheduled__2021-12-090800000800/vip-otd_getDailyReports_2021-12-09.csv.gz'
+    file_date = etl_date - datetime.timedelta(days=1)
+
+    otd_vip_input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/vip_otd/get_finance_record/otd_getDailyReports_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     vip_report_df = spark.read.csv(
                     f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{otd_vip_input_path}"
