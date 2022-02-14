@@ -39,7 +39,7 @@ def vip_etl(airflow_execution_date):
 
     file_date = etl_date - datetime.timedelta(days=1)
 
-    otd_vip_input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/vip_otd/get_finance_record/otd_getDailyReports_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    otd_vip_input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/vip_otd/get_daily_reports/vip-otd_getDailyReports_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     vip_report_df = spark.read.csv(
                     f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{otd_vip_input_path}"
