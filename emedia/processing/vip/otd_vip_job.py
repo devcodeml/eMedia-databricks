@@ -175,45 +175,44 @@ def vip_etl(airflow_execution_date):
         .option("mergeSchema", "true") \
         .insertInto("stg.tb_emedia_vip_otd_mapping_fail")
 
-
     # ad_output_temp_path write
     tb_emedia_vip_otd_ad_fact_df = spark.sql(f'''
         SELECT
-            date_format(date, 'yyyyMMdd') as ad_date
-            , req_advertiser_id as store_id
-            , '' as account_name
-            , campaign_id
-            , campaign_title as campaign_name
-            , ad_id as adgroup_id
-            , ad_title as adgroup_name
-            , category_id
-            , brand_id
-            , impression as impressions
-            , click as clicks
-            , cost
-            , app_waken_uv
-            , cost_per_app_waken_uv
-            , app_waken_pv
-            , app_waken_rate
-            , miniapp_uv
-            , app_uv
-            , cost_per_app_uv
-            , cost_per_miniapp_uv
-            , general_uv
-            , product_uv
-            , special_uv
-            , effect
+            date_format(date, 'yyyyMMdd') as ad_date,
+            req_advertiser_id as store_id ,
+            '' as account_name ,
+            campaign_id as campaign_id ,
+            campaign_title as campaign_name ,
+            ad_id as adgroup_id ,
+            ad_title as adgroup_name ,
+            category_id ,
+            brand_id ,
+            impression as impressions ,
+            click as clicks ,
+            cost as cost ,
+            app_waken_uv as app_waken_uv ,
+            cost_per_app_waken_uv as cost_per_app_waken_uv ,
+            app_waken_pv as app_waken_pv ,
+            app_waken_rate as app_waken_rate ,
+            miniapp_uv as miniapp_uv ,
+            app_uv as app_uv ,
+            cost_per_app_uv as cost_per_app_uv ,
+            cost_per_miniapp_uv as cost_per_miniapp_uv ,
+            general_uv as general_uv ,
+            product_uv as product_uv ,
+            special_uv as special_uv ,
+            effect 
             , CASE effect WHEN '1' THEN book_customer_in_24hour WHEN '14' THEN book_customer_in_14day END AS book_customer
             , CASE effect WHEN '1' THEN new_customer_in_24hour WHEN '14' THEN new_customer_in_14day END AS new_customer
             , CASE effect WHEN '1' THEN customer_in_24hour WHEN '14' THEN customer_in_14day END AS customer
             , CASE effect WHEN '1' THEN book_sales_in_24hour WHEN '14' THEN book_sales_in_14day END AS book_sales
             , CASE effect WHEN '1' THEN sales_in_24hour WHEN '14' THEN sales_in_14day END AS order_value
             , CASE effect WHEN '1' THEN book_orders_in_24hour WHEN '14' THEN book_orders_in_14day END AS book_orders
-            , CASE effect WHEN '1' THEN orders_in_24hour WHEN '14' THEN orders_in_14day END AS order_quantity
-            , dw_resource AS data_source
-            , dw_create_time AS dw_etl_date
-            , dw_batch_number AS dw_batch_id
-            , channel
+            , CASE effect WHEN '1' THEN orders_in_24hour WHEN '14' THEN orders_in_14day END AS order_quantity,
+            dw_resource as data_source ,
+            dw_create_time as dw_etl_date ,
+            dw_batch_number as dw_batch_id ,
+            channel as channel 
         FROM(
             SELECT *
             FROM dws.tb_emedia_vip_otd_mapping_success
@@ -228,43 +227,42 @@ def vip_etl(airflow_execution_date):
 
     output_to_emedia(tb_emedia_vip_otd_ad_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_AD_FACT.CSV')
 
-
     # campaign_output_temp_path write
     tb_emedia_vip_otd_campaign_fact_df = spark.sql(f'''
         SELECT 
-            date_format(date, 'yyyyMMdd') as ad_date
-            , req_advertiser_id as store_id
-            , '' as account_name
-            , campaign_id as campaign_id
-            , campaign_title as campaign_name
-            , category_id
-            , brand_id
-            , impression as impressions
-            , click as clicks
-            , cost
-            , app_waken_uv
-            , cost_per_app_waken_uv
-            , app_waken_pv
-            , app_waken_rate
-            , miniapp_uv
-            , app_uv
-            , cost_per_app_uv
-            , cost_per_miniapp_uv
-            , general_uv
-            , product_uv
-            , special_uv
-            , effect
+            date_format(date, 'yyyyMMdd') as ad_date,
+            req_advertiser_id as store_id,
+            '' as account_name,
+            campaign_id as campaign_id,
+            campaign_title as campaign_name,
+            category_id,
+            brand_id,
+            impression as impressions,
+            click as clicks,
+            cost as cost,
+            app_waken_uv as app_waken_uv,
+            cost_per_app_waken_uv as cost_per_app_waken_uv,
+            app_waken_pv as app_waken_pv,
+            app_waken_rate as app_waken_rate,
+            miniapp_uv as miniapp_uv,
+            app_uv as app_uv,
+            cost_per_app_uv as cost_per_app_uv,
+            cost_per_miniapp_uv as cost_per_miniapp_uv,
+            general_uv as general_uv,
+            product_uv as product_uv,
+            special_uv as special_uv,
+            effect
             , case effect  when '1' then book_customer_in_24hour when '14' then book_customer_in_14day end as book_customer
             , case effect  when '1' then new_customer_in_24hour when '14' then new_customer_in_14day end as new_customer
             , case effect  when '1' then customer_in_24hour when '14' then customer_in_14day end as customer
             , case effect  when '1' then book_sales_in_24hour when '14' then book_sales_in_14day end as book_sales
             , case effect  when '1' then sales_in_24hour when '14' then sales_in_14day end as order_value
             , case effect  when '1' then book_orders_in_24hour when '14' then book_orders_in_14day end as book_orders
-            , case effect  when '1' then orders_in_24hour when '14' then orders_in_14day end as order_quantity
-            , dw_resource as data_source
-            , dw_create_time as dw_etl_date
-            , dw_batch_number as dw_batch_id
-            , channel
+            , case effect  when '1' then orders_in_24hour when '14' then orders_in_14day end as order_quantity,
+            dw_resource as data_source,
+            dw_create_time as dw_etl_date,
+            dw_batch_number as dw_batch_id,
+            channel as channel
         FROM (
             SELECT *
             FROM dws.tb_emedia_vip_otd_mapping_success
@@ -275,7 +273,7 @@ def vip_etl(airflow_execution_date):
         WHERE req_level = "REPORT_LEVEL_CAMPAIGN"
             AND date >= '{days_ago912}'
             AND date <= '{date}'
-    ''').dropDuplicates(['ad_date', 'store_id', 'campaign_id', 'adgroup_id', 'effect'])                        
+    ''').dropDuplicates(['ad_date', 'store_id', 'campaign_id', 'effect'])
 
     output_to_emedia(tb_emedia_vip_otd_campaign_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_CAMPAIGN_FACT.CSV')
 
