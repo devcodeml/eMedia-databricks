@@ -41,8 +41,8 @@ def vip_finance_etl(airflow_execution_date:str = ''):
     etl_day = int(airflow_execution_date[8:10])
     etl_date = (dt.datetime(etl_year, etl_month, etl_day))
 
-    output_date = dt.datetime.now().strftime("%Y-%m-%d")
-    output_date_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    output_date = airflow_execution_date[0:10]
+    output_date_time = output_date + "T" + airflow_execution_date[11:19]
 
     # to specify date range
     curr_date = dt.datetime.now().strftime("%Y%m%d")

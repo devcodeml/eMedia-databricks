@@ -9,11 +9,20 @@ from emedia.config.emedia_conf import emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 
 
-def vip_etl():
+def vip_etl(airflow_execution_date):
     spark = SparkSession.builder.getOrCreate()
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
-    days_ago912 = (datetime.datetime.now() - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
-    date_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+    etl_year = int(airflow_execution_date[0:4])
+    etl_month = int(airflow_execution_date[5:7])
+    etl_day = int(airflow_execution_date[8:10])
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
+
+    date = airflow_execution_date[0:10]
+    date_time = date + "T" + airflow_execution_date[11:19]
+    # date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # date_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     input_blob_account = emedia_conf_dict.get('input_blob_account')
     input_blob_container = emedia_conf_dict.get('input_blob_container')

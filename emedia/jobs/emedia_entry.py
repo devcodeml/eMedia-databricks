@@ -31,7 +31,7 @@ from emedia.processing.vip.vip_finance import vip_finance_etl
 def emedia_etl(etl_action, airflow_execution_date):
 
     if etl_action == 'vip_etl':
-        vip_etl()
+        vip_etl(airflow_execution_date)
 
     elif etl_action == 'vip_finance_etl':
         vip_finance_etl(airflow_execution_date)
