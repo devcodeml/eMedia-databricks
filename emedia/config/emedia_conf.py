@@ -12,16 +12,19 @@ dbutils = get_dbutils()
 
 
 def get_emedia_conf_dict():
-    if not os.path.exists('/dbfs/mnt/databricks_conf.ini'):
-        return 'qa'
-    dbfsCfgParser = configparser.ConfigParser()
-    dbfsCfgParser.read('/dbfs/mnt/databricks_conf.ini')
     env = "qa"
-    if dbfsCfgParser['common']['env'] != 'qa':
-        env = "prd"
-    scope_name = env+"_media-scope"
+    if not os.path.exists('/dbfs/mnt/databricks_conf.ini'):
+        env = 'qa'
+    else:
+        dbfsCfgParser = configparser.ConfigParser()
+        dbfsCfgParser.read('/dbfs/mnt/databricks_conf.ini')
+
+        if dbfsCfgParser['common']['env'] != 'qa':
+            env = "prd"
+
+    scope_name = env + "-media-scope"
     scope_conf_dict = {
-         'input_blob_account': dbutils.secrets.get(scope_name, "input-blob-account")
+        'input_blob_account': dbutils.secrets.get(scope_name, "input-blob-account")
         , 'input_blob_container': dbutils.secrets.get(scope_name, "input-blob-container")
         , 'input_blob_sas': dbutils.secrets.get(scope_name, "input-blob-sas")
 
