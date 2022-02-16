@@ -1,7 +1,8 @@
 # coding: utf-8
 
-from emedia import dbr_env, spark
-
+from emedia import spark
+import os
+import configparser
 
 def get_dbutils():
   from pyspark.dbutils import DBUtils
@@ -48,12 +49,14 @@ def get_emedia_conf_dict():
 
     }
 
-    if dbr_env == 'dev':
-        return dev
-    elif dbr_env == 'qa':
+    if not os.path.exists('/dbfs/mnt/databricks_conf.ini'):
+        return 'qa'
+    dbfsCfgParser = configparser.ConfigParser()
+    dbfsCfgParser.read('/dbfs/mnt/databricks_conf.ini')
+
+    if dbfsCfgParser['common']['env'] == 'qa':
         return qa
     else:
         return prod
 
-emedia_conf_dict = get_emedia_conf_dict()
 

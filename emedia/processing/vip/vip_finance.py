@@ -5,7 +5,7 @@ from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia import log, spark
-from emedia.config.emedia_conf import emedia_conf_dict
+from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 
 
@@ -48,7 +48,7 @@ def vip_finance_etl(airflow_execution_date:str = ''):
     curr_date = dt.datetime.now().strftime("%Y%m%d")
     days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
 
-
+    emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
     input_container = emedia_conf_dict.get('input_blob_container')
     input_sas = emedia_conf_dict.get('input_blob_sas')

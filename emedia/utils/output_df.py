@@ -7,7 +7,7 @@ from azure.storage.blob import BlockBlobService
 from emedia import spark
 
 
-from emedia.config.emedia_conf import emedia_conf_dict
+from emedia.config.emedia_conf import get_emedia_conf_dict
 
 
 def _rename_blob_file(prefix, new_file_name, dest_account, dest_container, dest_sas):
