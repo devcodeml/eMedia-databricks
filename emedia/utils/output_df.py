@@ -3,7 +3,6 @@
 from databricks_util.data_processing import data_writer
 from azure.storage.blob import BlockBlobService
 
-
 from emedia import spark
 
 
@@ -34,7 +33,7 @@ def output_to_emedia(df, parent_path, filename):
 
     filename: filename
     '''
-
+    emedia_conf_dict = get_emedia_conf_dict()
     account = emedia_conf_dict.get('target_blob_account')
     container = emedia_conf_dict.get('target_blob_container')
     sas = emedia_conf_dict.get('target_blob_sas')
@@ -63,7 +62,7 @@ def output_to_emedia(df, parent_path, filename):
 
 
 def create_blob_by_text(full_file_path, text):
-
+    emedia_conf_dict = get_emedia_conf_dict()
     account = emedia_conf_dict.get('target_blob_account')
     container = emedia_conf_dict.get('target_blob_container')
     sas = emedia_conf_dict.get('target_blob_sas')
