@@ -34,17 +34,18 @@ def get_emedia_conf_dict():
     qa = dev
 
     prod = {
-        'input_blob_account': ''
-        , 'input_blob_container': ''
-        , 'input_blob_sas': ''
-        
-        , 'mapping_blob_account':''
-        , 'mapping_blob_container':''
-        , 'mapping_blob_sas':''
+         'input_blob_account': dbutils.secrets.get("prd-media-scope", "input-blob-account")
+        , 'input_blob_container': dbutils.secrets.get("prd-media-scope", "input-blob-container")
+        , 'input_blob_sas': dbutils.secrets.get("prd-media-scope", "input-blob-sas")
 
-        , 'target_blob_account':''
-        , 'target_blob_container':''
-        , 'target_blob_sas':''
+        , 'mapping_blob_account': dbutils.secrets.get("prd-media-scope", "target-blob-account")
+        , 'mapping_blob_container': dbutils.secrets.get("prd-media-scope", "target-blob-container")
+        , 'mapping_blob_sas': dbutils.secrets.get("prd-media-scope", "target-blob-sas")
+
+        , 'target_blob_account': dbutils.secrets.get("prd-media-scope", "target-blob-account")
+        , 'target_blob_container': dbutils.secrets.get("prd-media-scope", "target-blob-container")
+        , 'target_blob_sas': dbutils.secrets.get("prd-media-scope", "target-blob-sas")
+
     }
 
     if dbr_env == 'dev':
