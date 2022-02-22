@@ -1,12 +1,12 @@
 # coding: utf-8
 
-import datetime as dt
+import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
+from emedia.utils.output_df import output_to_emedia
 
 
 tmall_pptx_campaign_mapping_success_tbl = 'dws.tb_emedia_tmall_pptx_campaign_mapping_success'
@@ -31,7 +31,7 @@ output_tmall_pptx_campaign_pks = [
 ]
 
 
-def tmall_pptx_campaign_etl(airflow_execution_date:str = ''):
+def tmall_pptx_campaign_etl(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -39,14 +39,13 @@ def tmall_pptx_campaign_etl(airflow_execution_date:str = ''):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (dt.datetime(etl_year, etl_month, etl_day))
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
 
-    output_date = dt.datetime.now().strftime("%Y-%m-%d")
-    output_date_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    date = airflow_execution_date[0:10]
+    date_time = date + "T" + airflow_execution_date[11:19]
+# to specify date range
 
-    # to specify date range
-    curr_date = dt.datetime.now().strftime("%Y%m%d")
-    days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -61,7 +60,7 @@ def tmall_pptx_campaign_etl(airflow_execution_date:str = ''):
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
     
 
-    file_date = etl_date - dt.timedelta(days=1)
+    file_date = etl_date - datetime.timedelta(days=1)
 
     tmall_pptx_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/pptx_daily_adgroupreport/tmall_pptx_adgroupreport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
@@ -256,19 +255,19 @@ def tmall_pptx_campaign_etl(airflow_execution_date:str = ''):
             uv as uv,
             'tmall' as data_source,
             dw_create_time as dw_etl_date,
-            '{curr_date}' as dw_batch_id 
+            '{etl_date}' as dw_batch_id 
         FROM (
             SELECT *
-            FROM dws.tb_emedia_tmall_pptx_campaign_mapping_success WHERE thedate >= '{days_ago912}' AND thedate <= '{curr_date}'
+            FROM dws.tb_emedia_tmall_pptx_campaign_mapping_success WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_tmall_pptx_campaign_mapping_fail
         )
         WHERE thedate >= '{days_ago912}'
-              AND thedate <= '{curr_date}'
+              AND thedate <= '{etl_date}'
     ''').dropDuplicates(output_tmall_pptx_campaign_pks)
 
-    output_to_emedia(tb_emedia_tmall_pptx_campaign_df, f'{output_date}/{output_date_time}/pptx', 'TB_EMEDIA_TMALL_PPTX_ADGROUP_FACT.CSV')
+    output_to_emedia(tb_emedia_tmall_pptx_campaign_df, f'{date}/{date_time}/pptx', 'TB_EMEDIA_TMALL_PPTX_ADGROUP_FACT.CSV')
 
     #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 

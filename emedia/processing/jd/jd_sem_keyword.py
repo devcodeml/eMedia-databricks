@@ -1,13 +1,13 @@
 # coding: utf-8
 
-import datetime as dt
+import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
-
+from emedia.utils.output_df import output_to_emedia
+from emedia.utils.output_df import write_eab_db
 
 jd_sem_keyword_mapping_success_tbl = 'dws.tb_emedia_jd_sem_keyword_mapping_success'
 jd_sem_keyword_mapping_fail_tbl = 'stg.tb_emedia_jd_sem_keyword_mapping_fail'
@@ -37,7 +37,7 @@ output_jd_sem_keyword_pks = [
 ]
 
 
-def jd_sem_keyword_etl(airflow_execution_date:str = ''):
+def jd_sem_keyword_etl(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -45,14 +45,13 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (dt.datetime(etl_year, etl_month, etl_day))
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
 
-    output_date = dt.datetime.now().strftime("%Y-%m-%d")
-    output_date_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    date = airflow_execution_date[0:10]
+    date_time = date + "T" + airflow_execution_date[11:19]
 
     # to specify date range
-    curr_date = dt.datetime.now().strftime("%Y%m%d")
-    days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -67,7 +66,7 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
     
 
-    file_date = etl_date - dt.timedelta(days=1)
+    file_date = etl_date - datetime.timedelta(days=1)
 
     jd_sem_keyword_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_keywordreport/jd_sem_keywordReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
@@ -334,61 +333,155 @@ def jd_sem_keyword_etl(airflow_execution_date:str = ''):
 
 
     # Query output result
-    tb_emedia_jd_sem_keyword_df = spark.sql(f'''
+    spark.sql(f'''
         SELECT
-            date AS ad_date
-            , req_pin AS pin_name
-            , req_campaignId AS campaign_id
-            , campaignName AS campaign_name
-            , req_groupId AS adgroup_id
-            , adGroupName AS adgroup_name
-            , category_id
-            , brand_id
-            , keywordName AS keyword_name
-            , targetingType	AS targeting_type
-            , '' AS req_isorderorclick
-            , req_clickOrOrderDay AS req_clickororderday
-            , req_clickOrOrderDay AS effect
-            , CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days
-            , req_orderstatuscategory
-            , '' AS mobiletype
-            , clicks
-            , cost
-            , ctr
-            , cpm
-            , cpc
-            , totalOrderROI AS totalorderroi
-            , impressions
-            , totalOrderCnt AS order_quantity
-            , totalOrderSum AS order_value
-            , indirectOrderCnt AS indirect_order_quantity
-            , directOrderCnt AS direct_order_quantity
-            , indirectOrderSum AS indirect_order_value
-            , directOrderSum AS direct_order_value
-            , indirectcartcnt
-            , directcartcnt
-            , totalCartCnt AS total_cart_quantity
-            , totalOrderCVS AS total_order_cvs
-            , '' AS effect_order_cnt
-            , '' AS effect_cart_cnt
-            , '' AS effect_order_sum
-            , '' AS data_source
-            , '{etl_date.strftime('%Y-%m-%d')}' AS dw_etl_date
-            , '{airflow_execution_date}' AS dw_batch_id
+            clicks as clicks,
+            cost as cost,
+            CPC as cpc,
+            CPM as cpm,
+            CTR as ctr,
+            date as date,
+            directCartCnt as direct_cart_cnt,
+            directOrderCnt as direct_order_quantity,
+            directOrderSum as direct_order_value,
+            '{run_id}' as dw_batch_id,
+            '{etl_date}' as dw_etl_date,
+            '' as data_source,
+            '' as effect_cart_cnt,
+            '' as effect_order_quantity,
+            '' as effect_order_value,
+            impressions as impressions,
+            indirectCartCnt as indirect_cart_cnt,
+            indirectOrderCnt as indirect_order_quantity,
+            indirectOrderSum as indirect_order_value,
+            keywordName as keyword_name,
+            '' as order_date,
+            req_campaignId as campaign_id,
+            '' as req_isorder_orclick,
+            CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END  as effect_days,
+            '' as req_delivery_type,
+            req_endDay as req_end_day,
+            req_giftFlag as gift_flag,
+            req_groupId as adgroup_id,
+            req_isDaily as req_isdaily,
+            req_orderStatusCategory as order_statuscategory,
+            req_page as req_page,
+            req_pageSize as req_page_size,
+            '' as mobile_type,
+            req_pin as pin_name,
+            date as ad_date,
+            targetingType as req_targeting_type,
+            'jd' as source,
+            totalCartCnt as total_cart_quantity,
+            totalOrderCnt as order_quantity,
+            totalOrderSum as order_value,
+            totalOrderCVS as total_order_cvs,
+            totalOrderROI as total_order_roi,
+            campaignName as campaign_name,
+            adGroupName as adgroup_name,
+            req_clickOrOrderDay as req_clickororderday,
+            req_clickOrOrderCaliber as req_clickOrOrderCaliber,
+            category_id,
+            brand_id
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_keyword_mapping_success
+            FROM dws.tb_emedia_jd_sem_keyword_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_keyword_mapping_fail
         )
         WHERE date >= '{days_ago912}'
-              AND date <= '{curr_date}'
-    ''').dropDuplicates(output_jd_sem_keyword_pks)
+              AND date <= '{etl_date}'
+    ''').dropDuplicates(output_jd_sem_keyword_pks).createOrReplaceTempView("emedia_jd_sem_daily_keyword_report")
 
-    output_to_emedia(tb_emedia_jd_sem_keyword_df, f'{output_date}/{output_date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
+    # Query blob output result
+    blob_df = spark.sql("""
+        select  ad_date as ad_date,
+                pin_name as pin_name,
+                campaign_id as campaign_id,
+                campaign_name as campaign_name,
+                adgroup_id as adgroup_id,
+                adgroup_name as adgroup_name,
+                category_id as category_id,
+                brand_id as brand_id,
+                keyword_name as keyword_name,
+                req_targeting_type as targeting_type,
+                req_isorder_orclick as req_isorderorclick,
+                req_clickororderday as req_clickororderday,
+                req_clickororderday as effect,
+                effect_days as effect_days,
+                order_statuscategory as req_orderstatuscategory,
+                mobile_type as mobiletype,
+                clicks as clicks,
+                cost as cost,
+                ctr as ctr,
+                cpm as cpm,
+                cpc as cpc,
+                total_order_roi as totalorderroi,
+                impressions as impressions,
+                order_quantity as order_quantity,
+                order_value as order_value,
+                indirect_order_quantity as indirect_order_quantity,
+                direct_order_quantity as direct_order_quantity,
+                indirect_order_value as indirect_order_value,
+                direct_order_value as direct_order_value,
+                indirect_cart_cnt as indirectcartcnt,
+                direct_cart_cnt as directcartcnt,
+                total_cart_quantity as total_cart_quantity,
+                total_order_cvs as total_order_cvs,
+                effect_order_quantity as effect_order_cnt,
+                effect_cart_cnt as effect_cart_cnt,
+                effect_order_value as effect_order_sum,
+                data_source as data_source,
+                dw_etl_date as dw_etl_date,
+                dw_batch_id as dw_batch_id
+        from    emedia_jd_sem_daily_keyword_report
+    """)
 
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    # Query db output result
+    db_df = spark.sql("""
+        select  	total_order_cvs as total_order_cvs,
+                    ad_date as ad_date,
+                    pin_name as pin_name,
+                    campaign_id as campaign_id,
+                    campaign_name as campaign_name,
+                    adgroup_id as adgroup_id,
+                    adgroup_name as adgroup_name,
+                    category_id as category_id,
+                    brand_id as brand_id,
+                    keyword_name as keyword_name,
+                    req_targeting_type as type,
+                    req_isorder_orclick as req_isorderorclick,
+                    req_clickororderday as req_clickororderday,
+                    req_clickororderday as effect,
+                    effect_days as effect_days,
+                    order_statuscategory as req_orderstatuscategory,
+                    mobile_type as mobiletype,
+                    clicks as clicks,
+                    cost as cost,
+                    ctr as ctr,
+                    cpm as cpm,
+                    cpc as cpc,
+                    total_order_roi as totalorderroi,
+                    impressions as impressions,
+                    order_quantity as order_quantity,
+                    order_value as order_value,
+                    indirect_order_quantity as indirect_order_quantity,
+                    direct_order_quantity as direct_order_quantity,
+                    indirect_order_value as indirect_order_value,
+                    direct_order_value as direct_order_value,
+                    indirect_cart_cnt as indirectcartcnt,
+                    direct_cart_cnt as directcartcnt,
+                    total_cart_quantity as total_cart_quantity,
+                    data_source as data_source,
+                    dw_etl_date as dw_etl_date,
+                    dw_batch_id as dw_batch_id
+                    from    emedia_jd_sem_daily_keyword_report    
+    """)
+
+    output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
+
+    write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT")
 
     return 0
 

@@ -1,12 +1,13 @@
 # coding: utf-8
 
-import datetime as dt
+import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
 from databricks_util.data_processing import data_writer
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
+from emedia.utils.output_df import output_to_emedia
+from emedia.utils.output_df import write_eab_db
 
 
 jd_sem_campaign_mapping_success_tbl = 'dws.tb_emedia_jd_sem_campaign_mapping_success'
@@ -33,7 +34,7 @@ output_jd_sem_campaign_pks = [
 ]
 
 
-def jd_sem_campaign_etl(airflow_execution_date:str = ''):
+def jd_sem_campaign_etl(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -41,14 +42,13 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (dt.datetime(etl_year, etl_month, etl_day))
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
 
-    output_date = dt.datetime.now().strftime("%Y-%m-%d")
-    output_date_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-
+    date = airflow_execution_date[0:10]
+    date_time = date + "T" + airflow_execution_date[11:19]
     # to specify date range
-    curr_date = dt.datetime.now().strftime("%Y%m%d")
-    days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
+
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -63,7 +63,7 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
     
 
-    file_date = etl_date - dt.timedelta(days=1)
+    file_date = etl_date - datetime.timedelta(days=1)
 
 
     jd_sem_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_campaignreport/jd_sem_campaignReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
@@ -304,8 +304,8 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
                     directCartCnt as direct_cart_cnt ,
                     directOrderCnt as direct_order_quantity ,
                     directOrderSum as direct_order_value ,
-                    '{output_date_time}'  as dw_batch_id ,
-                    '{curr_date}' as dw_etl_date ,
+                    '{run_id}' as dw_batch_id,
+                    '{etl_date}' as dw_etl_date,
                     '' as effect_cart_cnt ,
                     CASE req_clickOrOrderDay WHEN '0' THEN '0'  WHEN '7' THEN '8'  WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
                     '' as effect_order_quantity ,
@@ -352,12 +352,12 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
                     req_clickOrOrderDay  as req_clickOrOrderDay 
                 FROM(
                     SELECT *
-                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{curr_date}'
+                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
                         UNION
                     SELECT *
                     FROM stg.tb_emedia_jd_sem_campaign_mapping_fail
                     )
-                    WHERE date >= '{days_ago912}' AND date <= '{curr_date}'
+                    WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
         """).dropDuplicates(output_jd_sem_campaign_pks).createOrReplaceTempView("emedia_jd_sem_daily_campaign_report")
 
     # Query blob output result
@@ -458,14 +458,10 @@ def jd_sem_campaign_etl(airflow_execution_date:str = ''):
                 req_page_size as req_page_size
         from    emedia_jd_sem_daily_campaign_report    
     """)
-    # TODO write to db
-    # data_writer.write_to_db(db_df,)
-    print(db_df.count())
 
+    output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
-    output_to_emedia(blob_df, f'{output_date}/{output_date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
-
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_CAMPAIGN_NEW_FACT")
 
     return 0
 

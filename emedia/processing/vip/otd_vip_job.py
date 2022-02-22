@@ -6,7 +6,7 @@ from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
+from emedia.utils.output_df import output_to_emedia
 
 
 def vip_etl(airflow_execution_date):
@@ -277,7 +277,7 @@ def vip_etl(airflow_execution_date):
 
     output_to_emedia(tb_emedia_vip_otd_campaign_fact_df, f'{date}/{date_time}/otd', 'TB_EMEDIA_VIP_OTD_CAMPAIGN_FACT.CSV')
 
-
+    spark.sql("optimize dws.tb_emedia_vip_otd_mapping_success")
     #create_blob_by_text(f"{date}/flag.txt", date_time)
 
     return 0

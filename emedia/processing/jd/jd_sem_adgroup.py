@@ -1,12 +1,13 @@
 # coding: utf-8
 
-import datetime as dt
+import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
+from emedia.utils.output_df import output_to_emedia
+from emedia.utils.output_df import write_eab_db
 
 
 jd_sem_adgroup_mapping_success_tbl = 'dws.tb_emedia_jd_sem_adgroup_mapping_success'
@@ -30,13 +31,13 @@ output_jd_sem_adgroup_pks = [
     , 'adgroup_id'
     , 'campaign_id'
     , 'effect_days'
-    , 'mobiletype'
+    , 'mobile_type'
     , 'req_isdaily'
     , 'source'
 ]
 
 
-def jd_sem_adgroup_etl(airflow_execution_date:str = ''):
+def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -44,14 +45,12 @@ def jd_sem_adgroup_etl(airflow_execution_date:str = ''):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (dt.datetime(etl_year, etl_month, etl_day))
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
 
-    output_date = dt.datetime.now().strftime("%Y-%m-%d")
-    output_date_time = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-
+    date = airflow_execution_date[0:10]
+    date_time = date + "T" + airflow_execution_date[11:19]
     # to specify date range
-    curr_date = dt.datetime.now().strftime("%Y%m%d")
-    days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -66,7 +65,7 @@ def jd_sem_adgroup_etl(airflow_execution_date:str = ''):
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
     
 
-    file_date = etl_date - dt.timedelta(days=1)
+    file_date = etl_date - datetime.timedelta(days=1)
 
 
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
@@ -381,68 +380,181 @@ def jd_sem_adgroup_etl(airflow_execution_date:str = ''):
 
 
     # Query output result
-    tb_emedia_jd_sem_adgroup_df = spark.sql(f'''
+    spark.sql(f'''
         SELECT
-            date AS ad_date
-            , pin AS pin_name
-            , campaignId AS campaign_id
-            , campaignName AS campaign_name
-            , adGroupId AS adgroup_id
-            , adGroupName AS adgroup_name
-            , category_id
-            , brand_id
-            , req_isdaily
-            , '' AS req_isorderorclick
-            , '' AS req_istodayor15days
-            , CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days
-            , req_orderstatuscategory
-            , mobiletype
-            , clicks
-            , cost
-            , directOrderCnt AS direct_order_quantity
-            , directOrderSum AS direct_order_value
-            , impressions
-            , indirectOrderCnt AS indirect_order_quantity
-            , indirectOrderSum AS indirect_order_value
-            , totalCartCnt AS total_cart_quantity
-            , totalOrderROI AS total_order_roi
-            , totalOrderCVS AS total_order_cvs
-            , indirectCartCnt AS indirect_cart_cnt
-            , directCartCnt AS direct_cart_cnt
-            , cpc
-            , cpa
-            , ctr
-            , cpm
-            , totalOrderCnt AS order_quantity
-            , totalOrderSum AS order_value
-            , req_clickOrOrderDay AS effect
-            , depthPassengerCnt AS depth_passenger_quantity
-            , visitTimeAverage AS visit_time_length
-            , visitPageCnt AS visit_page_quantity
-            , newCustomersCnt AS new_customer_quantity
-            , goodsAttentionCnt AS favorite_item_quantity
-            , shopAttentionCnt AS favorite_shop_quantity
-            , preorderCnt AS preorder_quantity
-            , couponCnt AS coupon_quantity
-            , visitorCnt AS visitor_quantity
-            , '' AS data_source
-            , '{etl_date.strftime('%Y-%m-%d')}' AS dw_etl_date
-            , '{airflow_execution_date}' AS dw_batch_id
-            , source
+                date as ad_date,
+                adGroupId as adgroup_id,
+                adGroupName as adgroup_name,
+                brand_id,
+                campaignId as campaign_id,
+                campaignName as campaign_name,
+                category_id,
+                clicks as clicks,
+                cost as cost,
+                couponCnt as coupon_quantity,
+                CPA as cpa,
+                CPC as cpc,
+                CPM as cpm,
+                CTR as ctr,
+                "" as data_source,
+                date as date,
+                depthPassengerCnt as depth_passenger_quantity,
+                directCartCnt as direct_cart_cnt,
+                directOrderCnt as direct_order_quantity,
+                directOrderSum as direct_order_value,
+                '{run_id}' as dw_batch_id,
+                '{etl_date}' as dw_etl_date,
+                req_clickOrOrderDay as effect,
+                CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END  as effect_days,
+                goodsAttentionCnt as favorite_item_quantity,
+                shopAttentionCnt as favorite_shop_quantity,
+                req_giftFlag as gift_flag,
+                impressions as impressions,
+                indirectCartCnt as indirect_cart_cnt,
+                indirectOrderCnt as indirect_order_quantity,
+                indirectOrderSum as indirect_order_value,
+                mobileType as mobile_type,
+                mobileType as mobile_type_response,
+                newCustomersCnt as new_customer_quantity,
+                totalOrderCnt as order_quantity,
+                req_orderStatusCategory as order_statuscategory,
+                totalOrderSum as order_value,
+                pin as pin_name,
+                preorderCnt as preorder_quantity,
+                campaignId as req_campaign_id,
+                "" as req_delivery_type,
+                req_endDay as req_end_day,
+                adGroupId as req_group_id,
+                req_isdaily as req_isdaily,
+                "" as req_isorder_orclick,
+                "" as req_istodayor15days,
+                req_page as req_page,
+                req_pageSize as req_page_size,
+                source,
+                totalCartCnt as total_cart_quantity,
+                totalOrderCVS as total_order_cvs,
+                totalOrderROI as total_order_roi,
+                visitPageCnt as visit_page_quantity,
+                visitTimeAverage as visit_time_length,
+                visitorCnt as visitor_quantity
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_adgroup_mapping_success
+            FROM dws.tb_emedia_jd_sem_adgroup_mapping_success  where date >= '{days_ago912}' AND date <= '{etl_date}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_adgroup_mapping_fail
-        )
+        )  
         WHERE date >= '{days_ago912}'
-              AND date <= '{curr_date}'
-    ''').dropDuplicates(output_jd_sem_adgroup_pks)
+              AND date <= '{etl_date}'
+    ''').dropDuplicates(output_jd_sem_adgroup_pks).createOrReplaceTempView("emedia_jd_sem_daily_adgroup_report")
 
-    output_to_emedia(tb_emedia_jd_sem_adgroup_df, f'{output_date}/{output_date_time}/sem', 'TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT.CSV')
+    # Query blob output result
+    blob_df = spark.sql("""
+            select  ad_date,
+                    pin_name as pin_name,
+                    campaign_id as campaign_id,
+                    campaign_name as campaign_name,
+                    adgroup_id as adgroup_id,
+                    adgroup_name as adgroup_name,
+                    category_id as category_id,
+                    brand_id as brand_id,
+                    req_isdaily as req_isdaily,
+                    req_isorder_orclick as req_isorderorclick,
+                    req_istodayor15days as req_istodayor15days,
+                    effect_days as effect_days,
+                    order_statuscategory as req_orderstatuscategory,
+                    mobile_type as mobiletype,
+                    clicks as clicks,
+                    cost as cost,
+                    direct_order_quantity as direct_order_quantity,
+                    direct_order_value as direct_order_value,
+                    impressions as impressions,
+                    indirect_order_quantity as indirect_order_quantity,
+                    indirect_order_value as indirect_order_value,
+                    total_cart_quantity as total_cart_quantity,
+                    total_order_roi as total_order_roi,
+                    total_order_cvs as total_order_cvs,
+                    indirect_cart_cnt as indirect_cart_cnt,
+                    direct_cart_cnt as direct_cart_cnt,
+                    cpc as cpc,
+                    cpa as cpa,
+                    ctr as ctr,
+                    cpm as cpm,
+                    order_quantity as order_quantity,
+                    order_value as order_value,
+                    effect as effect,
+                    depth_passenger_quantity as depth_passenger_quantity,
+                    visit_time_length as visit_time_length,
+                    visit_page_quantity as visit_page_quantity,
+                    new_customer_quantity as new_customer_quantity,
+                    favorite_item_quantity as favorite_item_quantity,
+                    favorite_shop_quantity as favorite_shop_quantity,
+                    preorder_quantity as preorder_quantity,
+                    coupon_quantity as coupon_quantity,
+                    visitor_quantity as visitor_quantity,
+                    data_source,
+                    dw_etl_date,
+                    dw_batch_id,
+                    source as source
+        from    emedia_jd_sem_daily_adgroup_report    
+    """)
 
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    # Query db output result
+    db_df = spark.sql("""
+        select  	ad_date as ad_date,
+                    pin_name as pin_name,
+                    campaign_id as campaign_id,
+                    campaign_name as campaign_name,
+                    adgroup_id as adgroup_id,
+                    adgroup_name as adgroup_name,
+                    category_id as category_id,
+                    brand_id as brand_id,
+                    req_isdaily as req_isdaily,
+                    req_isorder_orclick as req_isorderorclick,
+                    req_istodayor15days as req_istodayor15days,
+                    effect_days as effect_days,
+                    order_statuscategory as req_orderstatuscategory,
+                    mobile_type as mobiletype,
+                    clicks as clicks,
+                    cost as cost,
+                    direct_order_quantity as direct_order_quantity,
+                    direct_order_value as direct_order_value,
+                    impressions as impressions,
+                    indirect_order_quantity as indirect_order_quantity,
+                    indirect_order_value as indirect_order_value,
+                    total_cart_quantity as total_cart_quantity,
+                    total_order_roi as total_order_roi,
+                    total_order_cvs as total_order_cvs,
+                    indirect_cart_cnt as indirect_cart_cnt,
+                    direct_cart_cnt as direct_cart_cnt,
+                    cpc as cpc,
+                    cpa as cpa,
+                    ctr as ctr,
+                    cpm as cpm,
+                    order_quantity as order_quantity,
+                    order_value as order_value,
+                    depth_passenger_quantity as depth_passenger_quantity,
+                    visit_time_length as visit_time_length,
+                    visit_page_quantity as visit_page_quantity,
+                    new_customer_quantity as new_customer_quantity,
+                    favorite_item_quantity as favorite_item_quantity,
+                    favorite_shop_quantity as favorite_shop_quantity,
+                    preorder_quantity as preorder_quantity,
+                    coupon_quantity as coupon_quantity,
+                    visitor_quantity as visitor_quantity,
+                    data_source as data_source,
+                    dw_etl_date as dw_etl_date,
+                    dw_batch_id as dw_batch_id,
+                    source as source,
+                    effect as effect
+        from    emedia_jd_sem_daily_adgroup_report    
+    """)
+    output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT.CSV')
+
+    write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT")
+
+
+#create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 

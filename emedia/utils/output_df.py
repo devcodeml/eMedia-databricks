@@ -82,3 +82,17 @@ def create_blob_by_text(full_file_path, text):
 
     return 0
 
+def write_eab_db(df,run_id,table_name):
+
+    emedia_conf_dict = get_emedia_conf_dict()
+    url = emedia_conf_dict["mysql_url"]
+    user = emedia_conf_dict["mysql_user"]
+    password = emedia_conf_dict["mysql_pwd"]
+
+    size = df.count()
+
+    data_writer.write_to_db(df=df, url=url, mode="append", driver='com.mysql.jdbc.Driver', dbtable=table_name,user=user, password=password)
+
+    # log insert
+    log_df = spark.sql(f"""select '{run_id}' as batchid,'{table_name}' as table_name,now() as created_time,{size} as size""")
+    data_writer.write_to_db(df=log_df, url=url, mode="append", driver='com.mysql.jdbc.Driver', dbtable="eab_log",user=user, password=password)

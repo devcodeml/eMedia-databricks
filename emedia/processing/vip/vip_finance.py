@@ -1,12 +1,12 @@
 # coding: utf-8
 
-import datetime as dt
+import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
 
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
+from emedia.utils.output_df import output_to_emedia
 
 
 vip_finance_mapping_success_tbl = 'dws.tb_emedia_vip_finance_mapping_success'
@@ -31,7 +31,7 @@ out_vip_finance_pks = [
 ]
 
 
-def vip_finance_etl(airflow_execution_date:str = ''):
+def vip_finance_etl(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -39,14 +39,14 @@ def vip_finance_etl(airflow_execution_date:str = ''):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (dt.datetime(etl_year, etl_month, etl_day))
+    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
 
     output_date = airflow_execution_date[0:10]
     output_date_time = output_date + "T" + airflow_execution_date[11:19]
 
     # to specify date range
-    curr_date = dt.datetime.now().strftime("%Y%m%d")
-    days_ago912 = (dt.datetime.now() - dt.timedelta(days=912)).strftime("%Y%m%d")
+
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -61,7 +61,7 @@ def vip_finance_etl(airflow_execution_date:str = ''):
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
     
 
-    file_date = etl_date - dt.timedelta(days=1)
+    file_date = etl_date - datetime.timedelta(days=1)
 
     vip_finance_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/vip_otd/get_finance_record/vip-otd_getFinanceRecord_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
@@ -251,16 +251,16 @@ def vip_finance_etl(airflow_execution_date:str = ''):
                 effect as effect
         FROM (
             SELECT *
-            FROM dws.tb_emedia_vip_finance_mapping_success WHERE date >= '{days_ago912}' AND date <= '{curr_date}'
+            FROM dws.tb_emedia_vip_finance_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_vip_finance_mapping_fail
         )
         WHERE date >= '{days_ago912}'
-              AND date <= '{curr_date}'
+              AND date <= '{etl_date}'
     ''').dropDuplicates(out_vip_finance_pks)
 
-    output_to_emedia(tb_emedia_vip_finance_df, f'{output_date}/{output_date_time}/otdfa', 'TB_EMEDIA_VIP_OTD_FA_FACT.CSV')
+    output_to_emedia(tb_emedia_vip_finance_df, f'{date}/{date_time}/otdfa', 'TB_EMEDIA_VIP_OTD_FA_FACT.CSV')
 
     #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 

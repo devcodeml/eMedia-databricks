@@ -28,7 +28,7 @@ from emedia.processing.vip.vip_finance import vip_finance_etl
 
 
 
-def emedia_etl(etl_action, airflow_execution_date):
+def emedia_etl(etl_action, airflow_execution_date,run_id):
 
     if etl_action == 'vip_etl':
         vip_etl(airflow_execution_date)
@@ -52,19 +52,19 @@ def emedia_etl(etl_action, airflow_execution_date):
         jd_dmp_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'jd_sem_adgroup_etl':
-        jd_sem_adgroup_etl(airflow_execution_date)
+        jd_sem_adgroup_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_keyword_etl':
-        jd_sem_keyword_etl(airflow_execution_date)
+        jd_sem_keyword_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_creative_etl':
-        jd_sem_creative_etl(airflow_execution_date)
+        jd_sem_creative_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_target_etl':
-        jd_sem_target_etl(airflow_execution_date)
+        jd_sem_target_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_zt_campaign_etl':
-        jd_zt_campaign_etl(airflow_execution_date)
+        jd_zt_campaign_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'update_flag':
         # "2022-01-23 22:15:00+00:00"
@@ -74,4 +74,5 @@ def emedia_etl(etl_action, airflow_execution_date):
     return 0
 
 if __name__ == '__main__':
-    emedia_etl(sys.argv[1], sys.argv[2])
+
+    emedia_etl(sys.argv[1],sys.argv[2],sys.argv[3].replace(":", "").replace("+", ""))
