@@ -18,11 +18,17 @@ from emedia.processing.jd.jd_sem_adgroup import jd_sem_adgroup_etl
 
 from emedia.processing.jd.jd_sem_keyword import jd_sem_keyword_etl
 
-from emedia.processing.jd.jd_zt import jd_zt_campaign_etl
-
 from emedia.processing.jd.jd_sem_creative import jd_sem_creative_etl
 
+from emedia.processing.jd.jd_sem_campaign import jd_sem_campaign_etl
+
 from emedia.processing.jd.jd_sem_target import jd_sem_target_etl
+
+from emedia.processing.jd.jd_zt import jd_zt_campaign_etl
+
+from emedia.processing.jd.jd_zt_adgroup import jd_zt_adgroup_campaign_etl
+
+from emedia.processing.jd.jd_finance import jd_finance_campaign_etl
 
 from emedia.processing.vip.vip_finance import vip_finance_etl
 
@@ -30,14 +36,25 @@ from emedia.processing.vip.vip_finance import vip_finance_etl
 
 def emedia_etl(etl_action, airflow_execution_date,run_id):
 
+    # vip 部分
     if etl_action == 'vip_etl':
         vip_etl(airflow_execution_date)
 
     elif etl_action == 'vip_finance_etl':
         vip_finance_etl(airflow_execution_date)
 
+    # JD 部分
+    elif etl_action == 'jd_dmp_campaign_etl':
+        jd_dmp_campaign_etl(airflow_execution_date)
+
+    elif etl_action == 'jd_finance_campaign_etl':
+        jd_finance_campaign_etl(airflow_execution_date)
+
     elif etl_action == 'jd_gwcd_campaign_etl':
         jd_gwcd_campaign_etl(airflow_execution_date)
+
+    elif etl_action == 'jd_ha_campaign_etl':
+        jd_ha_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'jd_ht_campaign_etl':
         jd_ht_campaign_etl(airflow_execution_date)
@@ -45,26 +62,26 @@ def emedia_etl(etl_action, airflow_execution_date,run_id):
     elif etl_action == 'jd_jst_campaign_etl':
         jd_jst_campaign_etl(airflow_execution_date)
 
-    elif etl_action == 'jd_ha_campaign_etl':
-        jd_ha_campaign_etl(airflow_execution_date)
-
-    elif etl_action == 'jd_dmp_campaign_etl':
-        jd_dmp_campaign_etl(airflow_execution_date)
-
     elif etl_action == 'jd_sem_adgroup_etl':
         jd_sem_adgroup_etl(airflow_execution_date,run_id)
 
-    elif etl_action == 'jd_sem_keyword_etl':
-        jd_sem_keyword_etl(airflow_execution_date,run_id)
+    elif etl_action == 'jd_sem_campaign_etl':
+        jd_sem_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'jd_sem_creative_etl':
         jd_sem_creative_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'jd_sem_keyword_etl':
+        jd_sem_keyword_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_target_etl':
         jd_sem_target_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_zt_campaign_etl':
-        jd_zt_campaign_etl(airflow_execution_date,run_id)
+        jd_zt_campaign_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'jd_zt_adgroup_campaign_etl':
+        jd_zt_adgroup_campaign_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'update_flag':
         # "2022-01-23 22:15:00+00:00"
