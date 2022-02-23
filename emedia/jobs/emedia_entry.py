@@ -66,7 +66,7 @@ def emedia_etl(etl_action, airflow_execution_date,run_id):
         jd_sem_adgroup_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_campaign_etl':
-        jd_sem_campaign_etl(airflow_execution_date)
+        jd_sem_campaign_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_sem_creative_etl':
         jd_sem_creative_etl(airflow_execution_date,run_id)
@@ -78,10 +78,10 @@ def emedia_etl(etl_action, airflow_execution_date,run_id):
         jd_sem_target_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'jd_zt_campaign_etl':
-        jd_zt_campaign_etl(airflow_execution_date, run_id)
+        jd_zt_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'jd_zt_adgroup_campaign_etl':
-        jd_zt_adgroup_campaign_etl(airflow_execution_date, run_id)
+        jd_zt_adgroup_campaign_etl(airflow_execution_date)
 
     elif etl_action == 'update_flag':
         # "2022-01-23 22:15:00+00:00"
