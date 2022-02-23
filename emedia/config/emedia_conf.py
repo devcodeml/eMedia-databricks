@@ -38,10 +38,10 @@ def get_emedia_conf_dict():
 
         , 'mysql_user': 'datalake@consumer-qa-emedia-db-0'
         , 'mysql_pwd': 'b2062ff9122811e99ce54f08370059c1'
-        , 'mysql_url': 'jdbc:mysql://consumer-qa-emedia-db-0.mysql.database.chinacloudapi.cn:3306/coremaster?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'
+        , 'mysql_url': 'jdbc:mysql://consumer-qa-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'
     }
     if env != 'qa':
         scope_conf_dict.update({'mysql_user': 'datalake@consumer-prd-emedia-db-0 '
                                    ,'mysql_pwd': 'b7fc6fa71d2411e9b18143f2f2e8b4ca'
-                                   ,'mysql_url': 'jdbc:mysql://consumer-prd-emedia-db-0.mysql.database.chinacloudapi.cn:3306/coremaster?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'})
+                                   ,'mysql_url': 'jdbc:mysql://consumer-prd-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'})
     return scope_conf_dict
