@@ -43,12 +43,13 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
     etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
+    etl_date_where = etl_date.strftime("%Y%m%d")
 
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
     # to specify date range
 
-    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y%m%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -349,15 +350,16 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
                     totalPresaleOrderSum as totalPresaleOrderSum ,                     
                     req_productName as req_productName ,                     
                     req_clickOrOrderCaliber as req_clickOrOrderCaliber ,                     
-                    req_clickOrOrderDay  as req_clickOrOrderDay 
+                    req_clickOrOrderDay  as req_clickOrOrderDay,
+                    etl_date
                 FROM(
                     SELECT *
-                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
+                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
                         UNION
                     SELECT *
                     FROM stg.tb_emedia_jd_sem_campaign_mapping_fail
                     )
-                    WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
+                    WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
         """).dropDuplicates(output_jd_sem_campaign_pks).createOrReplaceTempView("emedia_jd_sem_daily_campaign_report")
 
     # Query blob output result
@@ -407,7 +409,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
     """)
 
     # Query db output result
-    db_df = spark.sql("""
+    db_df = spark.sql(f"""
         select  order_statuscategory as req_orderstatuscategory, 
                 pin_name as pin_name, 
                 ad_date as ad_date, 
@@ -451,7 +453,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
                 data_source as data_source, 
                 dw_etl_date as dw_etl_date, 
                 concat_ws("@", ad_date,campaign_id,effect_days,mobile_type,pin_name,req_isdaily) as rowkey 
-        from    emedia_jd_sem_daily_campaign_report    
+        from    emedia_jd_sem_daily_campaign_report      where etl_date = '{etl_date_where}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')

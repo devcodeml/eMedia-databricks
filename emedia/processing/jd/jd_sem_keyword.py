@@ -46,12 +46,12 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
     etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
+    etl_date_where = etl_date.strftime("%Y%m%d")
 
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
-
     # to specify date range
-    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y%m%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -382,16 +382,17 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
             req_clickOrOrderDay as req_clickororderday,
             req_clickOrOrderCaliber as req_clickOrOrderCaliber,
             category_id,
-            brand_id
+            brand_id,
+            etl_date
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_keyword_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
+            FROM dws.tb_emedia_jd_sem_keyword_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_keyword_mapping_fail
         )
         WHERE date >= '{days_ago912}'
-              AND date <= '{etl_date}'
+              AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_sem_keyword_pks).createOrReplaceTempView("emedia_jd_sem_daily_keyword_report")
 
     # Query blob output result
@@ -439,7 +440,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
     """)
 
     # Query db output result
-    db_df = spark.sql("""
+    db_df = spark.sql(f"""
             select  ad_date as ad_date,
                     pin_name as pin_name,
                     campaign_id as campaign_id,
@@ -477,7 +478,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     dw_etl_date as dw_etl_date,
                     dw_batch_id as dw_batch_id,
                     concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey
-                    from    emedia_jd_sem_daily_keyword_report    
+                    from    emedia_jd_sem_daily_keyword_report    where etl_date = '{etl_date_where}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')

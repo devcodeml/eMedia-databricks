@@ -44,12 +44,12 @@ def jd_dmp_campaign_etl(airflow_execution_date):
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
     etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
+    etl_date_where = etl_date.strftime("%Y%m%d")
 
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
-# to specify date range
-
-    days_ago912 = (datetime.datetime.now() - datetime.timedelta(days=912)).strftime("%Y%m%d")
+    # to specify date range
+    days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y%m%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get('input_blob_account')
@@ -329,13 +329,13 @@ def jd_dmp_campaign_etl(airflow_execution_date):
             req_pageSize
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_dmp_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
+            FROM dws.tb_emedia_jd_dmp_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_dmp_campaign_mapping_fail
         )
         WHERE date >= '{days_ago912}'
-              AND date <= '{etl_date}'
+              AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_dmp_campaign_pks)
 
     output_to_emedia(tb_emedia_jd_dmp_campaign_df, f'{date}/{date_time}/dmp', 'EMEDIA_JD_DMP_DAILY_CREATIVE_REPORT_FACT.CSV')
