@@ -167,6 +167,9 @@ def jd_jst_campaign_etl(airflow_execution_date):
             , req_clickOrOrderCaliber
             , req_isDaily
             , req_pin
+            , dw_resource
+            , dw_create_time
+            , dw_batch_number
             , mapping_1.category_id
             , mapping_1.brand_id
         FROM jd_jst_campaign_daily LEFT JOIN mapping_1 ON jd_jst_campaign_daily.req_pin = mapping_1.account_id

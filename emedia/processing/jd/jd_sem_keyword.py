@@ -26,14 +26,14 @@ jd_sem_keyword_pks = [
 
 
 output_jd_sem_keyword_pks = [
-    'ad_date'
-    , 'pin_name'
+    'keyword_name'
     , 'campaign_id'
-    , 'adgroup_id'
-    , 'keyword_name'
-    , 'targeting_type'
     , 'effect_days'
-    , 'req_orderstatuscategory'
+    , 'adgroup_id'
+    , 'order_statuscategory'
+    , 'pin_name'
+    , 'ad_date'
+    , 'req_targeting_type'
 ]
 
 
@@ -440,8 +440,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
 
     # Query db output result
     db_df = spark.sql("""
-        select  	total_order_cvs as total_order_cvs,
-                    ad_date as ad_date,
+            select  ad_date as ad_date,
                     pin_name as pin_name,
                     campaign_id as campaign_id,
                     campaign_name as campaign_name,
@@ -450,7 +449,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     category_id as category_id,
                     brand_id as brand_id,
                     keyword_name as keyword_name,
-                    req_targeting_type as type,
+                    req_targeting_type as targeting_type,
                     req_isorder_orclick as req_isorderorclick,
                     req_clickororderday as req_clickororderday,
                     req_clickororderday as effect,
@@ -473,9 +472,11 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     indirect_cart_cnt as indirectcartcnt,
                     direct_cart_cnt as directcartcnt,
                     total_cart_quantity as total_cart_quantity,
+                    total_order_cvs as total_order_cvs,
                     data_source as data_source,
                     dw_etl_date as dw_etl_date,
-                    dw_batch_id as dw_batch_id
+                    dw_batch_id as dw_batch_id,
+                    concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey
                     from    emedia_jd_sem_daily_keyword_report    
     """)
 

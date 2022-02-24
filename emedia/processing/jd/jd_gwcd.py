@@ -42,7 +42,6 @@ def jd_gwcd_campaign_etl(airflow_execution_date):
 
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
-# to specify date range
 
     days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
@@ -179,6 +178,10 @@ def jd_gwcd_campaign_etl(airflow_execution_date):
             , req_isDaily
             , req_page
             , req_pageSize
+            , req_pin
+            , dw_resource
+            , dw_create_time
+            , dw_batch_number
             , mapping_1.category_id
             , mapping_1.brand_id
         FROM jd_gwcd_daily LEFT JOIN mapping_1 ON jd_gwcd_daily.pin = mapping_1.account_id

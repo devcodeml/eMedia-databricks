@@ -69,6 +69,10 @@ CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_jd_gwcd_campaign_mapping_success` (
   , req_isDaily STRING
   , req_page STRING
   , req_pageSize STRING
+  , req_pin String
+  , dw_resource String
+  , dw_create_time String
+  , dw_batch_number String
   , category_id STRING
   , brand_id STRING
   , `etl_date` DATE
@@ -149,6 +153,10 @@ CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_jd_gwcd_campaign_mapping_fail` (
   , req_isDaily STRING
   , req_page STRING
   , req_pageSize STRING
+  , req_pin String
+  , dw_resource String
+  , dw_create_time String
+  , dw_batch_number String
   , category_id STRING
   , brand_id STRING
   , `etl_date` DATE

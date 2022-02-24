@@ -429,7 +429,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             newCustomersCnt as new_customer_quantity,
             '{run_id}' as dw_batch_id,       
             dw_resource as data_source,
-            dw_create_time as dw_etl_date,
+            '{etl_date}' as dw_etl_date,
             source,
             req_endDay as req_end_day,
             req_page as req_page,

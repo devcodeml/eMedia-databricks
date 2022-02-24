@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_jd_jst_campaign_mapping_success` (
   , req_clickOrOrderCaliber STRING
   , req_isDaily STRING
   , req_pin STRING
+  , dw_resource STRING
+  , dw_create_time STRING
+  , dw_batch_number STRING
   , category_id STRING
   , brand_id STRING
   , `etl_date` DATE
@@ -125,6 +128,9 @@ CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_jd_jst_campaign_mapping_fail` (
   , req_clickOrOrderCaliber STRING
   , req_isDaily STRING
   , req_pin STRING
+  , dw_resource STRING
+  , dw_create_time STRING
+  , dw_batch_number STRING
   , category_id STRING
   , brand_id STRING
   , `etl_date` DATE
