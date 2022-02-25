@@ -257,7 +257,7 @@ def jd_ha_campaign_etl(airflow_execution_date):
 
         FROM (
             SELECT *
-            FROM dws.tb_emedia_jd_ha_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date}'
+            FROM dws.tb_emedia_jd_ha_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_ha_campaign_mapping_fail
