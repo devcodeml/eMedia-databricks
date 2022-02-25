@@ -578,7 +578,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')
 
-    write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_CREATIVE_EAB")
+    # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_CREATIVE_EAB")
 
     return 0
 

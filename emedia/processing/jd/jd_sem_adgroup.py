@@ -553,10 +553,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT.CSV')
 
-    write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT")
-
-
-#create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT")
 
     return 0
 
