@@ -456,6 +456,8 @@ def jd_zt_adgroup_campaign_etl(airflow_execution_date:str = ''):
 
     output_to_emedia(tb_emedia_jd_zt_adgroup_campaign_df, f'{date}/{date_time}/jdzt', 'EMEDIA_JD_ZT_DAILY_ADGROUP_REPORT_FACT.CSV')
 
+    spark.sql("optimize dws.tb_emedia_jd_zt_adgroup_campaign_mapping_success")
+
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0

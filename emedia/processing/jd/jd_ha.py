@@ -268,7 +268,7 @@ def jd_ha_campaign_etl(airflow_execution_date):
 
     output_to_emedia(tb_emedia_jd_ha_campaign_df, f'{date}/{date_time}/jdha', 'TB_EMEDIA_JD_HA_FACT.CSV')
 
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+    spark.sql("optimize dws.tb_emedia_jd_ha_campaign_mapping_success")
 
     return 0
 

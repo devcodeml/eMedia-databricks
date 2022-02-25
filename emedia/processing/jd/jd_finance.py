@@ -285,6 +285,8 @@ def jd_finance_campaign_etl(airflow_execution_date):
 
     output_to_emedia(tb_emedia_jd_finance_campaign_df, f'{date}/{date_time}/jdfa', 'TB_EMEDIA_JD_FA_FACT.CSV')
 
+    spark.sql("optimize dws.tb_emedia_jd_finance_campaign_mapping_success")
+
     #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0

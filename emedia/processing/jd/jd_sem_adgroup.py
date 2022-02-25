@@ -551,7 +551,9 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
                     effect as effect
         from    emedia_jd_sem_daily_adgroup_report   where etl_date = '{etl_date_where}'
     """)
-    output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT.CSV')
+    output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
+
+    spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
 
     # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT")
 
