@@ -454,6 +454,12 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             preorderCnt as preorder_quantity,
             couponCnt as coupon_quantity,
             visitorCnt as visitor_quantity,
+            departmentGmv as departmentgmv,
+            platformCnt as platformcnt,
+            platformGmv as platformgmv,
+            channelROI as channelroi,
+            departmentCnt as departmentcnt,
+            adVisitorCntForInternalSummary as advisitorcntforinternalsummary,
             etl_date
         FROM(
             SELECT *
@@ -521,66 +527,73 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
         from emedia_jd_sem_daily_creative_report
     """)
 
-
     # Query db output result
 
-    db_df = spark.sql(f"""
-            select 
-                ad_date as ad_date,
-                pin_name as pin_name,
-                campaign_id as campaign_id,
-                campaign_name as campaign_name,
-                campaign_type as campaign_type,
-                adgroup_id as adgroup_id,
-                adgroup_name as adgroup_name,
-                creative_id as creative_id,
-                creative_name as creative_name,
-                req_isdaily as req_isdaily,
-                effect_days as effect_days,
-                req_isorderorclick as req_isorder_orclick,
-                gift_flag as gift_flag,
-                req_orderstatuscategory as order_statuscategory,
-                mobiletype as mobile_type,
-                impressions as impressions,
-                clicks as clicks,
-                ctr as ctr,
-                cost as cost,
-                cpm as cpm,
-                cpc as cpc,
-                direct_order_quantity as direct_order_quantity,
-                direct_order_value as direct_order_value,
-                indirect_order_quantity as indirect_order_quantity,
-                indirect_order_value as indirect_order_value,
-                order_quantity as order_quantity,
-                order_value as order_value,
-                direct_cart_cnt as direct_cart_cnt,
-                indirect_cart_cnt as indirect_cart_cnt,
-                total_cart_quantity as total_cart_quantity,
-                total_order_cvs as total_order_cvs,
-                cpa as cpa,
-                total_order_roi as total_order_roi,
-                new_customer_quantity as new_customer_quantity,
-                dw_batch_id as dw_batch_id,
-                data_source as data_source,
-                dw_etl_date as dw_etl_date,
-                source as source,
-                req_end_day as req_end_day,
-                req_page as req_page,
-                req_page_size as req_page_size,
-                mobile_type_response as mobile_type_response,
-                req_campaign_id as req_campaign_id,
-                req_delivery_type as req_delivery_type,
-                req_group_id as req_group_id,
-                date as date,
-                req_ad_id as req_ad_id
-            from emedia_jd_sem_daily_creative_report where etl_date = '{etl_date_where}'
+    eab_db = spark.sql(f"""
+          select 
+            creative_id as creative_id,
+            creative_name as creative_name,
+            advisitorcntforinternalsummary as ad_visitor_cnt_for_internal_summary,
+            campaign_id as campaign_id,
+            campaign_name as campaign_name,
+            channelroi as channel_roi,
+            req_isorderorclick as req_isorderorclick,
+            clicks as clicks,
+            cost as cost,
+            coupon_quantity as coupon_quantity,
+            cpa as cpa,
+            cpc as cpc,
+            cpm as cpm,
+            ctr as ctr,
+            source as source,
+            ad_date as ad_date,
+            departmentcnt as department_cnt,
+            platformgmv as department_gmv,
+            depth_passenger_quantity as depth_passenger_quantity,
+            direct_cart_cnt as direct_cart_cnt,
+            direct_order_quantity as direct_order_quantity,
+            direct_order_value as direct_order_value,
+            effect as effect,
+            effect_days as effect_days,
+            favorite_item_quantity as favorite_item_quantity,
+            adgroup_id as adgroup_id,
+            adgroup_name as adgroup_name,
+            impressions as impressions,
+            indirect_cart_cnt as indirect_cart_cnt,
+            indirect_order_quantity as indirect_order_quantity,
+            indirect_order_value as indirect_order_value,
+            req_istodayor15days as req_istodayor15days,
+            mobiletype as mobiletype,
+            new_customer_quantity as new_customer_quantity,
+            req_orderstatuscategory as req_orderstatuscategory,
+            pin_name as pin_name,
+            platformcnt as platform_cnt,
+            platformgmv as platform_gmv,
+            preorder_quantity as preorder_quantity,
+            favorite_shop_quantity as favorite_shop_quantity,
+            total_cart_quantity as total_cart_quantity,
+            order_quantity as order_quantity,
+            total_order_cvs as total_order_cvs,
+            total_order_roi as total_order_roi,
+            order_value as order_value,
+            visitor_quantity as visitor_quantity,
+            visit_page_quantity as visit_page_quantity,
+            visit_time_length as visit_time_length,
+            category_id as category_id,
+            brand_id as brand_id,
+            dw_batch_id as dw_batch_id,
+            data_source as data_source,
+            dw_etl_date as dw_etl_date,
+            concat_ws("@", ad_date,campaign_id,adgroup_id,creative_id,source,effect_days,pin_name,req_isdaily) as rowkey,
+            req_isdaily as req_isdaily
+          from emedia_jd_sem_daily_creative_report where etl_date = '{etl_date}'
         """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')
 
-    spark.sql("optimize dws.tb_emedia_jd_sem_creative_mapping_success")
+    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}/', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',compression = 'gzip')
 
-    # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_CREATIVE_EAB")
+    spark.sql("optimize dws.tb_emedia_jd_sem_creative_mapping_success")
 
     return 0
 

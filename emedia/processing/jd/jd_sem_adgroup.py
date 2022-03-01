@@ -502,7 +502,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     """)
 
     # Query db output result
-    db_df = spark.sql(f"""
+    eab_db = spark.sql(f"""
         select  	ad_date as ad_date,
                     pin_name as pin_name,
                     campaign_id as campaign_id,
@@ -549,13 +549,13 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
                     dw_batch_id as dw_batch_id,
                     source as source,
                     effect as effect
-        from    emedia_jd_sem_daily_adgroup_report   where etl_date = '{etl_date_where}'
+        from    emedia_jd_sem_daily_adgroup_report   where etl_date = '{etl_date}'
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
 
-    spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
+    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}/', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',compression = 'gzip')
 
-    # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_ADGROUP_NEW_FACT")
+    spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
 
     return 0
 

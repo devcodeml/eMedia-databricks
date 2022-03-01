@@ -369,7 +369,8 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                     req_clickOrOrderDay as effect,
                     req_clickOrOrderCaliber as req_clickOrOrderCaliber,
                     campaignName as campaign_name,
-                    adGroupName as adgroup_name
+                    adGroupName as adgroup_name,
+                    etl_date
                 FROM(
                     SELECT *
                     FROM dws.tb_emedia_jd_sem_target_mapping_success WHERE req_startDay >= '{days_ago912}' AND req_startDay <= '{etl_date}'
@@ -422,7 +423,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
     """)
 
     # Query db output result
-    db_df = spark.sql("""
+    eab_db = spark.sql(f"""
         select  ad_date as ad_date,
                 pin_name as pin_name,
                 campaign_id as campaign_id,
@@ -459,17 +460,14 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                 data_source as data_source,
                 dw_etl_date as dw_etl_date,
                 dw_batch_id as dw_batch_id
-        from    emedia_jd_sem_daily_target_report    
+        from    emedia_jd_sem_daily_target_report   where etl_date = '{etl_date}'  
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_TARGET_NEW_FACT.CSV')
 
+    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}/', f'tb_emedia_jd_kc_crowd_day-{date}.csv.gz',compression = 'gzip')
+
     spark.sql("optimize dws.tb_emedia_jd_sem_target_mapping_success")
-
-
-    # write_eab_db(db_df,run_id,"TB_EMEDIA_JD_SEM_TARGET_NEW_FACT")
-
-
 
     return 0
 

@@ -409,7 +409,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
     """)
 
     # Query db output result
-    db_df = spark.sql(f"""
+    eab_db = spark.sql(f"""
         select  order_statuscategory as req_orderstatuscategory, 
                 pin_name as pin_name, 
                 ad_date as ad_date, 
@@ -453,14 +453,15 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
                 data_source as data_source, 
                 dw_etl_date as dw_etl_date, 
                 concat_ws("@", ad_date,campaign_id,effect_days,mobile_type,pin_name,req_isdaily) as rowkey 
-        from    emedia_jd_sem_daily_campaign_report      where etl_date = '{etl_date_where}'
+        from    emedia_jd_sem_daily_campaign_report      where etl_date = '{etl_date}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
+    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}/', f'tb_emedia_jd_kc_campaign_day-{date}.csv.gz',compression = 'gzip')
+
     spark.sql("optimize dws.tb_emedia_jd_sem_campaign_mapping_success")
 
-    # write_eab_db(db_df, run_id, "TB_EMEDIA_JD_SEM_CAMPAIGN_NEW_FACT")
 
     return 0
 

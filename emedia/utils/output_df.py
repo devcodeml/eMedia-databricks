@@ -23,7 +23,7 @@ def _rename_blob_file(prefix, new_file_name, dest_account, dest_container, dest_
             blob_service.delete_blob(copy_from_container, blob.name)
 
 
-def output_to_emedia(df, parent_path, filename):
+def output_to_emedia(df, parent_path, filename,**option):
     '''
     Output dataframe as one CSV file
 
@@ -43,7 +43,7 @@ def output_to_emedia(df, parent_path, filename):
     random_str = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
     tmp_path = f"tmp/{random_str}/{parent_path}".replace(':', '_', -1)
-    
+
     df.coalesce(1).write.csv(
         path = f"wasbs://{container}@{account}.blob.core.chinacloudapi.cn/{tmp_path}"
         , header = True
@@ -52,6 +52,7 @@ def output_to_emedia(df, parent_path, filename):
         , quote = "\""
         , nullValue = u'\u0000'
         , emptyValue = u'\u0000'
+        ,**option
     )
     
     data_writer.delete_blob_mark_file(tmp_path, container, account, sas, 'core.chinacloudapi.cn')
