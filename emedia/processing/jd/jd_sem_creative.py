@@ -591,7 +591,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')
 
-    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}/', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',compression = 'gzip')
+    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',compression = 'gzip')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_creative_mapping_success")
 
