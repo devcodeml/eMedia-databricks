@@ -446,6 +446,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                 ctr as ctr,
                 cpm as cpm,
                 cpc as cpc,
+                if(order_quantity = 0 ,0, cost/order_quantit)  as cpa,
                 direct_order_quantity as direct_order_quantity,
                 direct_order_value as direct_order_value,
                 indirect_order_quantity as indirect_order_quantity,
@@ -465,7 +466,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_TARGET_NEW_FACT.CSV')
 
-    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_crowd_day-{date}.csv.gz',compression = 'gzip')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_crowd_day-{date}.csv.gz',compression = 'gzip')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_target_mapping_success")
 

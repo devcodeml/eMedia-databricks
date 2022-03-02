@@ -481,13 +481,13 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     dw_etl_date as dw_etl_date,
                     dw_batch_id as dw_batch_id,
                     concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey,
-                    '' as cpa
+                    if(order_quantity = 0 ,0, cost/order_quantity)  as cpa
                 from    emedia_jd_sem_daily_keyword_report    where etl_date = '{etl_date}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
 
-    output_to_emedia(blob_df, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',compression = 'gzip')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',compression = 'gzip')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_keyword_mapping_success")
 
