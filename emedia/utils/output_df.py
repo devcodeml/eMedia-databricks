@@ -23,7 +23,7 @@ def _rename_blob_file(prefix, new_file_name, dest_account, dest_container, dest_
             blob_service.delete_blob(copy_from_container, blob.name)
 
 
-def output_to_emedia(df, parent_path, filename,**option):
+def output_to_emedia(df, parent_path, filename,sep=r'\\001',**option):
     '''
     Output dataframe as one CSV file
 
@@ -47,7 +47,7 @@ def output_to_emedia(df, parent_path, filename,**option):
     df.coalesce(1).write.csv(
         path = f"wasbs://{container}@{account}.blob.core.chinacloudapi.cn/{tmp_path}"
         , header = True
-        , sep = r'\\001'
+        , sep = sep
         , mode = "overwrite"
         , quote = "\""
         , nullValue = u'\u0000'
