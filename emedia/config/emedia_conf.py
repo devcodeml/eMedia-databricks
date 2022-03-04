@@ -36,9 +36,9 @@ def get_emedia_conf_dict():
         , 'target_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
         , 'target_blob_sas': dbutils.secrets.get(scope_name, "target-blob-sas")
 
-        , 'eab_blob_account': 'b2bcdhdplandingqa01'
+        , 'eab_blob_account': 'consumeremediaqa01'
         , 'eab_blob_container': 'eab'
-        , 'eab_blob_sas': 'sv=2020-04-08&si=eab-17A611F761A&sr=c&sig=vxhTcWoJGsCESHDX0xFwVZnNh6taO3Lk7xCd%2FDjWSoY%3D'
+        , 'eab_blob_sas': 'sp=racwdl&st=2022-03-04T10:15:21Z&se=2024-02-29T18:15:21Z&sv=2020-08-04&sr=c&sig=qcTnty%2BHv2S0%2B%2ByuVR8b7O9hIsWoC1m8zRspoEJVK9Y%3D'
 
         # , 'eab_blob_account': dbutils.secrets.get(scope_name, "target-blob-account")
         # , 'eab_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
