@@ -350,7 +350,5 @@ def jd_jst_campaign_etl(airflow_execution_date):
 
     spark.sql("optimize dws.tb_emedia_jd_jst_campaign_mapping_success")
 
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
-
     return 0
 

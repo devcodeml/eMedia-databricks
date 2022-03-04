@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_vip_otd_mapping_success` (
 )
 USING delta
 PARTITIONED BY (date)
-LOCATION  'dbfs:/mnt/${spark.dbr_env}/data_warehouse/media_dws.db/tb_emedia_vip_otd_mapping_success';
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dws.db/tb_emedia_vip_otd_mapping_success';
 
 
 DROP TABLE IF EXISTS `stg`.`tb_emedia_vip_otd_mapping_fail`;
@@ -123,5 +123,5 @@ CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_vip_otd_mapping_fail` (
   , `etl_create_time` TIMESTAMP
 )
 USING delta
-LOCATION  'dbfs:/mnt/${spark.dbr_env}/data_warehouse/media_stg.db/tb_emedia_vip_otd_mapping_fail';
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_stg.db/tb_emedia_vip_otd_mapping_fail';
 

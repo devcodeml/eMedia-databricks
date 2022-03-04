@@ -7,7 +7,6 @@ from pyspark.sql.functions import current_date, current_timestamp
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
-from emedia.utils.output_df import write_eab_db
 
 jd_sem_keyword_mapping_success_tbl = 'dws.tb_emedia_jd_sem_keyword_mapping_success'
 jd_sem_keyword_mapping_fail_tbl = 'stg.tb_emedia_jd_sem_keyword_mapping_fail'
@@ -72,7 +71,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
 
     log.info(f'jd sem keyword file: {jd_sem_keyword_path}')
 
-    jd_sem_keyword_daily_df = spark.read.csv(
+    spark.read.csv(
                     f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_keyword_path}"
                     , header = True
                     , multiLine = True
@@ -487,7 +486,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',compression = 'gzip',sep='|')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',write_to_eab=True,compression = 'gzip',sep='|')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_keyword_mapping_success")
 

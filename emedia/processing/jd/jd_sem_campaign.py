@@ -69,7 +69,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
 
     jd_sem_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_campaignreport/jd_sem_campaignReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'jd sem campaign file: {jd_sem_campaign_path}')
+    log.info(f'jd_sem_campaign file: {jd_sem_campaign_path}')
 
     jd_sem_campaign_daily_df = spark.read.csv(
                     f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_campaign_path}"
@@ -458,7 +458,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_campaign_day-{date}.csv.gz',compression = 'gzip',sep='|')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_campaign_day-{date}.csv.gz',write_to_eab=True,compression = 'gzip',sep='|')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_campaign_mapping_success")
 

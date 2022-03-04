@@ -66,7 +66,7 @@ def jd_zt_campaign_etl(airflow_execution_date):
 
     jd_zt_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/zt_daily_newReport/jd-zt_newReportUserrptcsv_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'jd ha campaign file: {jd_zt_campaign_path}')
+    log.info(f'jd zt file: {jd_zt_campaign_path}')
 
     jd_zt_campaign_daily_df = spark.read.csv(
                     f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_zt_campaign_path}"

@@ -92,4 +92,4 @@ def emedia_etl(etl_action, airflow_execution_date,run_id):
 
 if __name__ == '__main__':
 
-    emedia_etl(sys.argv[1],sys.argv[2],sys.argv[3].replace(":", "").replace("+", ""))
+    emedia_etl(sys.argv[1],sys.argv[2],sys.argv[3].replace(":", "").replace("+", "").replace(".", ""))
