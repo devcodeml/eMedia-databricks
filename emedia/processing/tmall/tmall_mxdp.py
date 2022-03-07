@@ -35,7 +35,7 @@ output_tmall_mxdp_campaign_pks = [
 ]
 
 
-def tmall_mxdp_campaign_etl(airflow_execution_date):
+def tmall_mxdp_etl(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''

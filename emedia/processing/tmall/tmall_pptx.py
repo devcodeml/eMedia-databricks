@@ -31,7 +31,7 @@ output_tmall_pptx_campaign_pks = [
 ]
 
 
-def tmall_pptx_campaign_etl(airflow_execution_date):
+def tmall_pptx_etl(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''

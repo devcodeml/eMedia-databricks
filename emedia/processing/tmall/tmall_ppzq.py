@@ -35,7 +35,7 @@ output_tmall_ppzq_campaign_pks = [
 ]
 
 
-def tmall_ppzq_campaign_etl(airflow_execution_date):
+def tmall_ppzq_etl(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''
