@@ -354,7 +354,7 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
                     etl_date
                 FROM(
                     SELECT *
-                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
+                    FROM dws.tb_emedia_jd_sem_campaign_mapping_success 
                         UNION
                     SELECT *
                     FROM stg.tb_emedia_jd_sem_campaign_mapping_fail
@@ -412,13 +412,13 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
     eab_db = spark.sql(f"""
         select  order_statuscategory as req_orderstatuscategory, 
                 pin_name as pin_name, 
-                ad_date as ad_date, 
+                date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
                 category_id as category_id, 
                 brand_id as brand_id, 
                 campaign_id as campaign_id, 
                 campaign_name as campaign_name, 
                 req_isdaily as req_isdaily, 
-                req_isorder_orclick as req_isorderorclick, 
+                '0' as req_isorderorclick, 
                 req_clickOrOrderDay as effect, 
                 effect_days as effect_days, 
                 mobile_type as mobiletype, 

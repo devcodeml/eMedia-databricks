@@ -463,7 +463,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             etl_date
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_creative_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
+            FROM dws.tb_emedia_jd_sem_creative_mapping_success 
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_creative_mapping_fail
@@ -537,7 +537,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             campaign_id as campaign_id,
             campaign_name as campaign_name,
             channelroi as channel_roi,
-            req_isorderorclick as req_isorderorclick,
+            '0' as req_isorderorclick,
             clicks as clicks,
             cost as cost,
             coupon_quantity as coupon_quantity,
@@ -547,7 +547,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             ctr as ctr,
             if(clicks = 0 ,0.0000, order_quantity/clicks) as cvr,
             source as source,
-            ad_date as ad_date,
+            date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
             departmentcnt as department_cnt,
             platformgmv as department_gmv,
             depth_passenger_quantity as depth_passenger_quantity,
@@ -563,7 +563,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             indirect_cart_cnt as indirect_cart_cnt,
             indirect_order_quantity as indirect_order_quantity,
             indirect_order_value as indirect_order_value,
-            req_istodayor15days as req_istodayor15days,
+            effect as req_istodayor15days,
             mobiletype as mobiletype,
             new_customer_quantity as new_customer_quantity,
             req_orderstatuscategory as req_orderstatuscategory,

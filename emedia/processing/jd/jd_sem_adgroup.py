@@ -441,7 +441,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
                 etl_date
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_adgroup_mapping_success  where date >= '{days_ago912}' AND date <= '{etl_date_where}'
+            FROM dws.tb_emedia_jd_sem_adgroup_mapping_success 
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_adgroup_mapping_fail
@@ -503,7 +503,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
 
     # Query db output result
     eab_db = spark.sql(f"""
-        select  	ad_date as ad_date,
+        select  	date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
                     pin_name as pin_name,
                     campaign_id as campaign_id,
                     campaign_name as campaign_name,

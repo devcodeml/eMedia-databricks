@@ -337,7 +337,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                     dmpFactor as dmpfactor,
                     'TRUE' as req_isdaily,
                     CASE req_clickOrOrderDay WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days,
-                    '' as req_isorderorclick,
+                    '0' as req_isorderorclick,
                     req_giftFlag as gift_flag,
                     req_orderStatusCategory as req_orderstatuscategory,
                     impressions as impressions,
@@ -373,7 +373,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                     etl_date
                 FROM(
                     SELECT *
-                    FROM dws.tb_emedia_jd_sem_target_mapping_success WHERE req_startDay >= '{days_ago912}' AND req_startDay <= '{etl_date}'
+                    FROM dws.tb_emedia_jd_sem_target_mapping_success 
                         UNION
                     SELECT *
                     FROM stg.tb_emedia_jd_sem_target_mapping_fail
@@ -424,7 +424,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
 
     # Query db output result
     eab_db = spark.sql(f"""
-        select  ad_date as ad_date,
+        select  date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
                 pin_name as pin_name,
                 campaign_id as campaign_id,
                 campaign_name as campaign_name,
@@ -436,8 +436,8 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                 target_audience_name as target_audience_name,
                 dmpstatus as dmpstatus,
                 dmpfactor as dmpfactor,
-                req_isorderorclick as req_isorderorclick,
-                req_istodayor15days as req_istodayor15days,
+                '0' as req_isorderorclick,
+                effect as req_istodayor15days,
                 effect_days as effect_days,
                 req_orderstatuscategory as req_orderstatuscategory,
                 impressions as impressions,

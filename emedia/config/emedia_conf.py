@@ -52,8 +52,8 @@ def get_emedia_conf_dict():
         scope_conf_dict.update({'mysql_user': 'datalake@consumer-prd-emedia-db-0 '
                                    , 'mysql_pwd': 'b7fc6fa71d2411e9b18143f2f2e8b4ca'
                                    ,'mysql_url': 'jdbc:mysql://consumer-prd-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'})
-        scope_conf_dict.update({'eab_blob_account': 'b2bcdhdplandingprd01',
+        scope_conf_dict.update({'eab_blob_account': 'consumeremediaprd01',
                                 'eab_blob_container': 'eab',
-                                'eab_blob_sas': 'sv=2020-04-08&si=eab-17BC372D701&sr=c&sig=fIt18PBo1GzQy1xfGxAOkP5rdwR6PXV6jPC4%2BSvDtgQ%3D'})
+                                'eab_blob_sas': 'sr=c&si=PSD45315-racwdl&sig=aySskWosrGIa0EGTjQiuwewn4yaJhvSR%2FELv3M%2BTJ9A%3D&sv=2020-06-12'})
 
     return scope_conf_dict

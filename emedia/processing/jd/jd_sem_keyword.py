@@ -440,7 +440,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
 
     # Query db output result
     eab_db = spark.sql(f"""
-            select  ad_date as ad_date,
+            select  date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
                     pin_name as pin_name,
                     campaign_id as campaign_id,
                     campaign_name as campaign_name,
@@ -450,7 +450,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     brand_id as brand_id,
                     keyword_name as keyword_name,
                     req_targeting_type as targeting_type,
-                    req_isorder_orclick as req_isorderorclick,
+                    '0' as req_isorderorclick,
                     req_clickororderday as req_clickororderday,
                     req_clickororderday as effect,
                     effect_days as effect_days,
