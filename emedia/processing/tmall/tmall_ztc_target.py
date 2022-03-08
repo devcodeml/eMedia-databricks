@@ -21,6 +21,7 @@ tmall_ztc_target_pks = [
     , 'crowd_id'
     , 'req_effect_days'
     , 'req_storeId'
+    ,'req_pv_type_in'
 ]
 
 
@@ -32,6 +33,7 @@ output_tmall_ztc_target_pks = [
     , 'crowd_id'
     , 'effect_days'
     , 'req_storeId'
+    ,'source'
 ]
 
 
@@ -210,6 +212,8 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
         
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_storeId = all_mapping_success.req_storeId
         
+        AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_pv_type_in = all_mapping_success.req_pv_type_in
+
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED
@@ -244,6 +248,7 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
             crowd_name as crowd_name,
             req_effect_days as effect_days,
             req_storeId as req_storeId,
+            req_pv_type_in as source,
             impression as impression,
             click as click,
             cost as cost,
@@ -325,7 +330,105 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
         WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
     ''').dropDuplicates(output_tmall_ztc_target_pks)
 
-    output_to_emedia(tb_emedia_tmall_ztc_target_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_TARGET_REPORT_NEW_FACT.CSV')
+    tb_emedia_tmall_ztc_target_df.createOrReplaceTempView('tb_emedia_tmall_ztc_target')
+
+    # Query db output result
+    eab_db = spark.sql(f"""
+                   select  	ad_date as ad_date,
+                            req_storeId as store_id,
+                            category_id as category_id,
+                            brand_id as brand_id,
+                            campaign_id as campaign_id,
+                            campaign_name as campaign_name,
+                            adgroup_id as adgroup_id,
+                            adgroup_name as adgroup_name,
+                            crowd_id as target_id,
+                            crowd_name as target_name,
+                            effect_days as effect_days,
+                            source as source,
+                            'SEARCH' as search_type,
+                            cost as cost,
+                            click as click,
+                            impression as impression,
+                            ctr as ctr,
+                            cpc as cpc,
+                            cpm as cpm,
+                            roi as roi,
+                            direct_transaction as direct_order_value,
+                            indirect_transaction as indirect_order_value,
+                            direct_transaction_shipping as direct_order_quantity,
+                            indirect_transaction_shipping as indirect_order_quantity,
+                            fav_item_total as favorite_item_quantity,
+                            fav_shop_total as favorite_shop_quantity,
+                            coverage as cvr,
+                            direct_cart_total as direct_cart_quantity,
+                            indirect_cart_total as indirect_cart_quantity,
+                            cart_total as total_cart_quantity,
+                            transaction_shipping_total as total_order_quantity,
+                            transaction_total as total_order_value,
+                            fav_total as total_favorite_quantity,
+                            dw_batch_id as dw_batch_id,
+                            data_source as data_source,
+                            dw_etl_date as dw_etl_date,
+                            campaign_type as campaign_type,
+                            campaign_type_name as campaign_type_name,
+                            cart_total_cost as cart_total_cost,
+                            fav_item_total_cost as fav_item_total_cost,
+                            fav_item_total_coverage as fav_item_total_coverage,
+                            cart_total_coverage as cart_total_coverage,
+                            epre_pay_amt as epre_pay_amt,
+                            epre_pay_cnt as epre_pay_cnt,
+                            dir_epre_pay_amt as dir_epre_pay_amt,
+                            dir_epre_pay_cnt as dir_epre_pay_cnt,
+                            indir_epre_pay_amt as indir_epre_pay_amt,
+                            indir_epre_pay_cnt as indir_epre_pay_cnt,
+                            direct_transaction_shipping_coverage as direct_transaction_shipping_coverage,
+                            click_shopping_num as click_shopping_num,
+                            click_shopping_amt as click_shopping_amt,
+                            search_impression as search_impression,
+                            search_transaction as search_transaction,
+                            ww_cnt as ww_cnt,
+                            hfh_dj_cnt as hfh_dj_cnt,
+                            hfh_dj_amt as hfh_dj_amt,
+                            hfh_ys_cnt as hfh_ys_cnt,
+                            hfh_ys_amt as hfh_ys_amt,
+                            hfh_ykj_cnt as hfh_ykj_cnt,
+                            hfh_ykj_amt as hfh_ykj_amt,
+                            rh_cnt as rh_cnt,
+                            lz_cnt as lz_cnt,
+                            transaction_total_in_yuan as transaction_total_in_yuan,
+                            cpm_in_yuan as cpm_in_yuan,
+                            indir_epre_pay_amt_in_yuan as indir_epre_pay_amt_in_yuan,
+                            cpc_in_yuan as cpc_in_yuan,
+                            dir_epre_pay_amt_in_yuan as dir_epre_pay_amt_in_yuan,
+                            click_shopping_amt_in_yuan as click_shopping_amt_in_yuan,
+                            hfh_ys_amt_in_yuan as hfh_ys_amt_in_yuan,
+                            cart_total_cost_in_yuan as cart_total_cost_in_yuan,
+                            direct_transaction_in_yuan as direct_transaction_in_yuan,
+                            indirect_transaction_in_yuan as indirect_transaction_in_yuan,
+                            fav_item_total_cost_in_yuan as fav_item_total_cost_in_yuan,
+                            epre_pay_amt_in_yuan as epre_pay_amt_in_yuan,
+                            hfh_ykj_amt_in_yuan as hfh_ykj_amt_in_yuan,
+                            cost_in_yuan as cost_in_yuan,
+                            search_transaction_in_yuan as search_transaction_in_yuan,
+                            item_id as item_id,
+                            linkurl as linkurl,
+                            img_url as img_url,
+                            hfh_dj_amt_in_yuan as hfh_dj_amt_in_yuan,
+                            req_start_time as req_start_time,
+                            req_end_time as req_end_time,
+                            req_offset as req_offset,
+                            req_page_size as req_page_size,
+                            req_effect as req_effect,
+                   from    tb_emedia_tmall_ztc_target   where dw_etl_date = '{etl_date}'
+               """)
+
+    output_to_emedia(tb_emedia_tmall_ztc_target_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_TARGET_REPORT_NEW_FACT.CSV')
+
+    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tb_emedia_ali_ztc_adgroup_day-{date}.csv.gz',
+                     write_to_eab=True, compression='gzip', sep='|')
+
+    spark.sql("optimize dws.tb_emedia_tmall_ztc_target_mapping_success")
 
     return 0
 

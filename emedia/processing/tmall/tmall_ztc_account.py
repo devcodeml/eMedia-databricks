@@ -14,10 +14,7 @@ tmall_ztc_account_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_account_mapping_fa
 
 
 tmall_ztc_account_pks = [
-    'req_start_time'
-    , 'adgroup_id'
-    , 'campaign_id'
-    , 'campaign_type_name'
+    'thedate'
     , 'req_effect_days'
     , 'req_storeId'
 ]
@@ -25,9 +22,6 @@ tmall_ztc_account_pks = [
 
 output_tmall_ztc_account_pks = [
     'ad_date'
-    , 'adgroup_id'
-    , 'campaign_id'
-    , 'campaign_type_name'
     , 'effect_days'
     , 'req_storeId'
 ]
@@ -65,7 +59,7 @@ def tmall_ztc_account_etl(airflow_execution_date,run_id):
                     , header = True
                     , multiLine = True
                     , sep = "|"
-    )
+    ).dropDuplicates(tmall_ztc_account_pks)
     tmall_ztc_account_daily_df.withColumn('data_source',lit("tmall"))\
     .withColumn('dw_etl_date',lit(etl_date))\
     .withColumn('dw_batch_id',lit(run_id))\
