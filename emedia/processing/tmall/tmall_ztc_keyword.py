@@ -437,7 +437,7 @@ def tmall_ztc_keyword_etl(airflow_execution_date,run_id):
     output_to_emedia(tb_emedia_tmall_ztc_keyword_df, f'{date}/{date_time}/ztc',
                      'EMEDIA_TMALL_ZTC_DAILY_KEYWORD_REPORT_NEW_FACT.CSV')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tb_emedia_ali_ztc_adgroup_day-{date}.csv.gz',
+    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tmall_ztc_day_keyword_{date}.csv.gz',
                      write_to_eab=True, compression='gzip', sep='|')
 
     spark.sql("optimize dws.tb_emedia_tmall_ztc_keyword_mapping_success")
