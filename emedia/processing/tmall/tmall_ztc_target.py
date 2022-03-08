@@ -419,7 +419,7 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
                             req_end_time as req_end_time,
                             req_offset as req_offset,
                             req_page_size as req_page_size,
-                            req_effect as req_effect,
+                            req_effect as req_effect
                    from    tb_emedia_tmall_ztc_target   where dw_etl_date = '{etl_date}'
                """)
 
