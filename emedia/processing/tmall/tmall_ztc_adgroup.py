@@ -405,7 +405,7 @@ def tmall_ztc_adgroup_etl(airflow_execution_date,run_id):
                     req_offset as req_offset,
                     req_page_size as req_page_size,
                     req_effect as req_effect
-            from    tb_emedia_tmall_ztc_adgroup   where dw_dw_etl_date = '{etl_date}'
+            from    tb_emedia_tmall_ztc_adgroup   where dw_etl_date = '{etl_date}'
         """)
 
     output_to_emedia(tb_emedia_tmall_ztc_adgroup_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_ADGROUP_REPORT_NEW_FACT.CSV')
