@@ -202,11 +202,13 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
 
         ON dws.tb_emedia_tmall_ztc_target_mapping_success.thedate = all_mapping_success.thedate
 
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.adgroup_id = all_mapping_success.adgroup_id
-        
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_id = all_mapping_success.campaign_id
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_type_name = all_mapping_success.campaign_type_name
+        AND dws.tb_emedia_tmall_ztc_target_mapping_success.adgroup_id = all_mapping_success.adgroup_id
+        
+        AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_type = all_mapping_success.campaign_type
+        
+        AND dws.tb_emedia_tmall_ztc_target_mapping_success.crowd_id = all_mapping_success.crowd_id
         
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_effect_days = all_mapping_success.req_effect_days
         
