@@ -32,6 +32,9 @@ from emedia.processing.jd.jd_finance import jd_finance_campaign_etl
 
 from emedia.processing.vip.vip_finance import vip_finance_etl
 
+from emedia.processing.tmall.tmall_super_effect import tmall_super_effect_etl
+from emedia.processing.tmall.tmall_super_report import tmall_super_report_etl
+
 from emedia.processing.tmall.tmall_ylmf import tamll_ylmf_etl
 from emedia.processing.tmall.tmall_mxdp import tmall_mxdp_etl
 from emedia.processing.tmall.tmall_pptx import tmall_pptx_etl
@@ -94,6 +97,12 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         jd_zt_adgroup_campaign_etl(airflow_execution_date)
 
     # tmall 部分
+    elif etl_action == 'tmall_super_effect_etl':
+        tmall_super_effect_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_super_report_etl':
+        tmall_super_report_etl(airflow_execution_date, run_id)
+
     elif etl_action == 'tamll_ylmf_etl':
         tamll_ylmf_etl(airflow_execution_date,run_id)
 

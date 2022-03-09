@@ -1,18 +1,15 @@
 # coding: utf-8
 
 import datetime
-
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_date, current_timestamp
-from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
+
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
-
-
-
+from pyspark.sql import functions as F
 
 def tamll_ylmf_etl(airflow_execution_date,run_id):
+
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -40,7 +37,6 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
     ## 路径自行修改
     # input_path = '/mnt/fetchResultFiles/2022-03-02/tmall/ylmf_daily_displayreport/tmall_ylmf_displayReport_2022-03-02.csv.gz'
     input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ylmf_daily_displayreport/tmall_ylmf_displayReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
-
     tmall_ylmf_df = spark.read.csv(
         f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{input_path}"
         , header=True
@@ -101,6 +97,9 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
             .drop('brand_id') \
             .drop('etl_date') \
             .drop('etl_create_time')
+
+        # Union unmapped records
+
         daily_reports = report_df.union(fail_df)
 
     ad_type = 'ylmf'
@@ -133,32 +132,13 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
     res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").saveAsTable("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
 
 
-    #全量输出
-    update_time = F.udf(lambda x: x.replace("-", ""), StringType())
-    success_output_df = spark.sql(
-        "select * from dws.media_emedia_tmall_ylmf_campaignReport_mapping_success where ad_date >= '{0}'".format(
-            days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
-    fail_output_df = spark.sql(
-        "select * from stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail where ad_date >= '{0}'".format(
-            days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
-    all_output = success_output_df.union(fail_output_df)
     # 输出函数，你们需要自测一下
-    output_to_emedia(all_output, f'{date}/{date_time}/ylmf','EMEDIA_TMALL_YLMF_DAILY_CAMPAIGN_REPORT_FACT.CSV')
+    output_to_emedia(res[0].union(res[1]).drop('etl_date').drop('etl_create_time'), f'{date}/{date_time}/ylmf',
+                     'EMEDIA_TMALL_YLMF_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
-    # 增量输出
-    ## 引用mapping函数 路径不一样自行修改函数路径
-    res_incre = emedia_brand_mapping(spark, report_df, ad_type)
-    incre_output = res_incre[0].union(res_incre[1]).drop('etl_date').drop('etl_create_time')\
-        .withColumn('ad_date', update_time(F.col('ad_date')))\
-        .withColumn('data_source',F.lit('tmall'))\
-        .withColumn('dw_etl_date',current_date())\
-        .withColumn('dw_batch_id',F.lit(run_id))
-    # 输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
-    # 输出文件名和路径如下
-    output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}', 'tb_emedia_ali_ylmf_campaign_day-{0}.csv.gz'.format(date),write_to_eab=True, compression = 'gzip', sep='|')
+    # create_blob_by_text(f"{date}/flag.txt", date_time)
 
     return 0
-
 
 
 ## 下面是mapping函数，可以提取出来，作为独立文件后引用
