@@ -7,10 +7,7 @@ from pyspark.sql.functions import current_date, current_timestamp
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils.output_df import output_to_emedia, create_blob_by_text
-
-
-
+from emedia.utils.output_df import output_to_emedia
 
 def tamll_ylmf_etl(airflow_execution_date,run_id):
     etl_year = int(airflow_execution_date[0:4])
@@ -88,11 +85,34 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
                                                                                            "return_pv",
                                                                                            "return_pv_cost", "roi",
                                                                                            "search_click_cnt",
-                                                                                           "search_click_cost")).drop('rpt_info')
+                                                                                           "search_click_cost")).drop(
+        'rpt_info')
 
-    report_df = readJSONContentDF1.na.fill("").selectExpr("log_data as ad_date","campaign_group_id","campaign_group_name","campaign_id","campaign_name","`req_api_service_context.biz_code` as biz_code","`req_report_query.offset` as offset","`req_report_query.page_size` as page_size","`req_report_query.query_time_dim` as query_time_dim","`req_report_query.query_domain` as query_domain","`req_report_query.start_time` as start_time","`req_report_query.end_time` as end_time","req_effect as effect","req_effect_days as effect_days","req_storeId","dw_resource","dw_create_time","dw_batch_number","add_new_charge","add_new_uv","add_new_uv_cost","add_new_uv_rate","alipay_inshop_amt","alipay_inshop_num","avg_access_page_num","avg_deep_access_times","cart_num","charge","click","cpc","cpm","ctr","cvr","deep_inshop_pv","dir_shop_col_num","gmv_inshop_amt","gmv_inshop_num","icvr","impression","inshop_item_col_num","inshop_potential_uv","inshop_potential_uv_rate","inshop_pv","inshop_pv_rate","inshop_uv","prepay_inshop_amt","prepay_inshop_num","return_pv","return_pv_cost","roi","search_click_cnt","search_click_cost")
+    report_df = readJSONContentDF1.na.fill("").selectExpr("log_data as ad_date", "campaign_group_id",
+                                                          "campaign_group_name", "campaign_id", "campaign_name",
+                                                          "`req_api_service_context.biz_code` as biz_code",
+                                                          "`req_report_query.offset` as offset",
+                                                          "`req_report_query.page_size` as page_size",
+                                                          "`req_report_query.query_time_dim` as query_time_dim",
+                                                          "`req_report_query.query_domain` as query_domain",
+                                                          "`req_report_query.start_time` as start_time",
+                                                          "`req_report_query.end_time` as end_time",
+                                                          "req_effect as effect", "req_effect_days as effect_days",
+                                                          "req_storeId", "dw_resource", "dw_create_time",
+                                                          "dw_batch_number", "add_new_charge", "add_new_uv",
+                                                          "add_new_uv_cost", "add_new_uv_rate", "alipay_inshop_amt",
+                                                          "alipay_inshop_num", "avg_access_page_num",
+                                                          "avg_deep_access_times", "cart_num", "charge", "click", "cpc",
+                                                          "cpm", "ctr", "cvr", "deep_inshop_pv", "dir_shop_col_num",
+                                                          "gmv_inshop_amt", "gmv_inshop_num", "icvr", "impression",
+                                                          "inshop_item_col_num", "inshop_potential_uv",
+                                                          "inshop_potential_uv_rate", "inshop_pv", "inshop_pv_rate",
+                                                          "inshop_uv", "prepay_inshop_amt", "prepay_inshop_num",
+                                                          "return_pv", "return_pv_cost", "roi", "search_click_cnt",
+                                                          "search_click_cost")
 
-    fail_table_exist = spark.sql("show tables in stg like 'media_emedia_tmall_ylmf_campaignReport_mapping_fail'").count()
+    fail_table_exist = spark.sql(
+        "show tables in stg like 'media_emedia_tmall_ylmf_campaignReport_mapping_fail'").count()
     if fail_table_exist == 0:
         daily_reports = report_df
     else:
@@ -111,7 +131,8 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
     res[0].distinct().createOrReplaceTempView("all_mappint_success")
     table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaignReport_mapping_success'").count()
     if table_exist == 0:
-        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto("dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
+        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto(
+            "dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
     else:
         spark.sql("""
           MERGE INTO dws.media_emedia_tmall_ylmf_campaignReport_mapping_success
@@ -130,10 +151,10 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
           WHEN NOT MATCHED
               THEN INSERT *
         """)
-    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
+    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto(
+        "stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
 
-
-    #全量输出
+    # 全量输出
     update_time = F.udf(lambda x: x.replace("-", ""), StringType())
     success_output_df = spark.sql(
         "select * from dws.media_emedia_tmall_ylmf_campaignReport_mapping_success where ad_date >= '{0}'".format(
@@ -143,26 +164,27 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
             days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
     all_output = success_output_df.union(fail_output_df)
     # 输出函数，你们需要自测一下
-    output_to_emedia(all_output, f'{date}/{date_time}/ylmf','EMEDIA_TMALL_YLMF_DAILY_CAMPAIGN_REPORT_FACT.CSV')
+    output_to_emedia(all_output, f'{date}/{date_time}/ylmf', 'EMEDIA_TMALL_YLMF_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
     # 增量输出
     ## 引用mapping函数 路径不一样自行修改函数路径
     res_incre = emedia_brand_mapping(spark, report_df, ad_type)
-    incre_output = res_incre[0].union(res_incre[1]).drop('etl_date').drop('etl_create_time')\
-        .withColumn('ad_date', update_time(F.col('ad_date')))\
-        .withColumn('data_source',F.lit('tmall'))\
-        .withColumn('dw_etl_date',current_date())\
-        .withColumn('dw_batch_id',F.lit(run_id))
-    # 输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
-    # 输出文件名和路径如下
-    output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}', 'tb_emedia_ali_ylmf_campaign_day-{0}.csv.gz'.format(date),write_to_eab=True, compression = 'gzip', sep='|')
+    incre_output = res_incre[0].union(res_incre[1]).drop('etl_date').drop('etl_create_time') \
+        .withColumn('ad_date', update_time(F.col('ad_date'))) \
+        .withColumn('data_source', F.lit('tmall')) \
+        .withColumn('dw_etl_date', current_date()) \
+        .withColumn('dw_batch_id', F.lit(run_id))
+    #     输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
+    #     输出文件名和路径如下
+    output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}',
+                     'tb_emedia_ali_ylmf_campaign_day-{0}.csv.gz'.format(date), write_to_eab=True, compression='gzip',
+                     sep='|')
 
     return 0
 
 
-
 ## 下面是mapping函数，可以提取出来，作为独立文件后引用
-def emedia_brand_mapping(spark,daily_reports,ad_type):
+def emedia_brand_mapping(spark, daily_reports, ad_type):
     """
     将传入的Dataframe进行mapping得到 Brand Mapping 后的Dataframe
     :param spark:
@@ -197,13 +219,15 @@ def emedia_brand_mapping(spark,daily_reports,ad_type):
         , sep=","
     )
 
+    tmall_ylmf_campaign_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'effect', 'effect_days', 'req_storeId']
 
-    match_keyword_column = emedia_adformat_mapping.fillna('req_storeId').filter(emedia_adformat_mapping['adformat_en'] == ad_type).toPandas()
+    match_keyword_column = emedia_adformat_mapping.fillna('req_storeId').filter(
+        emedia_adformat_mapping['adformat_en'] == ad_type).toPandas()
     keywords = match_keyword_column['match_keyword_column'][0]
     account_id = match_keyword_column['match_store_column'][0]
 
     for i in keywords.split('|'):
-        if ( i in daily_reports.columns):
+        if (i in daily_reports.columns):
             keyword = i
             break
     daily_reports.createOrReplaceTempView("daily_reports")
@@ -254,7 +278,7 @@ def emedia_brand_mapping(spark,daily_reports,ad_type):
                 , m2.brand_id
             FROM mappint_fail_1 mfr1 LEFT JOIN mapping2 m2 ON mfr1.{0} = m2.account_id
             AND instr(mfr1.{1}, m2.keyword) > 0
-        '''.format(account_id,keyword))
+        '''.format(account_id, keyword))
     mappint2_result_df \
         .filter("category_id IS null and brand_id IS null") \
         .drop("category_id") \
@@ -271,7 +295,7 @@ def emedia_brand_mapping(spark,daily_reports,ad_type):
                 , m3.brand_id
             FROM mappint_fail_2 mfr2 LEFT JOIN mapping3 m3 ON mfr2.{0} = m3.account_id
             AND instr(mfr2.{1}, m3.keyword) > 0
-        '''.format(account_id,keyword))
+        '''.format(account_id, keyword))
     mappint3_result_df \
         .filter("category_id is null and brand_id is null") \
         .createOrReplaceTempView("mappint_fail_3")
@@ -282,8 +306,10 @@ def emedia_brand_mapping(spark,daily_reports,ad_type):
         .union(spark.table("mappint_success_2")) \
         .union(spark.table("mappint_success_3")) \
         .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()).distinct()
+        .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(tmall_ylmf_campaign_pks) \
+        .distinct()
     out2 = spark.table("mappint_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()).distinct()
-    return out1,out2
+    return out1, out2
