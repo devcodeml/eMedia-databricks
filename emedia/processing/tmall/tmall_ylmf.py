@@ -108,10 +108,10 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
     ## 引用mapping函数 路径不一样自行修改函数路径
     res = emedia_brand_mapping(spark, daily_reports, ad_type)
 
-    res[0].createOrReplaceTempView("all_mappint_success")
+    res[0].distinct().createOrReplaceTempView("all_mappint_success")
     table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaignReport_mapping_success'").count()
     if table_exist == 0:
-        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").saveAsTable("dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
+        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto("dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
     else:
         spark.sql("""
           MERGE INTO dws.media_emedia_tmall_ylmf_campaignReport_mapping_success
@@ -130,7 +130,7 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
           WHEN NOT MATCHED
               THEN INSERT *
         """)
-    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").saveAsTable("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
+    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
 
 
     #全量输出
