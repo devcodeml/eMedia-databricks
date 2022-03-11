@@ -480,7 +480,7 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
                     dw_etl_date as dw_etl_date,
                     dw_batch_id as dw_batch_id,
                     concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey,
-                    if(order_quantity = 0 ,0, cost/order_quantity)  as cpa
+                    if(order_quantity = 0 ,0, round(cost/order_quantity,2) )  as cpa
                 from    emedia_jd_sem_daily_keyword_report    where etl_date = '{etl_date}'
     """)
 

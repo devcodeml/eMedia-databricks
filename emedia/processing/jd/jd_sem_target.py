@@ -446,7 +446,7 @@ def jd_sem_target_etl(airflow_execution_date,run_id):
                 ctr as ctr,
                 cpm as cpm,
                 cpc as cpc,
-                if(order_quantity = 0 ,0, cost/order_quantity)  as cpa,
+                if(order_quantity = 0 ,0, round(cost/order_quantity,2))  as cpa,
                 direct_order_quantity as direct_order_quantity,
                 direct_order_value as direct_order_value,
                 indirect_order_quantity as indirect_order_quantity,

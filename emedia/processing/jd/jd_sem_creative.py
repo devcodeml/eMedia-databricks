@@ -545,7 +545,7 @@ def jd_sem_creative_etl(airflow_execution_date,run_id):
             cpc as cpc,
             cpm as cpm,
             ctr as ctr,
-            if(clicks = 0 ,0.0000, order_quantity/clicks) as cvr,
+            if(clicks = 0 ,0.0000, round(order_quantity/clicks,2)) as cvr,
             source as source,
             date_format(to_date(ad_date, 'yyyyMMdd'),"yyyy-MM-dd") as ad_date,
             departmentcnt as department_cnt,
