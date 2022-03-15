@@ -238,7 +238,7 @@ def tmall_pptx_etl(airflow_execution_date):
     # Query output result
     tb_emedia_tmall_pptx_campaign_df = spark.sql(f'''
         SELECT
-            thedate as ad_date,
+            date_format(thedate, 'yyyyMMdd') as ad_date,
             req_storeId as store_id,
             solution_id as campaign_id,
             solution_name as campaign_name,
@@ -258,7 +258,7 @@ def tmall_pptx_etl(airflow_execution_date):
             '{etl_date}' as dw_batch_id 
         FROM (
             SELECT *
-            FROM dws.tb_emedia_tmall_pptx_campaign_mapping_success WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
+            FROM dws.tb_emedia_tmall_pptx_campaign_mapping_success
                 UNION
             SELECT *
             FROM stg.tb_emedia_tmall_pptx_campaign_mapping_fail
