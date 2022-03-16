@@ -20,7 +20,6 @@ jd_sem_keyword_pks = [
     , 'req_orderStatusCategory'
     , 'req_pin'
     , 'date'
-    , 'targetingType'
 ]
 
 
@@ -32,7 +31,6 @@ output_jd_sem_keyword_pks = [
     , 'order_statuscategory'
     , 'pin_name'
     , 'ad_date'
-    , 'req_targeting_type'
 ]
 
 
@@ -311,8 +309,6 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
 
         AND dws.tb_emedia_jd_sem_keyword_mapping_success.date = all_mapping_success.date
 
-        AND dws.tb_emedia_jd_sem_keyword_mapping_success.targetingType = all_mapping_success.targetingType
-
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED
@@ -334,64 +330,64 @@ def jd_sem_keyword_etl(airflow_execution_date,run_id):
     # Query output result
     spark.sql(f'''
         SELECT
-            clicks as clicks,
-            cost as cost,
-            CPC as cpc,
-            CPM as cpm,
-            CTR as ctr,
-            date as date,
-            directCartCnt as direct_cart_cnt,
-            directOrderCnt as direct_order_quantity,
-            directOrderSum as direct_order_value,
-            '{run_id}' as dw_batch_id,
-            '{etl_date}' as dw_etl_date,
-            '' as data_source,
-            '' as effect_cart_cnt,
-            '' as effect_order_quantity,
-            '' as effect_order_value,
-            impressions as impressions,
-            indirectCartCnt as indirect_cart_cnt,
-            indirectOrderCnt as indirect_order_quantity,
-            indirectOrderSum as indirect_order_value,
-            keywordName as keyword_name,
-            '' as order_date,
-            req_campaignId as campaign_id,
-            '' as req_isorder_orclick,
-            CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END  as effect_days,
-            '' as req_delivery_type,
-            req_endDay as req_end_day,
-            req_giftFlag as gift_flag,
-            req_groupId as adgroup_id,
-            req_isDaily as req_isdaily,
-            req_orderStatusCategory as order_statuscategory,
-            req_page as req_page,
-            req_pageSize as req_page_size,
-            '' as mobile_type,
-            req_pin as pin_name,
-            date as ad_date,
-            targetingType as req_targeting_type,
-            'jd' as source,
-            totalCartCnt as total_cart_quantity,
-            totalOrderCnt as order_quantity,
-            totalOrderSum as order_value,
-            totalOrderCVS as total_order_cvs,
-            totalOrderROI as total_order_roi,
-            campaignName as campaign_name,
-            adGroupName as adgroup_name,
-            req_clickOrOrderDay as req_clickororderday,
-            req_clickOrOrderCaliber as req_clickOrOrderCaliber,
-            category_id,
-            brand_id,
-            etl_date
+                round(sum(clicks),4) as clicks,
+                round(sum(cost),4) as cost,
+                round(sum(cost)/sum(clicks),4) as cpc,
+                round(sum(cost)/(sum(impressions)/1000),4) as cpm,
+                round(sum(clicks)/sum(impressions),4) as ctr,
+                max(date) as date,
+                round(sum(directCartCnt),4) as direct_cart_cnt,
+                round(sum(directOrderCnt),4) as direct_order_quantity,
+                round(sum(directOrderSum),4) as direct_order_value,
+                '{run_id}' as dw_batch_id,
+                '{etl_date}' as dw_etl_date,
+                '' as data_source,
+                '' as effect_cart_cnt,
+                '' as effect_order_quantity,
+                '' as effect_order_value,
+                round(sum(impressions),4) as impressions,
+                round(sum(indirectCartCnt),4) as indirect_cart_cnt,
+                round(sum(indirectOrderCnt),4) as indirect_order_quantity,
+                round(sum(indirectOrderSum),4) as indirect_order_value,
+                keywordName as keyword_name,
+                '' as order_date,
+                req_campaignId as campaign_id,
+                '' as req_isorder_orclick,
+                CASE req_clickOrOrderDay  WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END  as effect_days,
+                '' as req_delivery_type,
+                max(req_endDay) as req_end_day,
+                max(req_giftFlag) as gift_flag,
+                req_groupId as adgroup_id,
+                max(req_isDaily) as req_isdaily,
+                req_orderStatusCategory as order_statuscategory,
+                max(req_page) as req_page,
+                max(req_pageSize) as req_page_size,
+                '' as mobile_type,
+                req_pin as pin_name,
+                date as ad_date,
+                '1' as req_targeting_type,
+                'jd' as source,
+                round(sum(totalCartCnt),4) as total_cart_quantity,
+                round(sum(totalOrderCnt),4) as order_quantity,
+                round(sum(totalOrderSum),4) as order_value,
+                round(sum(totalOrderCnt)/sum(clicks)*100,4) as total_order_cvs,
+                round(sum(totalOrderSum)/sum(cost),4) as total_order_roi,
+                max(campaignName) as campaign_name,
+                max(adGroupName) as adgroup_name,
+                max(req_clickOrOrderDay) as req_clickororderday,
+                max(req_clickOrOrderCaliber) as req_clickOrOrderCaliber,
+                max(category_id) as category_id,
+                max(brand_id) as brand_id,
+                max(etl_date) as etl_date
         FROM(
             SELECT *
-            FROM dws.tb_emedia_jd_sem_keyword_mapping_success WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}'
+            FROM dws.tb_emedia_jd_sem_keyword_mapping_success 
                 UNION
             SELECT *
             FROM stg.tb_emedia_jd_sem_keyword_mapping_fail
         )
-        WHERE date >= '{days_ago912}'
-              AND date <= '{etl_date_where}'
+        WHERE date >= '{days_ago912}' AND date <= '{etl_date_where}' 
+              group by keywordName,req_campaignId,req_clickOrOrderDay,req_groupId,req_orderStatusCategory,req_pin,date
     ''').dropDuplicates(output_jd_sem_keyword_pks).createOrReplaceTempView("emedia_jd_sem_daily_keyword_report")
 
     # Query blob output result
