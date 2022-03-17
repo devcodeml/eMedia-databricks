@@ -9,35 +9,35 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
 
 
-tmall_ztc_target_mapping_success_tbl = 'dws.tb_emedia_tmall_ztc_target_mapping_success'
-tmall_ztc_target_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_target_mapping_fail'
+tmall_ztc_cumul_keyword_mapping_success_tbl = 'dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success'
+tmall_ztc_cumul_keyword_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail'
 
 
-tmall_ztc_target_pks = [
+tmall_ztc_cumul_keyword_pks = [
     'thedate'
     , 'campaign_id'
-    , 'adgroup_id'
     , 'campaign_type'
-    , 'crowd_id'
+    , 'adgroup_id'
     , 'req_effect_days'
     , 'req_storeId'
+    , 'bidword_id'
     ,'req_pv_type_in'
 ]
 
 
-output_tmall_ztc_target_pks = [
+output_tmall_ztc_cumul_keyword_pks = [
     'ad_date'
     , 'campaign_id'
-    , 'adgroup_id'
     , 'campaign_type'
-    , 'crowd_id'
+    , 'adgroup_id'
     , 'effect_days'
     , 'req_storeId'
+    , 'keyword_id'
     ,'source'
 ]
 
 
-def tmall_ztc_target_etl(airflow_execution_date,run_id):
+def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -66,18 +66,18 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
 
     file_date = etl_date - datetime.timedelta(days=1)
 
-    tmall_ztc_target_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ztc_daily_targetreport/tmall_ztc_targetreport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    tmall_ztc_cumul_keyword_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ztc_cumul_keywordreport/tmall_ztc_cumul_keywordreport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'tmall_ztc_target file: {tmall_ztc_target_path}')
+    log.info(f'tmall_ztc_cumul_keyword file: {tmall_ztc_cumul_keyword_path}')
 
-    tmall_ztc_target_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_target_path}"
+    tmall_ztc_cumul_keyword_daily_df = spark.read.csv(
+                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_cumul_keyword_path}"
                     , header = True
                     , multiLine = True
                     , sep = "|"
     )
     
-    tmall_ztc_target_fail_df = spark.table("stg.tb_emedia_tmall_ztc_target_mapping_fail") \
+    tmall_ztc_cumul_keyword_fail_df = spark.table("stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail") \
                 .drop('data_source') \
                 .drop('dw_etl_date') \
                 .drop('dw_batch_id') \
@@ -87,7 +87,7 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
                 .drop('etl_create_time')
 
     # Union unmapped records
-    tmall_ztc_target_daily_df.union(tmall_ztc_target_fail_df).createOrReplaceTempView("tmall_ztc_target_daily")
+    tmall_ztc_cumul_keyword_daily_df.union(tmall_ztc_cumul_keyword_fail_df).createOrReplaceTempView("tmall_ztc_cumul_keyword_daily")
 
 
     # Loading Mapping tbls
@@ -125,7 +125,7 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
             '{run_id}' as dw_batch_id,
             mapping_1.category_id,
             mapping_1.brand_id  
-        FROM tmall_ztc_target_daily t1 LEFT JOIN mapping_1 ON t1.req_storeId = mapping_1.account_id
+        FROM tmall_ztc_cumul_keyword_daily t1 LEFT JOIN mapping_1 ON t1.req_storeId = mapping_1.account_id
     ''')
 
     ## First stage unmapped
@@ -185,37 +185,37 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
         .createOrReplaceTempView("mapping_fail_3")
 
 
-    tmall_ztc_target_mapped_df = spark.table("mapping_success_1") \
+    tmall_ztc_cumul_keyword_mapped_df = spark.table("mapping_success_1") \
                 .union(spark.table("mapping_success_2")) \
                 .union(spark.table("mapping_success_3")) \
                 .withColumn("etl_date", current_date()) \
                 .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(tmall_ztc_target_pks)
+                .dropDuplicates(tmall_ztc_cumul_keyword_pks)
                 
-    tmall_ztc_target_mapped_df.createOrReplaceTempView("all_mapping_success")
+    tmall_ztc_cumul_keyword_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
     spark.sql("""
-        MERGE INTO dws.tb_emedia_tmall_ztc_target_mapping_success
+        MERGE INTO dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success
 
         USING all_mapping_success
 
-        ON dws.tb_emedia_tmall_ztc_target_mapping_success.thedate = all_mapping_success.thedate
+        ON dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.thedate = all_mapping_success.thedate
 
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_id = all_mapping_success.campaign_id
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.campaign_id = all_mapping_success.campaign_id
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.adgroup_id = all_mapping_success.adgroup_id
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.campaign_type = all_mapping_success.campaign_type
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_type = all_mapping_success.campaign_type
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.adgroup_id = all_mapping_success.adgroup_id
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.crowd_id = all_mapping_success.crowd_id
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.req_effect_days = all_mapping_success.req_effect_days
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_effect_days = all_mapping_success.req_effect_days
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.req_storeId = all_mapping_success.req_storeId
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_storeId = all_mapping_success.req_storeId
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.bidword_id = all_mapping_success.bidword_id
         
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.req_pv_type_in = all_mapping_success.req_pv_type_in
-
+        AND dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success.req_pv_type_in = all_mapping_success.req_pv_type_in
+        
         WHEN MATCHED THEN
             UPDATE SET *
         WHEN NOT MATCHED
@@ -227,27 +227,25 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(tmall_ztc_target_pks) \
+        .dropDuplicates(tmall_ztc_cumul_keyword_pks) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
-        .insertInto("stg.tb_emedia_tmall_ztc_target_mapping_fail")
+        .insertInto("stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail")
 
 
     # Query output result
-    tb_emedia_tmall_ztc_target_df = spark.sql(f'''
+    tb_emedia_tmall_ztc_cumul_keyword_df = spark.sql(f'''
         SELECT
             thedate as ad_date,
             category_id,
             brand_id,
             campaign_id as campaign_id,
             campaign_title as campaign_name,
-            adgroup_id as adgroup_id,
-            adgroup_title as adgroup_name,
             campaign_type as campaign_type,
             campaign_type_name as campaign_type_name,
-            crowd_id as crowd_id,
-            crowd_name as crowd_name,
+            adgroup_title as adgroup_name,
+            adgroup_id as adgroup_id,
             req_effect_days as effect_days,
             req_storeId as req_storeId,
             req_pv_type_in as source,
@@ -314,66 +312,70 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
             linkurl as linkurl,
             img_url as img_url,
             nvl(hfh_dj_amt_in_yuan,0) as hfh_dj_amt_in_yuan,
+            nvl(wireless_price,0) as wireless_price,
+            avg_rank as avg_rank,
+            nvl(pc_price,0) as pc_price,
+            bidword_str as keyword_name,
+            campaign_budget as campaign_budget,
+            bidword_id as keyword_id,
             req_start_time as req_start_time,
             req_end_time as req_end_time,
             req_offset as req_offset,
             req_page_size as req_page_size,
             req_effect as req_effect,
-            data_source,	
+            data_source,
             dw_etl_date,
-            dw_batch_id	
+            dw_batch_id
         FROM (
             SELECT *
-            FROM dws.tb_emedia_tmall_ztc_target_mapping_success 
+            FROM dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success 
                 UNION
             SELECT *
-            FROM stg.tb_emedia_tmall_ztc_target_mapping_fail
+            FROM stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail
         )
         WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
-    ''').dropDuplicates(output_tmall_ztc_target_pks)
+    ''').dropDuplicates(output_tmall_ztc_cumul_keyword_pks)
 
-    tb_emedia_tmall_ztc_target_df.createOrReplaceTempView('tb_emedia_tmall_ztc_target')
+    tb_emedia_tmall_ztc_cumul_keyword_df.createOrReplaceTempView('tb_emedia_tmall_ztc_cumul_keyword')
 
     # Query db output result
     eab_db = spark.sql(f"""
-                   select  	ad_date as ad_date,
-                            req_storeId as store_id,
-                            category_id as category_id,
-                            brand_id as brand_id,
-                            campaign_id as campaign_id,
-                            campaign_name as campaign_name,
-                            adgroup_id as adgroup_id,
-                            adgroup_name as adgroup_name,
-                            crowd_id as target_id,
-                            crowd_name as target_name,
-                            effect_days as effect_days,
-                            source as source,
-                            'SEARCH' as search_type,
-                            cost as cost,
-                            click as click,
-                            impression as impression,
+                   select  	direct_cart_total as directcarttotal,
+                            indirect_cart_total as indirectcarttotal,
+                            cpc as ecpc,
+                            cpm as ecpm,
                             ctr as ctr,
-                            cpc as cpc,
-                            cpm as cpm,
-                            roi as roi,
-                            direct_transaction as direct_order_value,
-                            indirect_transaction as indirect_order_value,
-                            direct_transaction_shipping as direct_order_quantity,
-                            indirect_transaction_shipping as indirect_order_quantity,
-                            fav_item_total as favorite_item_quantity,
-                            fav_shop_total as favorite_shop_quantity,
-                            coverage as cvr,
-                            direct_cart_total as direct_cart_quantity,
-                            indirect_cart_total as indirect_cart_quantity,
-                            cart_total as total_cart_quantity,
-                            transaction_shipping_total as total_order_quantity,
-                            transaction_total as total_order_value,
-                            fav_total as total_favorite_quantity,
                             dw_batch_id as dw_batch_id,
-                            data_source as data_source,
+                            ad_date as ad_date,
                             dw_etl_date as dw_etl_date,
+                            adgroup_id as adgroup_id,
+                            source as source,
+                            fav_item_total as favorite_item_quantity,
+                            '' as nick,
+                            campaign_name as campaign_name,
+                            category_id as category_id,
+                            'SEARCH' as searchtype,
+                            direct_transaction as direct_order_value,
+                            direct_transaction_shipping as direct_order_quantity,
+                            indirect_transaction as indirect_order_value,
+                            indirect_transaction_shipping as indirect_order_quantity,
+                            keyword_name as keyword_name,
+                            campaign_id as campaign_id,
+                            req_storeId as store_id,
+                            fav_shop_total as favorite_shop_quantity,
+                            cost as cost,
+                            item_id as sku_id,
+                            impression as impressions,
+                            data_source as data_source,
+                            brand_id as brand_id,
+                            keyword_id as keyword_id,
+                            cart_total as total_cart_quantity,
+                            effect_days as effect_days,
+                            click as clicks,
+                            adgroup_name as adgroup_name,
                             campaign_type as campaign_type,
                             campaign_type_name as campaign_type_name,
+                            fav_total as fav_total,
                             cart_total_cost as cart_total_cost,
                             fav_item_total_cost as fav_item_total_cost,
                             fav_item_total_coverage as fav_item_total_coverage,
@@ -384,6 +386,10 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
                             dir_epre_pay_cnt as dir_epre_pay_cnt,
                             indir_epre_pay_amt as indir_epre_pay_amt,
                             indir_epre_pay_cnt as indir_epre_pay_cnt,
+                            transaction_total as transaction_total,
+                            transaction_shipping_total as transaction_shipping_total,
+                            roi as roi,
+                            coverage as cvr,
                             direct_transaction_shipping_coverage as direct_transaction_shipping_coverage,
                             click_shopping_num as click_shopping_num,
                             click_shopping_amt as click_shopping_amt,
@@ -413,24 +419,27 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
                             hfh_ykj_amt_in_yuan as hfh_ykj_amt_in_yuan,
                             cost_in_yuan as cost_in_yuan,
                             search_transaction_in_yuan as search_transaction_in_yuan,
-                            item_id as item_id,
                             linkurl as linkurl,
                             img_url as img_url,
                             hfh_dj_amt_in_yuan as hfh_dj_amt_in_yuan,
+                            wireless_price as wireless_price,
+                            avg_rank as avg_rank,
+                            pc_price as pc_price,
+                            campaign_budget as campaign_budget,
                             req_start_time as req_start_time,
                             req_end_time as req_end_time,
                             req_offset as req_offset,
                             req_page_size as req_page_size,
                             req_effect as req_effect
-                   from    tb_emedia_tmall_ztc_target   where dw_etl_date = '{etl_date}'
+                   from    tb_emedia_tmall_ztc_cumul_keyword   where dw_etl_date = '{etl_date}'
                """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_target_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_TARGET_REPORT_NEW_FACT.CSV')
+    output_to_emedia(tb_emedia_tmall_ztc_cumul_keyword_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_KEYWORD_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tmall_ztc_day_target_{date}.csv.gz',
+    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC_CUMUL/{run_id}', f'tmall_ztc_day_keyword_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
 
-    spark.sql("optimize dws.tb_emedia_tmall_ztc_target_mapping_success")
+    spark.sql("optimize dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success")
 
     return 0
 

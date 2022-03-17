@@ -40,9 +40,9 @@ def get_emedia_conf_dict():
         , 'eab_blob_container': 'eab'
         , 'eab_blob_sas': 'sp=racwdl&st=2022-03-04T10:15:21Z&se=2024-02-29T18:15:21Z&sv=2020-08-04&sr=c&sig=qcTnty%2BHv2S0%2B%2ByuVR8b7O9hIsWoC1m8zRspoEJVK9Y%3D'
 
-        # , 'eab_blob_account': dbutils.secrets.get(scope_name, "target-blob-account")
-        # , 'eab_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
-        # , 'eab_blob_sas': dbutils.secrets.get(scope_name, "target-blob-sas")
+        , 'cumul_blob_account': dbutils.secrets.get(scope_name, "target-blob-account")
+        , 'cumul_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
+        , 'cumul_blob_sas': dbutils.secrets.get(scope_name, "target-blob-sas")
 
         , 'mysql_user': 'datalake@consumer-qa-emedia-db-0'
         , 'mysql_pwd': 'b2062ff9122811e99ce54f08370059c1'
@@ -55,5 +55,8 @@ def get_emedia_conf_dict():
         scope_conf_dict.update({'eab_blob_account': 'consumeremediaprd01',
                                 'eab_blob_container': 'eab',
                                 'eab_blob_sas': 'sr=c&si=PSD45315-racwdl&sig=aySskWosrGIa0EGTjQiuwewn4yaJhvSR%2FELv3M%2BTJ9A%3D&sv=2020-06-12'})
+        scope_conf_dict.update({'cumul_blob_account': 'a',
+                                'cumul_blob_container': 'b',
+                                'cumul_blob_sas': 'c'})
 
     return scope_conf_dict

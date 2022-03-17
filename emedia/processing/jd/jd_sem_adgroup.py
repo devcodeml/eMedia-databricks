@@ -553,7 +553,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',write_to_eab=True, compression = 'gzip', sep='|')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',dict_key='eab', compression = 'gzip', sep='|')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
 

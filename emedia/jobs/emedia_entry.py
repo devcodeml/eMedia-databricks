@@ -47,6 +47,11 @@ from emedia.processing.tmall.tmall_ztc_creative import tmall_ztc_creative_etl
 from emedia.processing.tmall.tmall_ztc_keyword import tmall_ztc_keyword_etl
 from emedia.processing.tmall.tmall_ztc_target import tmall_ztc_target_etl
 
+from emedia.processing.tmall.tmall_ztc_cumul_adgroup import tmall_ztc_cumul_adgroup_etl
+from emedia.processing.tmall.tmall_ztc_cumul_campaign import tmall_ztc_cumul_campaign_etl
+from emedia.processing.tmall.tmall_ztc_cumul_creative import tmall_ztc_cumul_creative_etl
+from emedia.processing.tmall.tmall_ztc_cumul_keyword import tmall_ztc_cumul_keyword_etl
+from emedia.processing.tmall.tmall_ztc_cumul_target import tmall_ztc_cumul_target_etl
 
 def emedia_etl(etl_action, airflow_execution_date, run_id):
     # vip 部分
@@ -132,6 +137,21 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     elif etl_action == 'tmall_ztc_target_etl':
         tmall_ztc_target_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_ztc_cumul_adgroup_etl':
+        tmall_ztc_cumul_adgroup_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_ztc_cumul_campaign_etl':
+        tmall_ztc_cumul_campaign_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_ztc_cumul_creative_etl':
+        tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_ztc_cumul_keyword_etl':
+        tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id)
+
+    elif etl_action == 'tmall_ztc_cumul_target_etl':
+        tmall_ztc_cumul_target_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'update_flag':
         # "2022-01-23 22:15:00+00:00"

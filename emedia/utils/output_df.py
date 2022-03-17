@@ -23,7 +23,7 @@ def _rename_blob_file(prefix, new_file_name, dest_account, dest_container, dest_
             blob_service.delete_blob(copy_from_container, blob.name)
 
 
-def output_to_emedia(df, parent_path, filename,sep=r'\\001',write_to_eab=False,**option):
+def output_to_emedia(df, parent_path, filename,sep=r'\\001',dict_key='target',**option):
     '''
     Output dataframe as one CSV file
 
@@ -34,10 +34,6 @@ def output_to_emedia(df, parent_path, filename,sep=r'\\001',write_to_eab=False,*
     filename: filename
     '''
     emedia_conf_dict = get_emedia_conf_dict()
-
-    dict_key = 'target'
-    if write_to_eab:
-        dict_key = 'eab'
 
     account = emedia_conf_dict.get(f'{dict_key}_blob_account')
     container = emedia_conf_dict.get(f'{dict_key}_blob_container')

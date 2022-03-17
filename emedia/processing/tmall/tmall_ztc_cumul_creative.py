@@ -9,11 +9,11 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
 
 
-tmall_ztc_creative_mapping_success_tbl = 'dws.tb_emedia_tmall_ztc_creative_mapping_success'
-tmall_ztc_creative_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_creative_mapping_fail'
+tmall_ztc_cumul_creative_mapping_success_tbl = 'dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success'
+tmall_ztc_cumul_creative_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_cumul_creative_mapping_fail'
 
 
-tmall_ztc_creative_pks = [
+tmall_ztc_cumul_creative_pks = [
     'thedate'
     , 'adgroup_id'
     , 'campaign_id'
@@ -25,7 +25,7 @@ tmall_ztc_creative_pks = [
 ]
 
 
-output_tmall_ztc_creative_pks = [
+output_tmall_ztc_cumul_creative_pks = [
     'ad_date'
     , 'adgroup_id'
     , 'campaign_id'
@@ -37,7 +37,7 @@ output_tmall_ztc_creative_pks = [
 ]
 
 
-def tmall_ztc_creative_etl(airflow_execution_date,run_id):
+def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -66,18 +66,18 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
 
     file_date = etl_date - datetime.timedelta(days=1)
 
-    tmall_ztc_creative_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ztc_daily_creativereport/tmall_ztc_creativereport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    tmall_ztc_cumul_creative_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ztc_cumul_creativereport/tmall_ztc_cumul_creativereport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'tmall_ztc_creative file: {tmall_ztc_creative_path}')
+    log.info(f'tmall_ztc_cumul_creative file: {tmall_ztc_cumul_creative_path}')
 
-    tmall_ztc_creative_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_creative_path}"
+    tmall_ztc_cumul_creative_daily_df = spark.read.csv(
+                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_cumul_creative_path}"
                     , header = True
                     , multiLine = True
                     , sep = "|"
     )
     
-    tmall_ztc_creative_fail_df = spark.table("stg.tb_emedia_tmall_ztc_creative_mapping_fail") \
+    tmall_ztc_cumul_creative_fail_df = spark.table("stg.tb_emedia_tmall_ztc_cumul_creative_mapping_fail") \
                 .drop('data_source') \
                 .drop('dw_etl_date') \
                 .drop('dw_batch_id') \
@@ -87,7 +87,7 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
                 .drop('etl_create_time')
 
     # Union unmapped records
-    tmall_ztc_creative_daily_df.union(tmall_ztc_creative_fail_df).createOrReplaceTempView("tmall_ztc_creative_daily")
+    tmall_ztc_cumul_creative_daily_df.union(tmall_ztc_cumul_creative_fail_df).createOrReplaceTempView("tmall_ztc_cumul_creative_daily")
 
 
     # Loading Mapping tbls
@@ -125,7 +125,7 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
             '{run_id}' as dw_batch_id,
             mapping_1.category_id,
             mapping_1.brand_id  
-        FROM tmall_ztc_creative_daily t1 LEFT JOIN mapping_1 ON t1.req_storeId = mapping_1.account_id
+        FROM tmall_ztc_cumul_creative_daily t1 LEFT JOIN mapping_1 ON t1.req_storeId = mapping_1.account_id
     ''')
 
     ## First stage unmapped
@@ -185,36 +185,36 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
         .createOrReplaceTempView("mapping_fail_3")
 
 
-    tmall_ztc_creative_mapped_df = spark.table("mapping_success_1") \
+    tmall_ztc_cumul_creative_mapped_df = spark.table("mapping_success_1") \
                 .union(spark.table("mapping_success_2")) \
                 .union(spark.table("mapping_success_3")) \
                 .withColumn("etl_date", current_date()) \
                 .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(tmall_ztc_creative_pks)
+                .dropDuplicates(tmall_ztc_cumul_creative_pks)
                 
-    tmall_ztc_creative_mapped_df.createOrReplaceTempView("all_mapping_success")
+    tmall_ztc_cumul_creative_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
     spark.sql("""
-        MERGE INTO dws.tb_emedia_tmall_ztc_creative_mapping_success
+        MERGE INTO dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success
 
         USING all_mapping_success
 
-        ON dws.tb_emedia_tmall_ztc_creative_mapping_success.thedate = all_mapping_success.thedate
+        ON dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.thedate = all_mapping_success.thedate
 
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.adgroup_id = all_mapping_success.adgroup_id
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.adgroup_id = all_mapping_success.adgroup_id
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.campaign_id = all_mapping_success.campaign_id
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.campaign_id = all_mapping_success.campaign_id
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.creativeid = all_mapping_success.creativeid
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.creativeid = all_mapping_success.creativeid
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.campaign_type_name = all_mapping_success.campaign_type_name
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.campaign_type_name = all_mapping_success.campaign_type_name
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.req_effect_days = all_mapping_success.req_effect_days
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.req_effect_days = all_mapping_success.req_effect_days
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.req_storeId = all_mapping_success.req_storeId
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.req_storeId = all_mapping_success.req_storeId
         
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.req_pv_type_in = all_mapping_success.req_pv_type_in
+        AND dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success.req_pv_type_in = all_mapping_success.req_pv_type_in
         
         WHEN MATCHED THEN
             UPDATE SET *
@@ -227,15 +227,15 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(tmall_ztc_creative_pks) \
+        .dropDuplicates(tmall_ztc_cumul_creative_pks) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
-        .insertInto("stg.tb_emedia_tmall_ztc_creative_mapping_fail")
+        .insertInto("stg.tb_emedia_tmall_ztc_cumul_creative_mapping_fail")
 
 
     # Query output result
-    tb_emedia_tmall_ztc_creative_df = spark.sql(f'''
+    tb_emedia_tmall_ztc_cumul_creative_df = spark.sql(f'''
         SELECT
             thedate as ad_date,
             category_id,
@@ -319,15 +319,15 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
             dw_batch_id	
         FROM (
             SELECT *
-            FROM dws.tb_emedia_tmall_ztc_creative_mapping_success 
+            FROM dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success 
                 UNION
             SELECT *
-            FROM stg.tb_emedia_tmall_ztc_creative_mapping_fail
+            FROM stg.tb_emedia_tmall_ztc_cumul_creative_mapping_fail
         )
         WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
-    ''').dropDuplicates(output_tmall_ztc_creative_pks)
+    ''').dropDuplicates(output_tmall_ztc_cumul_creative_pks)
 
-    tb_emedia_tmall_ztc_creative_df.createOrReplaceTempView('tb_emedia_tmall_ztc_creative')
+    tb_emedia_tmall_ztc_cumul_creative_df.createOrReplaceTempView('tb_emedia_tmall_ztc_cumul_creative')
 
     # Query db output result
     eab_db = spark.sql(f"""
@@ -413,15 +413,15 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
                     req_offset as req_offset,
                     req_page_size as req_page_size,
                     req_effect as req_effect
-                   from    tb_emedia_tmall_ztc_creative   where dw_etl_date = '{etl_date}'
+                   from    tb_emedia_tmall_ztc_cumul_creative   where dw_etl_date = '{etl_date}'
                """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT.CSV')
+    output_to_emedia(tb_emedia_tmall_ztc_cumul_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tmall_ztc_day_creative_{date}.csv.gz',
+    output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC_CUMUL/{run_id}', f'tmall_ztc_day_creative_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
 
-    spark.sql("optimize dws.tb_emedia_tmall_ztc_creative_mapping_success")
+    spark.sql("optimize dws.tb_emedia_tmall_ztc_cumul_creative_mapping_success")
 
     return 0
 

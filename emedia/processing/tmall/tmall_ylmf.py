@@ -177,7 +177,7 @@ def tamll_ylmf_etl(airflow_execution_date,run_id):
     #     输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
     #     输出文件名和路径如下
     output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}',
-                     'tb_emedia_ali_ylmf_campaign_day-{0}.csv.gz'.format(date), write_to_eab=True, compression='gzip',
+                     'tb_emedia_ali_ylmf_campaign_day-{0}.csv.gz'.format(date), dict_key='eab', compression='gzip',
                      sep='|')
 
     return 0
