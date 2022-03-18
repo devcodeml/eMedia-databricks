@@ -311,5 +311,7 @@ def emedia_brand_mapping(spark, daily_reports, ad_type):
         .distinct()
     out2 = spark.table("mappint_fail_3") \
         .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()).distinct()
+        .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(tmall_ylmf_campaign_pks) \
+        .distinct()
     return out1, out2
