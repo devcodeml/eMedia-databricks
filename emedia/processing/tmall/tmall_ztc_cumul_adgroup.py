@@ -310,14 +310,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date,run_id):
                 data_source,	
                 dw_etl_date,	
                 dw_batch_id
-        FROM (
-            SELECT *
-            FROM dws.tb_emedia_tmall_ztc_cumul_adgroup_mapping_success 
-                UNION
-            SELECT *
-            FROM stg.tb_emedia_tmall_ztc_cumul_adgroup_mapping_fail
-        )
-        WHERE req_start_time >= '{days_ago912}' AND req_start_time <= '{etl_date}'
+        FROM all_mapping_success
     ''').dropDuplicates(output_tmall_ztc_cumul_adgroup_pks)
 
     tb_emedia_tmall_ztc_cumul_adgroup_df.createOrReplaceTempView("tb_emedia_tmall_ztc_cumul_adgroup")

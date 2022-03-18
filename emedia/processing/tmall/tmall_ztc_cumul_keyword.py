@@ -326,14 +326,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
             data_source,
             dw_etl_date,
             dw_batch_id
-        FROM (
-            SELECT *
-            FROM dws.tb_emedia_tmall_ztc_cumul_keyword_mapping_success 
-                UNION
-            SELECT *
-            FROM stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail
-        )
-        WHERE thedate >= '{days_ago912}' AND thedate <= '{etl_date}'
+        FROM all_mapping_success
     ''').dropDuplicates(output_tmall_ztc_cumul_keyword_pks)
 
     tb_emedia_tmall_ztc_cumul_keyword_df.createOrReplaceTempView('tb_emedia_tmall_ztc_cumul_keyword')

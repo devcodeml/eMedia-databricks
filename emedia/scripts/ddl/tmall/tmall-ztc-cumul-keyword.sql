@@ -1,7 +1,7 @@
 %sql
--- tmall_ztc_keyword_cumul
-DROP TABLE IF EXISTS `dws`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_success`;
-CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_success` (
+-- tmall_ztc_cumul_keyword
+DROP TABLE IF EXISTS `dws`.`tb_emedia_tmall_ztc_cumul_keyword_mapping_success`;
+CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_tmall_ztc_cumul_keyword_mapping_success` (
     thedate String,
     impression String,
     click String,
@@ -99,11 +99,11 @@ CREATE TABLE IF NOT EXISTS `dws`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_suc
 )
 USING delta
 PARTITIONED BY (`thedate`)
-LOCATION  'dbfs:/mnt/qa/data_warehouse/media_dws.db/tb_emedia_tmall_ztc_keyword_cumul__mapping_success';
+LOCATION  'dbfs:/mnt/qa/data_warehouse/media_dws.db/tb_emedia_tmall_ztc_cumul_keyword_mapping_success';
 
 
-DROP TABLE IF EXISTS `stg`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_fail`;
-CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_fail` (
+DROP TABLE IF EXISTS `stg`.`tb_emedia_tmall_ztc_cumul_keyword_mapping_fail`;
+CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_tmall_ztc_cumul_keyword_mapping_fail` (
     thedate String,
     impression String,
     click String,
@@ -201,4 +201,4 @@ CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_tmall_ztc_keyword_cumul__mapping_fai
 )
 USING delta
 PARTITIONED BY (`thedate`)
-LOCATION  'dbfs:/mnt/qa/data_warehouse/media_stg.db/tb_emedia_tmall_ztc_keyword_cumul__mapping_fail';
+LOCATION  'dbfs:/mnt/qa/data_warehouse/media_stg.db/tb_emedia_tmall_ztc_cumul_keyword_mapping_fail';
