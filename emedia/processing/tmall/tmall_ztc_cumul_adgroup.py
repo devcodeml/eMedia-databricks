@@ -401,7 +401,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date,run_id):
             from    tb_emedia_tmall_ztc_cumul_adgroup   where dw_etl_date = '{etl_date}'
         """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_cumul_adgroup_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_ADGROUP_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
+    # output_to_emedia(tb_emedia_tmall_ztc_cumul_adgroup_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_ADGROUP_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
 
     output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC_CUMUL/{run_id}', f'tmall_ztc_day_adgroup_{date}.csv.gz',dict_key='eab', compression = 'gzip', sep='|')
 
