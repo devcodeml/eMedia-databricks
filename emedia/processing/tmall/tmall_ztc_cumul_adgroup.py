@@ -341,7 +341,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date,run_id):
                     cost as cost,
                     item_id as sku_id,
                     impression as impressions,
-                    'SEARCH' as search_type,
+                    '0' as search_type,
                     data_source as data_source,
                     brand_id as brand_id,
                     cart_total as total_cart_quantity,

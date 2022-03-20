@@ -347,7 +347,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
                             '' as nick,
                             campaign_name as campaign_name,
                             category_id as category_id,
-                            'SEARCH' as searchtype,
+                            '0' as searchtype,
                             direct_transaction as direct_order_value,
                             direct_transaction_shipping as direct_order_quantity,
                             indirect_transaction as indirect_order_value,
