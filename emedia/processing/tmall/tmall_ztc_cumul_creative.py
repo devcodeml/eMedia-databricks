@@ -340,7 +340,7 @@ def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
                     '' as nick,
                     campaign_title as campaign_name,
                     category_id as category_id,
-                    'SEARCH' as searchtype,
+                    '0' as searchtype,
                     direct_transaction as direct_order_value,
                     direct_transaction_shipping as direct_order_quantity,
                     indirect_transaction as indirect_order_value,
@@ -409,7 +409,7 @@ def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
                    from    tb_emedia_tmall_ztc_cumul_creative   where dw_etl_date = '{etl_date}'
                """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_cumul_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
+    # output_to_emedia(tb_emedia_tmall_ztc_cumul_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
 
     output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC_CUMUL/{run_id}', f'tmall_ztc_day_creative_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')

@@ -348,7 +348,7 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
                             crowd_name as target_name,
                             effect_days as effect_days,
                             source as source,
-                            'SEARCH' as search_type,
+                            '0' as search_type,
                             cost as cost,
                             click as click,
                             impression as impression,
