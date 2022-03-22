@@ -55,8 +55,11 @@ def get_emedia_conf_dict():
         scope_conf_dict.update({'eab_blob_account': 'consumeremediaprd01',
                                 'eab_blob_container': 'eab',
                                 'eab_blob_sas': 'sr=c&si=PSD45315-racwdl&sig=aySskWosrGIa0EGTjQiuwewn4yaJhvSR%2FELv3M%2BTJ9A%3D&sv=2020-06-12'})
-        scope_conf_dict.update({'cumul_blob_account': 'a',
-                                'cumul_blob_container': 'b',
-                                'cumul_blob_sas': 'c'})
+        scope_conf_dict.update({'cumul_blob_account': 'b2bmptbiprd01',
+                                'cumul_blob_container': 'emedia-resource-cumul',
+                                'cumul_blob_sas': 'sv=2020-10-02&st=2022-03-16T07%3A42%3A31Z&se=2030-12-31T07%3A42%3A00Z&sr=c&sp=racwdxlt&sig=xYLVtiblre%2BoxxeB%2FljX5iejhDJac4Xj%2BPd6MD1gIVA%3D'})
+
+
+
 
     return scope_conf_dict

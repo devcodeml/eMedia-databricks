@@ -224,17 +224,104 @@ def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
 
 
     # save the unmapped record
-    spark.table("mapping_fail_3") \
+    tb_emedia_tmall_ztc_cumul_creative_mapping_fail = spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
         .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(tmall_ztc_cumul_creative_pks) \
-        .write \
+        .dropDuplicates(tmall_ztc_cumul_creative_pks)
+    tb_emedia_tmall_ztc_cumul_creative_mapping_fail.createOrReplaceTempView('all_mapping_fail')
+
+    tb_emedia_tmall_ztc_cumul_creative_mapping_fail.write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
         .insertInto("stg.tb_emedia_tmall_ztc_cumul_creative_mapping_fail")
 
 
     # Query output result
+    tb_emedia_tmall_ztc_cumul_creative_fail_df = spark.sql(f'''
+            SELECT
+                thedate as ad_date,
+                category_id,
+                brand_id,
+                adgroup_id as adgroup_id,
+                adgroup_title as adgroup_title,
+                campaign_id as campaign_id,
+                campaign_title as campaign_title,
+                campaign_type_name as campaign_type_name,
+                nvl(cart_total,0) as cart_total,
+                nvl(cart_total_coverage,0) as cart_total_coverage,
+                nvl(click,0) as click,
+                nvl(click_shopping_amt,0) as click_shopping_amt,
+                nvl(click_shopping_amt_in_yuan,0) as click_shopping_amt_in_yuan,
+                nvl(click_shopping_num,0) as click_shopping_num,
+                round(nvl(cost,0),4) as cost,
+                nvl(cost_in_yuan,0) as cost_in_yuan,
+                round(nvl(coverage,0),2) as coverage,
+                round(nvl(cpc,0),4) as cpc,
+                round(nvl(cpc_in_yuan,0),4) as cpc_in_yuan,
+                round(nvl(cpm,0),4) as cpm,
+                round(nvl(cpm_in_yuan,0),4) as cpm_in_yuan,
+                creative_title as creative_title,
+                creativeid as creativeid,
+                round(nvl(ctr,0),2) as ctr,
+                nvl(dir_epre_pay_amt,0) as dir_epre_pay_amt,
+                nvl(dir_epre_pay_amt_in_yuan,0) as dir_epre_pay_amt_in_yuan,
+                nvl(dir_epre_pay_cnt,0) as dir_epre_pay_cnt,
+                nvl(direct_cart_total,0) as direct_cart_total,
+                round(nvl(direct_transaction,0),4) as direct_transaction,
+                nvl(direct_transaction_in_yuan,0) as direct_transaction_in_yuan,
+                nvl(direct_transaction_shipping,0) as direct_transaction_shipping,
+                nvl(direct_transaction_shipping_coverage,0) as direct_transaction_shipping_coverage,
+                nvl(epre_pay_amt,0) as epre_pay_amt,
+                nvl(epre_pay_amt_in_yuan,0) as epre_pay_amt_in_yuan,
+                nvl(epre_pay_cnt,0) as epre_pay_cnt,
+                nvl(fav_item_total,0) as fav_item_total,
+                nvl(fav_item_total_coverage,0) as fav_item_total_coverage,
+                nvl(fav_shop_total,0) as fav_shop_total,
+                nvl(fav_total,0) as fav_total,
+                nvl(hfh_dj_amt,0) as hfh_dj_amt,
+                nvl(hfh_dj_amt_in_yuan,0) as hfh_dj_amt_in_yuan,
+                nvl(hfh_dj_cnt,0) as hfh_dj_cnt,
+                nvl(hfh_ykj_amt,0) as hfh_ykj_amt,
+                nvl(hfh_ykj_amt_in_yuan,0) as hfh_ykj_amt_in_yuan,
+                nvl(hfh_ykj_cnt,0) as hfh_ykj_cnt,
+                nvl(hfh_ys_amt,0) as hfh_ys_amt,
+                nvl(hfh_ys_amt_in_yuan,0) as hfh_ys_amt_in_yuan,
+                nvl(hfh_ys_cnt,0) as hfh_ys_cnt,
+                img_url as img_url,
+                nvl(impression,0) as impression,
+                nvl(indir_epre_pay_amt,0) as indir_epre_pay_amt,
+                nvl(indir_epre_pay_amt_in_yuan,0) as indir_epre_pay_amt_in_yuan,
+                nvl(indir_epre_pay_cnt,0) as indir_epre_pay_cnt,
+                nvl(indirect_cart_total,0) as indirect_cart_total,
+                round(nvl(indirect_transaction,0),4) as indirect_transaction,
+                nvl(indirect_transaction_in_yuan,0) as indirect_transaction_in_yuan,
+                nvl(indirect_transaction_shipping,0) as indirect_transaction_shipping,
+                item_id as item_id,
+                linkurl as linkurl,
+                nvl(lz_cnt,0) as lz_cnt,
+                nvl(rh_cnt,0) as rh_cnt,
+                round(nvl(roi,0),2) as roi,
+                nvl(search_impression,0) as search_impression,
+                nvl(search_transaction,0) as search_transaction,
+                nvl(search_transaction_in_yuan,0) as search_transaction_in_yuan,
+                nvl(transaction_shipping_total,0) as transaction_shipping_total,
+                nvl(transaction_total,0) as transaction_total,
+                nvl(transaction_total_in_yuan,0) as transaction_total_in_yuan,
+                nvl(ww_cnt,0) as ww_cnt,
+                req_start_time as req_start_time,
+                req_end_time as req_end_time,
+                req_offset as req_offset,
+                req_page_size as req_page_size,
+                req_effect as req_effect,
+                req_effect_days as effect_days,
+                req_storeId as req_storeId,
+                req_pv_type_in as source,
+                data_source,	
+                dw_etl_date,
+                dw_batch_id	
+            FROM all_mapping_fail where dw_batch_id = '{run_id}'
+        ''')
+
     tb_emedia_tmall_ztc_cumul_creative_df = spark.sql(f'''
         SELECT
             thedate as ad_date,
@@ -317,10 +404,11 @@ def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
             data_source,	
             dw_etl_date,
             dw_batch_id	
-        FROM all_mapping_success
+        FROM all_mapping_success where dw_batch_id = '{run_id}'
     ''').dropDuplicates(output_tmall_ztc_cumul_creative_pks)
 
-    tb_emedia_tmall_ztc_cumul_creative_df.createOrReplaceTempView('tb_emedia_tmall_ztc_cumul_creative')
+    tb_emedia_tmall_ztc_cumul_creative_golden_df = tb_emedia_tmall_ztc_cumul_creative_df.union(tb_emedia_tmall_ztc_cumul_creative_fail_df)
+    tb_emedia_tmall_ztc_cumul_creative_golden_df.createOrReplaceTempView('tb_emedia_tmall_ztc_cumul_creative')
 
     # Query db output result
     eab_db = spark.sql(f"""
@@ -406,10 +494,10 @@ def tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id):
                     req_offset as req_offset,
                     req_page_size as req_page_size,
                     req_effect as req_effect
-                   from    tb_emedia_tmall_ztc_cumul_creative   where dw_etl_date = '{etl_date}'
+                   from    tb_emedia_tmall_ztc_cumul_creative   where dw_batch_id = '{run_id}'
                """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_cumul_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
+    output_to_emedia(tb_emedia_tmall_ztc_cumul_creative_golden_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
 
     output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC_CUMUL/{run_id}', f'tmall_ztc_day_creative_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
