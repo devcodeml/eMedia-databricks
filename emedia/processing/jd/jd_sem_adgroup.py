@@ -3,16 +3,13 @@
 import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
-
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
 from emedia.utils.output_df import write_eab_db
 
-
 jd_sem_adgroup_mapping_success_tbl = 'dws.tb_emedia_jd_sem_adgroup_mapping_success'
 jd_sem_adgroup_mapping_fail_tbl = 'stg.tb_emedia_jd_sem_adgroup_mapping_fail'
-
 
 jd_sem_adgroup_pks = [
     'date'
@@ -25,7 +22,6 @@ jd_sem_adgroup_pks = [
     , 'source'
 ]
 
-
 output_jd_sem_adgroup_pks = [
     'ad_date'
     , 'adgroup_id'
@@ -37,7 +33,7 @@ output_jd_sem_adgroup_pks = [
 ]
 
 
-def jd_sem_adgroup_etl(airflow_execution_date,run_id):
+def jd_sem_adgroup_etl(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -46,7 +42,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
     etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
-    etl_date_where =etl_date.strftime("%Y%m%d")
+    etl_date_where = etl_date.strftime("%Y%m%d")
 
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
@@ -58,34 +54,31 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     input_container = emedia_conf_dict.get('input_blob_container')
     input_sas = emedia_conf_dict.get('input_blob_sas')
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
-    
 
     mapping_account = emedia_conf_dict.get('mapping_blob_account')
     mapping_container = emedia_conf_dict.get('mapping_blob_container')
     mapping_sas = emedia_conf_dict.get('mapping_blob_sas')
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
-    
 
     file_date = etl_date - datetime.timedelta(days=1)
-
 
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     log.info(f'jd sem adgroup file: {jd_sem_adgroup_path}')
 
     jd_sem_adgroup_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
-                    , header = True
-                    , multiLine = True
-                    , sep = "|"
-                    , escape = '\"'
+        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
+        , header=True
+        , multiLine=True
+        , sep="|"
+        , escape='\"'
     )
-    
+
     jd_sem_adgroup_fail_df = spark.table("stg.tb_emedia_jd_sem_adgroup_mapping_fail") \
-                .drop('category_id') \
-                .drop('brand_id') \
-                .drop('etl_date') \
-                .drop('etl_create_time')
+        .drop('category_id') \
+        .drop('brand_id') \
+        .drop('etl_date') \
+        .drop('etl_create_time')
 
     jd_sem_adgroup_daily_df.createOrReplaceTempView('jd_sem_adgroup')
 
@@ -187,32 +180,30 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     # Union unmapped records
     jd_sem_adgroup_daily_df.union(jd_sem_adgroup_fail_df).createOrReplaceTempView("jd_sem_adgroup_daily")
 
-
     # Loading Mapping tbls
     mapping1_path = 'hdi_etl_brand_mapping/t_brandmap_account/t_brandmap_account.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping1_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_1")
 
     mapping2_path = 'hdi_etl_brand_mapping/t_brandmap_keyword1/t_brandmap_keyword1.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping2_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_2")
 
     mapping3_path = 'hdi_etl_brand_mapping/t_brandmap_keyword2/t_brandmap_keyword2.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping3_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_3")
-
 
     # First stage mapping
     mapping_1_result_df = spark.sql('''
@@ -238,39 +229,39 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
             , req_pageSize
             , req_pin
             , source
-            , directOrderSum
-            , shopAttentionCnt
-            , totalOrderSum
-            , directCartCnt
-            , CPC
-            , totalOrderROI
-            , totalOrderCVS
-            , clicks
-            , CPA
-            , CTR
-            , CPM
-            , impressions
-            , couponCnt
-            , indirectOrderSum
-            , visitorCnt
-            , totalPresaleOrderCnt
-            , presaleDirectOrderCnt
-            , cost
-            , visitPageCnt
-            , goodsAttentionCnt
-            , presaleDirectOrderSum
-            , directOrderCnt
-            , presaleIndirectOrderSum
-            , indirectCartCnt
-            , visitTimeAverage
-            , presaleIndirectOrderCnt
-            , indirectOrderCnt
-            , newCustomersCnt
-            , depthPassengerCnt
-            , totalCartCnt
-            , totalPresaleOrderSum
-            , preorderCnt
-            , totalOrderCnt
+            , nvl(directOrderSum,0) AS directOrderSum
+            , nvl(shopAttentionCnt,0) AS shopAttentionCnt
+            , nvl(totalOrderSum,0) AS totalOrderSum
+            , nvl(directCartCnt,0) AS directCartCnt
+            , nvl(CPC,0) AS CPC
+            , nvl(totalOrderROI,0) AS totalOrderROI
+            , nvl(totalOrderCVS,0) AS totalOrderCVS
+            , nvl(clicks,0) AS clicks
+            , nvl(CPA,0) AS CPA
+            , nvl(CTR,0) AS CTR
+            , nvl(CPM,0) AS CPM
+            , nvl(impressions,0) AS impressions
+            , nvl(couponCnt,0) AS couponCnt
+            , nvl(indirectOrderSum,0) AS indirectOrderSum
+            , nvl(visitorCnt,0) AS visitorCnt
+            , nvl(totalPresaleOrderCnt,0) AS totalPresaleOrderCnt
+            , nvl(presaleDirectOrderCnt,0) AS presaleDirectOrderCnt
+            , nvl(cost,0) AS cost
+            , nvl(visitPageCnt,0) AS visitPageCnt
+            , nvl(goodsAttentionCnt,0) AS goodsAttentionCnt
+            , nvl(presaleDirectOrderSum,0) AS presaleDirectOrderSum
+            , nvl(directOrderCnt,0) AS directOrderCnt
+            , nvl(presaleIndirectOrderSum,0) AS presaleIndirectOrderSum
+            , nvl(indirectCartCnt,0) AS indirectCartCnt
+            , nvl(visitTimeAverage,0) AS visitTimeAverage
+            , nvl(presaleIndirectOrderCnt,0) AS presaleIndirectOrderCnt
+            , nvl(indirectOrderCnt,0) AS indirectOrderCnt
+            , nvl(newCustomersCnt,0) AS newCustomersCnt
+            , nvl(depthPassengerCnt,0) AS depthPassengerCnt
+            , nvl(totalCartCnt,0) AS totalCartCnt
+            , nvl(totalPresaleOrderSum,0) AS totalPresaleOrderSum
+            , nvl(preorderCnt,0) AS preorderCnt
+            , nvl(totalOrderCnt,0) AS totalOrderCnt
             , mapping_1.category_id
             , mapping_1.brand_id
         FROM jd_sem_adgroup_daily LEFT JOIN mapping_1 ON jd_sem_adgroup_daily.pin = mapping_1.account_id
@@ -287,8 +278,7 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_1")
-    
-    
+
     # Second stage mapping
     mapping_2_result_df = spark.sql('''
         SELECT
@@ -310,7 +300,6 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_2")
-    
 
     # Third stage mapping
     mapping_3_result_df = spark.sql('''
@@ -332,14 +321,13 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
         .filter("category_id is NULL and brand_id is NULL") \
         .createOrReplaceTempView("mapping_fail_3")
 
-
     jd_jst_mapped_df = spark.table("mapping_success_1") \
-                .union(spark.table("mapping_success_2")) \
-                .union(spark.table("mapping_success_3")) \
-                .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(jd_sem_adgroup_pks)
-                
+        .union(spark.table("mapping_success_2")) \
+        .union(spark.table("mapping_success_3")) \
+        .withColumn("etl_date", current_date()) \
+        .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(jd_sem_adgroup_pks)
+
     jd_jst_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
@@ -368,7 +356,6 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
             THEN INSERT *
     """)
 
-
     # save the unmapped record
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
@@ -378,7 +365,6 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
         .mode("overwrite") \
         .option("mergeSchema", "true") \
         .insertInto("stg.tb_emedia_jd_sem_adgroup_mapping_fail")
-
 
     # Query output result
     spark.sql(f'''
@@ -553,9 +539,9 @@ def jd_sem_adgroup_etl(airflow_execution_date,run_id):
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
 
-    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',dict_key='eab', compression = 'gzip', sep='|')
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',
+                     dict_key='eab', compression='gzip', sep='|')
 
     spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
 
     return 0
-
