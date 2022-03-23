@@ -76,7 +76,11 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
                     , multiLine = True
                     , sep = "|"
     )
-    
+
+    first_row_data = tmall_ztc_cumul_keyword_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+    log.info(f'run_id:{run_id},dw_batch_number:{dw_batch_number}')
+
     tmall_ztc_cumul_keyword_fail_df = spark.table("stg.tb_emedia_tmall_ztc_cumul_keyword_mapping_fail") \
                 .drop('data_source') \
                 .drop('dw_etl_date') \
@@ -329,7 +333,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
                 data_source,
                 dw_etl_date,
                 dw_batch_id
-            FROM all_mapping_fail where dw_batch_id = '{run_id}'
+            FROM all_mapping_fail where dw_batch_number = '{dw_batch_number}'
         ''')
 
     tb_emedia_tmall_ztc_cumul_keyword_df = spark.sql(f'''
@@ -522,7 +526,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id):
                             req_offset as req_offset,
                             req_page_size as req_page_size,
                             req_effect as req_effect
-                   from    tb_emedia_tmall_ztc_cumul_keyword   where dw_batch_id = '{run_id}'
+                   from    tb_emedia_tmall_ztc_cumul_keyword
                """)
 
     output_to_emedia(tb_emedia_tmall_ztc_cumul_keyword_golden_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_KEYWORD_REPORT_NEW_FACT_CUMUL.CSV',dict_key='cumul')
