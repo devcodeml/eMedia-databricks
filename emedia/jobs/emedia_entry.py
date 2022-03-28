@@ -168,7 +168,7 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == 'tmall_ylmf_daliy_creativepackage_etl':
         tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id)
 
-    elif etl_action == '':
+    elif etl_action == 'ali_ylmf_day_crowd_etl':
         ali_ylmf_day_crowd_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ylmf_daliy_promotion_etl':
