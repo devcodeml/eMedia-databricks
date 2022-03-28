@@ -10,7 +10,7 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 
-def tmall_ylmf_daliy_promotion_report_etl(airflow_execution_date, run_id):
+def tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])

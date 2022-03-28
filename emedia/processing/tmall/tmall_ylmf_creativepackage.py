@@ -10,7 +10,7 @@ from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
 
-def tmall_ylmf_daliy_creativepackage_report_etl(airflow_execution_date, run_id):
+def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -92,12 +92,15 @@ def tmall_ylmf_daliy_creativepackage_report_etl(airflow_execution_date, run_id):
     report_df = read_json_content_df.na.fill("").selectExpr("log_data as ad_date", "campaign_group_id",
                                                             "campaign_group_name",
                                                             "campaign_id", "campaign_name",
-                                                            "creative_package_id", "creative_package_name",
+                                                            "creative_package_id",
+                                                            "creative_package_name",
                                                             "promotion_entity_id",
-                                                            "promotion_entity_name", "add_new_charge", "add_new_uv",
+                                                            "promotion_entity_name",
+                                                            "add_new_charge", "add_new_uv",
                                                             "add_new_uv_cost", "add_new_uv_rate",
                                                             "alipay_inshop_amt",
-                                                            "alipay_inshop_num", "avg_access_page_num",
+                                                            "alipay_inshop_num",
+                                                            "avg_access_page_num",
                                                             "avg_deep_access_times",
                                                             "cart_num", "charge", "click", "cpc",
                                                             "cpm", "ctr", "cvr", "deep_inshop_pv", "dir_shop_col_num",
