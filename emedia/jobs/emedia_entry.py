@@ -34,8 +34,6 @@ from emedia.processing.vip.vip_finance import vip_finance_etl
 
 from emedia.processing.tmall.tmall_super_effect import tmall_super_effect_etl
 from emedia.processing.tmall.tmall_super_report import tmall_super_report_etl
-
-from emedia.processing.tmall.tmall_ylmf import tamll_ylmf_etl
 from emedia.processing.tmall.tmall_mxdp import tmall_mxdp_etl
 from emedia.processing.tmall.tmall_pptx import tmall_pptx_etl
 from emedia.processing.tmall.tmall_ppzq import tmall_ppzq_etl
@@ -52,6 +50,7 @@ from emedia.processing.tmall.tmall_ztc_cumul_campaign import tmall_ztc_cumul_cam
 from emedia.processing.tmall.tmall_ztc_cumul_creative import tmall_ztc_cumul_creative_etl
 from emedia.processing.tmall.tmall_ztc_cumul_keyword import tmall_ztc_cumul_keyword_etl
 from emedia.processing.tmall.tmall_ztc_cumul_target import tmall_ztc_cumul_target_etl
+
 
 def emedia_etl(etl_action, airflow_execution_date, run_id):
     # vip 部分
@@ -103,13 +102,10 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     # tmall 部分
     elif etl_action == 'tmall_super_effect_etl':
-        tmall_super_effect_etl(airflow_execution_date,run_id)
+        tmall_super_effect_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_super_report_etl':
         tmall_super_report_etl(airflow_execution_date, run_id)
-
-    elif etl_action == 'tamll_ylmf_etl':
-        tamll_ylmf_etl(airflow_execution_date,run_id)
 
     elif etl_action == 'tmall_mxdp_etl':
         tmall_mxdp_etl(airflow_execution_date)
@@ -121,37 +117,37 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         tmall_ppzq_etl(airflow_execution_date)
 
     elif etl_action == 'tmall_ztc_account_etl':
-        tmall_ztc_account_etl(airflow_execution_date,run_id)
+        tmall_ztc_account_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_adgroup_etl':
-        tmall_ztc_adgroup_etl(airflow_execution_date,run_id)
+        tmall_ztc_adgroup_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_campaign_etl':
-        tmall_ztc_campaign_etl(airflow_execution_date,run_id)
+        tmall_ztc_campaign_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_creative_etl':
-        tmall_ztc_creative_etl(airflow_execution_date,run_id)
+        tmall_ztc_creative_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_keyword_etl':
-        tmall_ztc_keyword_etl(airflow_execution_date,run_id)
+        tmall_ztc_keyword_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_target_etl':
-        tmall_ztc_target_etl(airflow_execution_date,run_id)
+        tmall_ztc_target_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_cumul_adgroup_etl':
-        tmall_ztc_cumul_adgroup_etl(airflow_execution_date,run_id)
+        tmall_ztc_cumul_adgroup_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_cumul_campaign_etl':
-        tmall_ztc_cumul_campaign_etl(airflow_execution_date,run_id)
+        tmall_ztc_cumul_campaign_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_cumul_creative_etl':
-        tmall_ztc_cumul_creative_etl(airflow_execution_date,run_id)
+        tmall_ztc_cumul_creative_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_cumul_keyword_etl':
-        tmall_ztc_cumul_keyword_etl(airflow_execution_date,run_id)
+        tmall_ztc_cumul_keyword_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ztc_cumul_target_etl':
-        tmall_ztc_cumul_target_etl(airflow_execution_date,run_id)
+        tmall_ztc_cumul_target_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'update_flag':
         # "2022-01-23 22:15:00+00:00"
@@ -163,4 +159,3 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
 if __name__ == '__main__':
     emedia_etl(sys.argv[1], sys.argv[2], sys.argv[3].replace(":", "").replace("+", "").replace(".", ""))
-
