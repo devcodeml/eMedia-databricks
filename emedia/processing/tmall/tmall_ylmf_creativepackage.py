@@ -1,6 +1,6 @@
-from datetime import datetime
+import datetime
 
-from pyspark import F
+from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_date
 from pyspark.sql.types import StringType
@@ -139,19 +139,17 @@ def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
         daily_reports = report_df.union(fail_df)
 
     ad_type = 'ylmf'
+
+    tmall_ylmf_mapping_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'creative_package_id',"promotion_entity_id",
+                              'effect_days','req_storeId']
     ## 引用mapping函数 路径不一样自行修改函数路径
-    res = emedia_brand_mapping(spark, daily_reports, ad_type)
-
-    tmall_ylmf_campaign_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'promotion_entity_id', 'effect_days',
-                               'req_storeId']
-
-    res[0].dropDuplicates(tmall_ylmf_campaign_pks).createOrReplaceTempView("all_mapping_success")
+    res = emedia_brand_mapping(spark, daily_reports, ad_type,tmall_ylmf_mapping_pks)
+    res[0].createOrReplaceTempView("all_mapping_success")
     table_exist = spark.sql(
         "show tables in dws like 'media_emedia_aliylmf_day_creativepackage_report_mapping_success'").count()
     # AND dws.media_emedia_tmall_ylmf_day_campaignGroup_mapping_success.effect_days = all_mappint_success.effect_days
     if table_exist == 0:
-        res[0].distinct().write.mode("overwrite").saveAsTable(
-            "dws.media_emedia_aliylmf_day_creativepackage_report_mapping_success")
+        res[0].write.mode("overwrite").saveAsTable("dws.media_emedia_aliylmf_day_creativepackage_report_mapping_success")
     else:
         spark.sql("""
               MERGE INTO dws.media_emedia_aliylmf_day_creativepackage_report_mapping_success
@@ -170,15 +168,14 @@ def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
               WHEN NOT MATCHED
                   THEN INSERT *
             """)
-    res[1].dropDuplicates(tmall_ylmf_campaign_pks).write.mode("overwrite").saveAsTable(
-        "stg.media_emedia_aliylmf_day_creativepackage_report_mapping_fail")
+    res[1].write.mode("overwrite").saveAsTable("stg.media_emedia_aliylmf_day_creativepackage_report_mapping_fail")
     # 全量输出
     update_time = F.udf(lambda x: x.replace("-", ""), StringType())
     success_output_df = spark.sql(
-        "select * from dws.media_emedia_tmall_ylmf_day_campaignGroup_mapping_success where ad_date >= '{0}'".format(
+        "select * from dws.media_emedia_aliylmf_day_creativepackage_report_mapping_success where ad_date >= '{0}'".format(
             days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
     fail_output_df = spark.sql(
-        "select * from stg.media_emedia_tmall_ylmf_day_campaignGroup_mapping_fail where ad_date >= '{0}'".format(
+        "select * from stg.media_emedia_aliylmf_day_creativepackage_report_mapping_fail where ad_date >= '{0}'".format(
             days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
     all_output = success_output_df.union(fail_output_df) \
                  .withColumnRenamed('req_storeId', 'store_id')
@@ -187,9 +184,7 @@ def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
                      'EMEDIA_TMALL_YLMF_DAILY_CREATIVEPACKAGE_REPORT_FACT.CSV')
 
     # 增量输出
-    ## 引用mapping函数 路径不一样自行修改函数路径
-    res_incre = emedia_brand_mapping(spark, report_df, ad_type)
-    incre_output = res_incre[0].union(res_incre[1]).drop('etl_date').drop('etl_create_time') \
+    incre_output = res[0].union(res[1]).drop('etl_date').drop('etl_create_time') \
         .withColumn('ad_date', update_time(F.col('ad_date'))) \
         .withColumn('data_source', F.lit('tmall')) \
         .withColumn('dw_etl_date', current_date()) \

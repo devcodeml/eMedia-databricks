@@ -11,7 +11,7 @@ from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
 
-def tmall_ylmf_etl_campaign(airflow_execution_date, run_id):
+def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -116,11 +116,11 @@ def tmall_ylmf_etl_campaign(airflow_execution_date, run_id):
                                                             "search_click_cost")
 
     fail_table_exist = spark.sql(
-        "show tables in stg like 'media_emedia_tmall_ylmf_campaignReport_mapping_fail'").count()
+        "show tables in stg like 'media_emedia_tmall_ylmf_campaign_report_mapping_fail'").count()
     if fail_table_exist == 0:
         daily_reports = report_df
     else:
-        fail_df = spark.table("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail") \
+        fail_df = spark.table("stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail") \
             .drop('category_id') \
             .drop('brand_id') \
             .drop('etl_date') \
@@ -130,41 +130,40 @@ def tmall_ylmf_etl_campaign(airflow_execution_date, run_id):
     ad_type = 'ylmf'
 
     ## 引用mapping函数 路径不一样自行修改函数路径
-    res = emedia_brand_mapping(spark, daily_reports, ad_type)
+    tmall_ylmf_mapping_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'effect_days', 'req_storeId']
+    res = emedia_brand_mapping(spark, daily_reports, ad_type,tmall_ylmf_mapping_pks)
 
-    res[0].distinct().createOrReplaceTempView("all_mapping_success")
-    table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaignReport_mapping_success'").count()
+    res[0].createOrReplaceTempView("all_mapping_success")
+    table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaign_report_mapping_success'").count()
     if table_exist == 0:
-        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto(
-            "dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
+        res[0].write.mode("overwrite").saveAsTable("dws.media_emedia_tmall_ylmf_campaign_report_mapping_success")
     else:
         spark.sql("""
-          MERGE INTO dws.media_emedia_tmall_ylmf_campaignReport_mapping_success
+          MERGE INTO dws.media_emedia_tmall_ylmf_campaign_report_mapping_success
           USING all_mapping_success
-          ON dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.ad_date = all_mapping_success.ad_date
-              AND dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id
-              AND dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.campaign_id = all_mapping_success.campaign_id
-              AND dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.effect = all_mapping_success.effect
-              AND dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.effect_days = all_mapping_success.effect_days
-              AND dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.req_storeId = all_mapping_success.req_storeId
-              AND ((dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id)
+          ON dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.ad_date = all_mapping_success.ad_date
+              AND dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id
+              AND dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.campaign_id = all_mapping_success.campaign_id
+              AND dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.effect = all_mapping_success.effect
+              AND dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.effect_days = all_mapping_success.effect_days
+              AND dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.req_storeId = all_mapping_success.req_storeId
+              AND ((dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id)
                       OR
-                   (dws.media_emedia_tmall_ylmf_campaignReport_mapping_success.campaign_group_id IS null and all_mapping_success.campaign_group_id IS null))
+                   (dws.media_emedia_tmall_ylmf_campaign_report_mapping_success.campaign_group_id IS null and all_mapping_success.campaign_group_id IS null))
           WHEN MATCHED THEN
               UPDATE SET *
           WHEN NOT MATCHED
               THEN INSERT *
         """)
-    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto(
-        "stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
+    res[1].write.mode("overwrite").saveAsTable("stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail")
 
     # 全量输出
     update_time = F.udf(lambda x: x.replace("-", ""), StringType())
     success_output_df = spark.sql(
-        "select * from dws.media_emedia_tmall_ylmf_campaignReport_mapping_success where ad_date >= '{0}'".format(
+        "select * from dws.media_emedia_tmall_ylmf_campaign_report_mapping_success where ad_date >= '{0}'".format(
             days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
     fail_output_df = spark.sql(
-        "select * from stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail where ad_date >= '{0}'".format(
+        "select * from stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail where ad_date >= '{0}'".format(
             days_ago912)).drop('etl_date').drop('etl_create_time').withColumn('ad_date', update_time(F.col('ad_date')))
     all_output = success_output_df.union(fail_output_df)
     # 输出函数，你们需要自测一下
@@ -172,8 +171,7 @@ def tmall_ylmf_etl_campaign(airflow_execution_date, run_id):
 
     # 增量输出
     ## 引用mapping函数 路径不一样自行修改函数路径
-    res_incre = emedia_brand_mapping(spark, report_df, ad_type)
-    incre_output = res_incre[0].union(res_incre[1]).drop('etl_date').drop('etl_create_time') \
+    incre_output = res[0].union(res[1]).drop('etl_date').drop('etl_create_time') \
         .withColumn('ad_date', update_time(F.col('ad_date'))) \
         .withColumn('data_source', F.lit('tmall')) \
         .withColumn('dw_etl_date', current_date()) \
@@ -181,7 +179,7 @@ def tmall_ylmf_etl_campaign(airflow_execution_date, run_id):
     #     输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
     #     输出文件名和路径如下
     output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}',
-                     f'ttmall_ylmf_day_campaign_{date}.csv.gz', dict_key='eab', compression='gzip',
+                     f'tmall_ylmf_day_campaign_{date}.csv.gz', dict_key='eab', compression='gzip',
                      sep='|')
 
     return 0

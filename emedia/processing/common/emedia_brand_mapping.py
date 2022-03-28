@@ -2,12 +2,13 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from pyspark.sql.functions import current_date, current_timestamp
 
 
-def emedia_brand_mapping(spark, daily_reports, ad_type):
+def emedia_brand_mapping(spark, daily_reports, ad_type, tmall_ylmf_campaign_pks):
     """
     将传入的Dataframe进行mapping得到 Brand Mapping 后的Dataframe
     :param spark:
     :param daily_reports:
     :param ad_type:     (e.g. ztc ylmf sem ) 所有枚举类型参考 https://confluence-wiki.pg.com.cn/display/MD/eMedia+ETL+Process
+    :tmall_ylmf_campaign_pks 去重主键
     :param mapping_blob_container:       sas_token
     :param mapping_blob_account:        container_name
     :param otd_vip_mapping1_path:
@@ -36,8 +37,6 @@ def emedia_brand_mapping(spark, daily_reports, ad_type):
         , multiLine=True
         , sep=","
     )
-
-    tmall_ylmf_campaign_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'effect', 'effect_days', 'req_storeId']
 
     match_keyword_column = emedia_adformat_mapping.fillna('req_storeId').filter(
         emedia_adformat_mapping['adformat_en'] == ad_type).toPandas()
