@@ -242,8 +242,8 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
     jd_jst_mapped_df = spark.table("mapping_success_1") \
                 .union(spark.table("mapping_success_2")) \
                 .union(spark.table("mapping_success_3")) \
-                .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp()) \
+                .withColumn("etl_date", etl_date) \
+                .withColumn("etl_create_time", date_time) \
                 .dropDuplicates(jd_sem_campaign_pks)
                 
     jd_jst_mapped_df.createOrReplaceTempView("all_mapping_success")
@@ -275,8 +275,8 @@ def jd_sem_campaign_etl(airflow_execution_date,run_id):
 
     # save the unmapped record
     spark.table("mapping_fail_3") \
-        .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()) \
+        .withColumn("etl_date", etl_date) \
+        .withColumn("etl_create_time", date_time) \
         .dropDuplicates(jd_sem_campaign_pks) \
         .write \
         .mode("overwrite") \
