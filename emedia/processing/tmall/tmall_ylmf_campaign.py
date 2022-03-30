@@ -3,7 +3,6 @@
 import datetime
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import current_date
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 from emedia.config.emedia_conf import get_emedia_conf_dict
@@ -131,7 +130,8 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
 
     ## 引用mapping函数 路径不一样自行修改函数路径
     tmall_ylmf_mapping_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'effect_days', 'req_storeId']
-    res = emedia_brand_mapping(spark, daily_reports, ad_type,tmall_ylmf_mapping_pks)
+    res = emedia_brand_mapping(spark, daily_reports, ad_type, etl_date=etl_date, etl_create_time=date_time,
+                               mapping_pks=tmall_ylmf_mapping_pks)
 
     res[0].createOrReplaceTempView("all_mapping_success")
     table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaign_report_mapping_success'").count()
@@ -171,12 +171,130 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
 
     # 增量输出
     ## 引用mapping函数 路径不一样自行修改函数路径
-    incre_output = res[0].union(res[1]).drop('etl_date').drop('etl_create_time') \
-        .withColumn('ad_date', update_time(F.col('ad_date'))) \
-        .withColumn('data_source', F.lit('tmall')) \
-        .withColumn('dw_etl_date', current_date()) \
-        .withColumn('dw_batch_id', F.lit(run_id))
-    #     输出函数，请修改成你们的eab输出函数，分隔符为竖线 “|”， 输出路径格式要求见 https://confluence-wiki.pg.com.cn/pages/viewpage.action?pageId=93063484
+    eab_success_out_df = spark.sql(f'''
+        select 
+                date_format(ad_date,'yMMdd') as ad_date,
+                campaign_group_id,
+                campaign_group_name,
+                campaign_id,
+                campaign_name,
+                biz_code,
+                offset,
+                page_size,
+                query_time_dim,
+                query_domain,
+                start_time,
+                end_time,
+                effect,
+                effect_days,
+                req_storeId as store_id,
+                dw_resource,
+                dw_create_time,
+                dw_batch_number,
+                round(nvl(add_new_charge,0),5) as add_new_charge,
+                nvl(add_new_uv,0) as add_new_uv,
+                round(nvl(add_new_uv_cost,0),5) as add_new_uv_cost,
+                round(nvl(add_new_uv_rate,0),5) as add_new_uv_rate,
+                round(nvl(alipay_inshop_amt,0),5) as alipay_inshop_amt,
+                nvl(alipay_inshop_num,0) as alipay_inshop_num,
+                round(nvl(avg_access_page_num,0),5) as avg_access_page_num,
+                round(nvl(avg_deep_access_times,0),5) as avg_deep_access_times,
+                nvl(cart_num,0) as cart_num,
+                round(nvl(charge,0),5) as charge,
+                nvl(click,0) as click,
+                round(nvl(cpc,0),5) as cpc,
+                round(nvl(cpm,0),5) as cpm,
+                round(nvl(ctr,0),5) as ctr,
+                round(nvl(cvr,0),5) as cvr,
+                nvl(deep_inshop_pv,0) as deep_inshop_pv,
+                nvl(dir_shop_col_num,0) as dir_shop_col_num,
+                round(nvl(gmv_inshop_amt,0),5) as gmv_inshop_amt,
+                nvl(gmv_inshop_num,0) as gmv_inshop_num,
+                round(nvl(icvr,0),5) as icvr,
+                nvl(impression,0) as impression,
+                nvl(inshop_item_col_num,0) as inshop_item_col_num,
+                nvl(inshop_potential_uv,0) as inshop_potential_uv,
+                round(nvl(inshop_potential_uv_rate,0),5) as inshop_potential_uv_rate,
+                nvl(inshop_pv,0) as inshop_pv,
+                round(nvl(inshop_pv_rate,0),5) as inshop_pv_rate,
+                nvl(inshop_uv,0) as inshop_uv,
+                round(nvl(prepay_inshop_amt,0),5) as prepay_inshop_amt,
+                nvl(prepay_inshop_num,0) as prepay_inshop_num,
+                nvl(return_pv,0) as return_pv,
+                round(nvl(return_pv_cost,0),5) as return_pv_cost,
+                round(nvl(roi,0),5) as roi,
+                nvl(search_click_cnt,0) as search_click_cnt,
+                round(nvl(search_click_cost,0),5) as search_click_cost,
+                category_id,
+                brand_id,
+                'tmall' as data_source,
+                etl_date as dw_etl_date,
+                '{run_id}' as dw_batch_id
+            from dws.media_emedia_tmall_ylmf_campaign_report_mapping_success where where etl_date = '{etl_date}'
+   ''')
+
+    eab_fail_out_df = spark.sql(f'''
+    select 
+                date_format(ad_date,'yMMdd') as ad_date,
+                campaign_group_id,
+                campaign_group_name,
+                campaign_id,
+                campaign_name,
+                biz_code,
+                offset,
+                page_size,
+                query_time_dim,
+                query_domain,
+                start_time,
+                end_time,
+                effect,
+                effect_days,
+                req_storeId as store_id,
+                dw_resource,
+                dw_create_time,
+                dw_batch_number,
+                round(nvl(add_new_charge,0),5) as add_new_charge,
+                nvl(add_new_uv,0) as add_new_uv,
+                round(nvl(add_new_uv_cost,0),5) as add_new_uv_cost,
+                round(nvl(add_new_uv_rate,0),5) as add_new_uv_rate,
+                round(nvl(alipay_inshop_amt,0),5) as alipay_inshop_amt,
+                nvl(alipay_inshop_num,0) as alipay_inshop_num,
+                round(nvl(avg_access_page_num,0),5) as avg_access_page_num,
+                round(nvl(avg_deep_access_times,0),5) as avg_deep_access_times,
+                nvl(cart_num,0) as cart_num,
+                round(nvl(charge,0),5) as charge,
+                nvl(click,0) as click,
+                round(nvl(cpc,0),5) as cpc,
+                round(nvl(cpm,0),5) as cpm,
+                round(nvl(ctr,0),5) as ctr,
+                round(nvl(cvr,0),5) as cvr,
+                nvl(deep_inshop_pv,0) as deep_inshop_pv,
+                nvl(dir_shop_col_num,0) as dir_shop_col_num,
+                round(nvl(gmv_inshop_amt,0),5) as gmv_inshop_amt,
+                nvl(gmv_inshop_num,0) as gmv_inshop_num,
+                round(nvl(icvr,0),5) as icvr,
+                nvl(impression,0) as impression,
+                nvl(inshop_item_col_num,0) as inshop_item_col_num,
+                nvl(inshop_potential_uv,0) as inshop_potential_uv,
+                round(nvl(inshop_potential_uv_rate,0),5) as inshop_potential_uv_rate,
+                nvl(inshop_pv,0) as inshop_pv,
+                round(nvl(inshop_pv_rate,0),5) as inshop_pv_rate,
+                nvl(inshop_uv,0) as inshop_uv,
+                round(nvl(prepay_inshop_amt,0),5) as prepay_inshop_amt,
+                nvl(prepay_inshop_num,0) as prepay_inshop_num,
+                nvl(return_pv,0) as return_pv,
+                round(nvl(return_pv_cost,0),5) as return_pv_cost,
+                round(nvl(roi,0),5) as roi,
+                nvl(search_click_cnt,0) as search_click_cnt,
+                round(nvl(search_click_cost,0),5) as search_click_cost,
+                category_id,
+                brand_id,
+                'tmall' as data_source,
+                etl_date as dw_etl_date,
+                '{run_id}' as dw_batch_id
+            from stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail where where etl_date = '{etl_date}'
+            ''')
+    incre_output = eab_success_out_df.union(eab_fail_out_df)
     #     输出文件名和路径如下
     output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}',
                      f'tmall_ylmf_day_campaign_{date}.csv.gz', dict_key='eab', compression='gzip',

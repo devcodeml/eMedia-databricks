@@ -1,12 +1,10 @@
 # coding: utf-8
 
 import datetime
-from pyspark.sql.functions import current_date, current_timestamp
-
+from pyspark.sql import functions as F
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
-from emedia.utils.output_df import write_eab_db
 
 jd_sem_adgroup_mapping_success_tbl = 'dws.tb_emedia_jd_sem_adgroup_mapping_success'
 jd_sem_adgroup_mapping_fail_tbl = 'stg.tb_emedia_jd_sem_adgroup_mapping_fail'
@@ -324,8 +322,8 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
     jd_jst_mapped_df = spark.table("mapping_success_1") \
         .union(spark.table("mapping_success_2")) \
         .union(spark.table("mapping_success_3")) \
-        .withColumn("etl_date", etl_date) \
-        .withColumn("etl_create_time", date_time) \
+        .withColumn("etl_date", F.lit(etl_date)) \
+        .withColumn("etl_create_time", F.lit(date_time)) \
         .dropDuplicates(jd_sem_adgroup_pks)
 
     jd_jst_mapped_df.createOrReplaceTempView("all_mapping_success")
@@ -358,8 +356,8 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
 
     # save the unmapped record
     spark.table("mapping_fail_3") \
-        .withColumn("etl_date", etl_date) \
-        .withColumn("etl_create_time", date_time) \
+        .withColumn("etl_date", F.lit(etl_date)) \
+        .withColumn("etl_create_time", F.lit(date_time)) \
         .dropDuplicates(jd_sem_adgroup_pks) \
         .write \
         .mode("overwrite") \

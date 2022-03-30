@@ -1,8 +1,8 @@
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from pyspark.sql.functions import current_date, current_timestamp
+from pyspark.sql import functions as F
 
 
-def emedia_brand_mapping(spark, daily_reports, ad_type, tmall_ylmf_campaign_pks):
+def emedia_brand_mapping(spark, daily_reports, ad_type, **mapping_dict):
     """
     将传入的Dataframe进行mapping得到 Brand Mapping 后的Dataframe
     :param spark:
@@ -83,52 +83,52 @@ def emedia_brand_mapping(spark, daily_reports, ad_type, tmall_ylmf_campaign_pks)
         .filter("category_id IS null AND brand_id IS null") \
         .drop("category_id") \
         .drop("brand_id") \
-        .createOrReplaceTempView("mappint_fail_1")
+        .createOrReplaceTempView("mapping_fail_1")
     mappint1_result_df \
         .filter("category_id IS NOT null or brand_id IS NOT null") \
-        .createOrReplaceTempView("mappint_success_1")
+        .createOrReplaceTempView("mapping_success_1")
     # Second map result
     mappint2_result_df = spark.sql(r'''
             SELECT
                 mfr1.*
                 , m2.category_id
                 , m2.brand_id
-            FROM mappint_fail_1 mfr1 LEFT JOIN mapping2 m2 ON mfr1.{0} = m2.account_id
+            FROM mapping_fail_1 mfr1 LEFT JOIN mapping2 m2 ON mfr1.{0} = m2.account_id
             AND instr(mfr1.{1}, m2.keyword) > 0
         '''.format(account_id, keyword))
     mappint2_result_df \
         .filter("category_id IS null and brand_id IS null") \
         .drop("category_id") \
         .drop("brand_id") \
-        .createOrReplaceTempView("mappint_fail_2")
+        .createOrReplaceTempView("mapping_fail_2")
     mappint2_result_df \
         .filter("category_id IS NOT null or brand_id IS NOT null") \
-        .createOrReplaceTempView("mappint_success_2")
+        .createOrReplaceTempView("mapping_success_2")
     # Third map result
     mappint3_result_df = spark.sql(r'''
             SELECT
                 mfr2.*
                 , m3.category_id
                 , m3.brand_id
-            FROM mappint_fail_2 mfr2 LEFT JOIN mapping3 m3 ON mfr2.{0} = m3.account_id
+            FROM mapping_fail_2 mfr2 LEFT JOIN mapping3 m3 ON mfr2.{0} = m3.account_id
             AND instr(mfr2.{1}, m3.keyword) > 0
         '''.format(account_id, keyword))
     mappint3_result_df \
         .filter("category_id is null and brand_id is null") \
-        .createOrReplaceTempView("mappint_fail_3")
+        .createOrReplaceTempView("mapping_fail_3")
     mappint3_result_df \
         .filter("category_id IS NOT null or brand_id IS NOT null") \
-        .createOrReplaceTempView("mappint_success_3")
-    out1 = spark.table("mappint_success_1") \
-        .union(spark.table("mappint_success_2")) \
-        .union(spark.table("mappint_success_3")) \
-        .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(tmall_ylmf_campaign_pks) \
+        .createOrReplaceTempView("mapping_success_3")
+    out1 = spark.table("mapping_success_1") \
+        .union(spark.table("mapping_success_2")) \
+        .union(spark.table("mapping_success_3")) \
+        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date'))) \
+        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_create_time'))) \
+        .dropDuplicates(mapping_dict.get('mapping_pks')) \
         .distinct()
-    out2 = spark.table("mappint_fail_3") \
-        .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()) \
-        .dropDuplicates(tmall_ylmf_campaign_pks) \
+    out2 = spark.table("mapping_fail_3") \
+        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date'))) \
+        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_date'))) \
+        .dropDuplicates(mapping_dict.get('mapping_pks')) \
         .distinct()
     return out1, out2
