@@ -14,9 +14,8 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
-    etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
-
     date = airflow_execution_date[0:10]
+    etl_date = datetime.datetime(etl_year, etl_month, etl_day)
     date_time = date + "T" + airflow_execution_date[11:19]
     spark = SparkSession.builder.getOrCreate()
     days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
@@ -47,6 +46,9 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
         , escape="\""
         , inferSchema=True
     )
+
+    first_row_data = tmall_ylmf_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
 
     read_json_content_df = tmall_ylmf_df.select("*", F.json_tuple("rpt_info", "add_new_charge", "add_new_uv",
                                                                   "add_new_uv_cost", "add_new_uv_rate",
@@ -230,7 +232,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
                 'tmall' as data_source,
                 etl_date as dw_etl_date,
                 '{run_id}' as dw_batch_id
-            from dws.media_emedia_tmall_ylmf_campaign_report_mapping_success where where etl_date = '{etl_date}'
+            from dws.media_emedia_tmall_ylmf_campaign_report_mapping_success where dw_batch_number = '{dw_batch_number}'
    ''')
 
     eab_fail_out_df = spark.sql(f'''
@@ -292,7 +294,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
                 'tmall' as data_source,
                 etl_date as dw_etl_date,
                 '{run_id}' as dw_batch_id
-            from stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail where where etl_date = '{etl_date}'
+            from stg.media_emedia_tmall_ylmf_campaign_report_mapping_fail where dw_batch_number = '{dw_batch_number}'
             ''')
     incre_output = eab_success_out_df.union(eab_fail_out_df)
     #     输出文件名和路径如下

@@ -48,6 +48,9 @@ def tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id):
         , escape="\""
         , inferSchema=True
     )
+    first_row_data = tmall_ylmf_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
     read_json_content_df = tmall_ylmf_df.select("*", F.json_tuple("rpt_info", "add_new_charge", "add_new_uv",
                                                                   "add_new_uv_cost", "add_new_uv_rate",
                                                                   "alipay_inshop_amt", "alipay_inshop_num",
@@ -241,7 +244,7 @@ def tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id):
             'tmall' as data_source,
             etl_date as dw_etl_date,
             '{run_id}' as dw_batch_id
-        from dws.media_emedia_aliylmf_day_promotion_report_mapping_success where etl_date = '{etl_date}'
+        from dws.media_emedia_aliylmf_day_promotion_report_mapping_success where dw_batch_number = '{dw_batch_number}'
     ''')
     eab_fail_out_df = spark.sql(f'''
             select
@@ -307,7 +310,7 @@ def tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id):
                 'tmall' as data_source,
                 etl_date as dw_etl_date,
                 '{run_id}' as dw_batch_id
-            from stg.media_emedia_aliylmf_day_promotion_report_mapping_fail where etl_date = '{etl_date}'
+            from stg.media_emedia_aliylmf_day_promotion_report_mapping_fail where dw_batch_number = '{dw_batch_number}'
         ''')
     incre_output = eab_success_out_df.union(eab_fail_out_df)
     output_to_emedia(incre_output, f'fetchResultFiles/ALI_days/YLMF/{run_id}',
