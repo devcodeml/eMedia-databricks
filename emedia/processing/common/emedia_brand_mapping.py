@@ -1,5 +1,6 @@
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from pyspark.sql import functions as F
+from pyspark.sql.types import TimestampType, DateType
 
 
 def emedia_brand_mapping(spark, daily_reports, ad_type, **mapping_dict):
@@ -122,13 +123,13 @@ def emedia_brand_mapping(spark, daily_reports, ad_type, **mapping_dict):
     out1 = spark.table("mapping_success_1") \
         .union(spark.table("mapping_success_2")) \
         .union(spark.table("mapping_success_3")) \
-        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date'))) \
-        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_create_time'))) \
+        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date')).cast(DateType())) \
+        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_create_time')).cast(TimestampType())) \
         .dropDuplicates(mapping_dict.get('mapping_pks')) \
         .distinct()
     out2 = spark.table("mapping_fail_3") \
-        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date'))) \
-        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_date'))) \
+        .withColumn("etl_date", F.lit(mapping_dict.get('etl_date')).cast(DateType())) \
+        .withColumn("etl_create_time", F.lit(mapping_dict.get('etl_date')).cast(TimestampType())) \
         .dropDuplicates(mapping_dict.get('mapping_pks')) \
         .distinct()
     return out1, out2
