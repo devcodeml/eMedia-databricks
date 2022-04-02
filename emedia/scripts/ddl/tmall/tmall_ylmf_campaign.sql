@@ -14,6 +14,7 @@ CREATE TABLE `dws`.`media_emedia_tmall_ylmf_campaignReport_mapping_success` (
   `effect` INT,
   `effect_days` INT,
   `req_storeId` INT,
+  `effect_type` STRING,
   `dw_resource` STRING,
   `dw_create_time` BIGINT,
   `dw_batch_number` BIGINT,
@@ -73,6 +74,7 @@ CREATE TABLE `stg`.`media_emedia_tmall_ylmf_campaignReport_mapping_fail` (
   `end_time` STRING,
   `effect` INT,
   `effect_days` INT,
+  `effect_type` STRING,
   `req_storeId` INT,
   `dw_resource` STRING,
   `dw_create_time` BIGINT,
@@ -116,4 +118,9 @@ CREATE TABLE `stg`.`media_emedia_tmall_ylmf_campaignReport_mapping_fail` (
   `etl_date` DATE,
   `etl_create_time` TIMESTAMP)
 USING delta
-LOCATION 'dbfs:/mnt/qa/data_warehouse/media_stg.db/media_emedia_tmall_ylmf_campaignReport_mapping_fail'
+LOCATION 'dbfs:/mnt/qa/data_warehouse/media_stg.db/media_emedia_tmall_ylmf_campaignReport_mapping_fail';
+
+
+---modify
+ALTER TABLE dws.media_emedia_tmall_ylmf_campaignReport_mapping_success ADD COLUMNS (effect_type STRING) AFTER end_time;
+ALTER TABLE stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail ADD COLUMNS (effect_type STRING) AFTER end_time;

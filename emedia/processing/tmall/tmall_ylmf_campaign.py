@@ -4,7 +4,7 @@ import datetime
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType, IntegerType
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
@@ -101,6 +101,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
                                                             "`req_report_query.query_domain` as query_domain",
                                                             "`req_report_query.start_time` as start_time",
                                                             "`req_report_query.end_time` as end_time",
+                                                            "req_effect_type as effect_type",
                                                             "req_effect as effect", "req_effect_days as effect_days",
                                                             "req_storeId", "dw_resource", "dw_create_time",
                                                             "dw_batch_number", "add_new_charge", "add_new_uv",
@@ -134,11 +135,12 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
     tmall_ylmf_mapping_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'effect_days', 'req_storeId']
     res = emedia_brand_mapping(spark, daily_reports, ad_type, etl_date=etl_date, etl_create_time=date_time,
                                mapping_pks=tmall_ylmf_mapping_pks)
-
-    res[0].createOrReplaceTempView("all_mapping_success")
+    drop_duplicates_keys = ['ad_date','campaign_group_id','campaign_id','effect','effect_days','req_storeId']
+    res[0].dropDuplicates(drop_duplicates_keys) \
+          .createOrReplaceTempView("all_mapping_success")
     table_exist = spark.sql("show tables in dws like 'media_emedia_tmall_ylmf_campaignReport_mapping_success'").count()
     if table_exist == 0:
-        res[0].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto(
+        res[0].dropDuplicates(drop_duplicates_keys).write.mode("overwrite").option("mergeSchema", "true").insertInto(
             "dws.media_emedia_tmall_ylmf_campaignReport_mapping_success")
     else:
         spark.sql("""
@@ -158,7 +160,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
           WHEN NOT MATCHED
               THEN INSERT *
         """)
-    res[1].distinct().write.mode("overwrite").option("mergeSchema", "true").insertInto("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
+    res[1].dropDuplicates(drop_duplicates_keys).write.mode("overwrite").option("mergeSchema", "true").insertInto("stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail")
 
     # 全量输出
     update_time = F.udf(lambda x: x.replace("-", ""), StringType())
@@ -188,6 +190,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
                 query_domain,
                 start_time,
                 end_time,
+                effect_type,
                 effect,
                 effect_days,
                 req_storeId as store_id,
@@ -250,6 +253,7 @@ def tmall_ylmf_campaign_etl(airflow_execution_date, run_id):
                 query_domain,
                 start_time,
                 end_time,
+                effect_type,
                 effect,
                 effect_days,
                 req_storeId as store_id,
