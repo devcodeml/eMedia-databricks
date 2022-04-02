@@ -134,8 +134,7 @@ def tmall_ylmf_daliy_adzone_etl(airflow_execution_date, run_id):
     ## 引用mapping函数 路径不一样自行修改函数路径
 
     tmall_ylmf_mapping_pks = ['ad_date', 'campaign_group_id', 'campaign_id', 'adzone_id', 'promotion_entity_id',
-                              'effect_days',
-                              'req_storeId']
+                              'effect_days','req_storeId']
     res = emedia_brand_mapping(spark, daily_reports, ad_type, etl_date=etl_date, etl_create_time=date_time,
                                mapping_pks=tmall_ylmf_mapping_pks)
 

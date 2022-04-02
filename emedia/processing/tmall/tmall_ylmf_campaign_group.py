@@ -168,7 +168,7 @@ def tmall_ylmf_campaign_group_etl(airflow_execution_date, run_id):
         "show tables in dws like 'media_emedia_tmall_ylmf_day_campaign_group_mapping_success'").count()
     # AND dws.media_emedia_tmall_ylmf_day_campaignGroup_mapping_success.effect_days = all_mappint_success.effect_days
     if table_exist == 0:
-        res[0].distinct().writemode("overwrite").option("mergeSchema", "true").insertInto(
+        res[0].writemode("overwrite").option("mergeSchema", "true").insertInto(
             "dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success")
     else:
         spark.sql("""
@@ -176,7 +176,6 @@ def tmall_ylmf_campaign_group_etl(airflow_execution_date, run_id):
           USING all_mapping_success
           ON dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.ad_date = all_mapping_success.ad_date
               AND dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id
-              AND dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.effect = all_mapping_success.effect
               AND dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.effect_days = all_mapping_success.effect_days
               AND dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.req_storeId = all_mapping_success.req_storeId
               AND ((dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id)
