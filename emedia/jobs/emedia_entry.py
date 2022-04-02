@@ -174,11 +174,17 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == 'tmall_ylmf_daliy_promotion_etl':
         tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id)
 
-    elif etl_action == 'update_flag':
+    elif etl_action == 'update_cumul_flag':
         # "2022-01-23 22:15:00+00:00"
         output_date = airflow_execution_date[0:10]
         output_date_time = output_date + "T" + airflow_execution_date[11:19]
-        output_df.create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+        output_df.create_blob_by_text(f"{output_date}/flag.txt", output_date_time, 'cumul')
+
+    elif etl_action == 'update_target_flag':
+        # "2022-01-23 22:15:00+00:00"
+        output_date = airflow_execution_date[0:10]
+        output_date_time = output_date + "T" + airflow_execution_date[11:19]
+        output_df.create_blob_by_text(f"{output_date}/flag.txt", output_date_time, 'target')
     return 0
 
 

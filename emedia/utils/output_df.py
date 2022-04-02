@@ -7,7 +7,6 @@ from emedia import spark
 import random, string
 
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.config.out_flag_conf import get_out_flag_blob_prefix
 
 
 def _rename_blob_file(prefix, new_file_name, dest_account, dest_container, dest_sas):
@@ -64,28 +63,24 @@ def output_to_emedia(df, parent_path, filename, sep=r'\\001', dict_key='target',
     return 0
 
 
-def create_blob_by_text(full_file_path, text):
+def create_blob_by_text(full_file_path, text, blob_prefix):
     emedia_conf_dict = get_emedia_conf_dict()
-    flag_blob_list = get_out_flag_blob_prefix()
+    account = emedia_conf_dict.get(f'{blob_prefix}' + '_blob_account')
+    container = emedia_conf_dict.get(f'{blob_prefix}' + '_blob_container')
+    sas = emedia_conf_dict.get(f'{blob_prefix}' + '_blob_sas')
 
-    if flag_blob_list:
-        for prefix in flag_blob_list:
-            account = emedia_conf_dict.get(f'{prefix}' + '_blob_account')
-            container = emedia_conf_dict.get(f'{prefix}' + '_blob_container')
-            sas = emedia_conf_dict.get(f'{prefix}' + '_blob_sas')
+    blob_service = BlockBlobService(
+        account_name=account
+        , sas_token=sas
+        , endpoint_suffix='core.chinacloudapi.cn'
+    )
 
-            blob_service = BlockBlobService(
-                account_name=account
-                , sas_token=sas
-                , endpoint_suffix='core.chinacloudapi.cn'
-            )
-
-            blob_service.create_blob_from_text(
-                container
-                , full_file_path
-                , text
-                , encoding='utf-8'
-            )
+    blob_service.create_blob_from_text(
+        container
+        , full_file_path
+        , text
+        , encoding='utf-8'
+    )
 
     return 0
 
