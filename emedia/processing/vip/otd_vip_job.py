@@ -142,11 +142,15 @@ def vip_etl(airflow_execution_date):
         .filter("category_id IS NOT null or brand_id IS NOT null") \
         .createOrReplaceTempView("mappint_success_3")
 
+    drop_duplicates_keys = ['date', 'req_advertiser_id', 'campaign_id', 'ad_id', 'effect']
+
     out1 = spark.table("mappint_success_1") \
                 .union(spark.table("mappint_success_2")) \
                 .union(spark.table("mappint_success_3")) \
                 .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp())
+                .withColumn("etl_create_time", current_timestamp()) \
+                .dropDuplicates(drop_duplicates_keys)
+
     out1.createOrReplaceTempView("all_mapping_success")
 
     spark.sql("""
