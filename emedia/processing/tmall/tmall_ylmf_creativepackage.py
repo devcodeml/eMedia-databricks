@@ -193,7 +193,7 @@ def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
     # 增量输出
     eab_success_out_df = spark.sql(f'''
         select 
-            ad_date,
+            date_format(ad_date,'yMMdd') as ad_date,
             campaign_group_id,
             campaign_group_name,
             campaign_id,
