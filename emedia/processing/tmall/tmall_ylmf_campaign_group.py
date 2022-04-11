@@ -4,6 +4,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_date
 from pyspark.sql.types import StringType
 from pyspark.sql import functions as F
+
+from emedia import spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
@@ -16,7 +18,6 @@ def tmall_ylmf_campaign_group_etl(airflow_execution_date, run_id):
     etl_date = (datetime.datetime(etl_year, etl_month, etl_day))
     date = airflow_execution_date[0:10]
     date_time = date + "T" + airflow_execution_date[11:19]
-    spark = SparkSession.builder.getOrCreate()
     days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     # 输入输出mapping blob信息，自行确认
