@@ -159,6 +159,7 @@ def ali_ylmf_day_crowd_etl(airflow_execution_date, run_id):
               AND dws.media_emedia_aliylmf_day_crowd_report_mapping_success.promotion_entity_id = all_mapping_success.promotion_entity_id
               AND dws.media_emedia_aliylmf_day_crowd_report_mapping_success.sub_crowd_value = all_mapping_success.sub_crowd_value
               AND dws.media_emedia_aliylmf_day_crowd_report_mapping_success.effect_days = all_mapping_success.effect_days
+              AND dws.media_emedia_aliylmf_day_crowd_report_mapping_success.target_type = all_mapping_success.target_type
               AND dws.media_emedia_aliylmf_day_crowd_report_mapping_success.req_storeId = all_mapping_success.req_storeId
               AND ((dws.media_emedia_aliylmf_day_crowd_report_mapping_success.campaign_group_id = all_mapping_success.campaign_group_id)
                       OR
