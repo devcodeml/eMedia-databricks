@@ -6,7 +6,7 @@ from emedia.processing.tmall.tmall_ylmf_adzone import tmall_ylmf_daliy_adzone_et
 from emedia.processing.tmall.tmall_ylmf_campaign import tmall_ylmf_campaign_etl
 from emedia.processing.tmall.tmall_ylmf_campaign_group import tmall_ylmf_campaign_group_etl
 from emedia.processing.tmall.tmall_ylmf_creativepackage import tmall_ylmf_daliy_creativepackage_etl
-from emedia.processing.tmall.tmall_ylmf_crowd import ali_ylmf_day_crowd_etl
+from emedia.processing.tmall.tmall_ylmf_crowd import tmall_ylmf_day_crowd_etl
 from emedia.processing.tmall.tmall_ylmf_promotion import tmall_ylmf_daliy_promotion_etl
 from emedia.utils import output_df
 from emedia.processing.vip.otd_vip_job import vip_etl
@@ -168,8 +168,8 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == 'tmall_ylmf_daliy_creativepackage_etl':
         tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id)
 
-    elif etl_action == 'ali_ylmf_day_crowd_etl':
-        ali_ylmf_day_crowd_etl(airflow_execution_date, run_id)
+    elif etl_action == 'tmall_ylmf_day_crowd_etl':
+        tmall_ylmf_day_crowd_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'tmall_ylmf_daliy_promotion_etl':
         tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id)
