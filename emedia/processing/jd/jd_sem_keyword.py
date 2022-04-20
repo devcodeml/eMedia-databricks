@@ -466,7 +466,7 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
                     dw_batch_id as dw_batch_id,
                     concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey,
                     if(order_quantity = 0 ,0, round(cost/order_quantity,2) )  as cpa
-                from    emedia_jd_sem_daily_keyword_report    where dw_batch_number = '{dw_batch_number}'
+                from    emedia_jd_sem_daily_keyword_report    where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')

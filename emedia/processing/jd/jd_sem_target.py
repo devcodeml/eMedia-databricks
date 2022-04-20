@@ -60,31 +60,33 @@ def jd_sem_target_etl(airflow_execution_date, run_id):
 
     log.info(f'jd sem target file: {jd_sem_target_path}')
 
-    spark.read.csv(
+    jd_sem_target_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_target_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    ).createOrReplaceTempView('jd_sem_target_daily')
+    )
+
+    first_row_data = jd_sem_target_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+    jd_sem_target_daily_df.createOrReplaceTempView('jd_sem_target_daily')
+
+
 
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    spark.read.csv(
+    df_mapping_campaign_adgorup = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    ).selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
+    )
 
-    spark.read.csv(
-        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
-        , header=True
-        , multiLine=True
-        , sep="|"
-        , escape='\"'
-    ).selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
+    df_mapping_campaign_adgorup.selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
+
+    df_mapping_campaign_adgorup.selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
 
     jd_sem_target_daily_df = spark.sql(f'''
         SELECT
@@ -353,7 +355,8 @@ def jd_sem_target_etl(airflow_execution_date, run_id):
                     req_clickOrOrderCaliber as req_clickOrOrderCaliber,
                     campaignName as campaign_name,
                     adGroupName as adgroup_name,
-                    etl_date
+                    etl_date,
+                    dw_batch_number
                 FROM(
                     SELECT *
                     FROM dws.tb_emedia_jd_sem_target_mapping_success 
@@ -444,14 +447,12 @@ def jd_sem_target_etl(airflow_execution_date, run_id):
                 data_source as data_source,
                 dw_etl_date as dw_etl_date,
                 dw_batch_id as dw_batch_id
-        from    emedia_jd_sem_daily_target_report   where etl_date = '{etl_date}'  
+        from    emedia_jd_sem_daily_target_report   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_TARGET_NEW_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_crowd_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
-
-    spark.sql("optimize dws.tb_emedia_jd_sem_target_mapping_success")
 
     return 0

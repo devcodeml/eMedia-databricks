@@ -574,7 +574,7 @@ def jd_sem_creative_etl(airflow_execution_date, run_id):
             dw_etl_date as dw_etl_date,
             concat_ws("@", ad_date,campaign_id,adgroup_id,creative_id,source,effect_days,pin_name,req_isdaily) as rowkey,
             req_isdaily as req_isdaily
-          from emedia_jd_sem_daily_creative_report where dw_batch_number = '{dw_batch_number}'
+          from emedia_jd_sem_daily_creative_report where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
         """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')

@@ -544,7 +544,7 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
                     dw_batch_id as dw_batch_id,
                     source as source,
                     effect as effect
-        from    emedia_jd_sem_daily_adgroup_report   where dw_batch_number = '{dw_batch_number}'
+        from    emedia_jd_sem_daily_adgroup_report   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
 
