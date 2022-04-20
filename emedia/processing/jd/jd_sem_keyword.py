@@ -63,34 +63,35 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
 
     log.info(f'jd sem keyword file: {jd_sem_keyword_path}')
 
-    spark.read.csv(
+    jd_sem_keyword_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_keyword_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    ).createOrReplaceTempView('jd_sem_keyword_daily')
+    )
+
+    first_row_data = jd_sem_keyword_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
+    jd_sem_keyword_daily_df.createOrReplaceTempView('jd_sem_keyword_daily')
 
     # join campaignName / adGroupName
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     log.info(f'jd sem adgroup file: {jd_sem_adgroup_path}')
 
-    spark.read.csv(
+    df_mapping_campaign_adgorup = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    ).selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
+    )
 
-    spark.read.csv(
-        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
-        , header=True
-        , multiLine=True
-        , sep="|"
-        , escape='\"'
-    ).selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
+    df_mapping_campaign_adgorup.selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
+
+    df_mapping_campaign_adgorup.selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
 
     jd_sem_keyword_daily_df = spark.sql(f'''
         SELECT
@@ -126,6 +127,8 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
             , req_pin
             , req_campaignId
             , req_groupId
+            , dw_create_time
+            , dw_batch_number
             , campaign_dim.campaignName AS campaignName
             , adgroup_dim.adGroupName AS adGroupName
         FROM jd_sem_keyword_daily LEFT JOIN campaign_dim ON jd_sem_keyword_daily.req_campaignId = campaign_dim.campaignId
@@ -201,6 +204,8 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
             , req_pin
             , req_campaignId
             , req_groupId
+            , dw_create_time
+            , dw_batch_number
             , campaignName
             , adGroupName
             , mapping_1.category_id
@@ -360,7 +365,9 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
                 max(req_clickOrOrderCaliber) as req_clickOrOrderCaliber,
                 max(category_id) as category_id,
                 max(brand_id) as brand_id,
-                max(etl_date) as etl_date
+                max(etl_date) as etl_date,
+                max(dw_create_time) as dw_create_time,
+                max(dw_batch_number) as dw_batch_number
         FROM(
             SELECT *
             FROM dws.tb_emedia_jd_sem_keyword_mapping_success 
@@ -459,14 +466,12 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
                     dw_batch_id as dw_batch_id,
                     concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_statuscategory,effect_days,pin_name,req_targeting_type) as rowkey,
                     if(order_quantity = 0 ,0, round(cost/order_quantity,2) )  as cpa
-                from    emedia_jd_sem_daily_keyword_report    where etl_date = '{etl_date}'
+                from    emedia_jd_sem_daily_keyword_report    where dw_batch_number = '{dw_batch_number}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
-
-    spark.sql("optimize dws.tb_emedia_jd_sem_keyword_mapping_success")
 
     return 0
