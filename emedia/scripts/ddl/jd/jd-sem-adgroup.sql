@@ -130,3 +130,15 @@ USING delta
 PARTITIONED BY (`date`)
 LOCATION  'dbfs:/mnt/${spark.dbr_env}/data_warehouse/media_stg.db/tb_emedia_jd_sem_adgroup_mapping_fail';
 
+
+-- add columns(2022-04-20)
+ALTER TABLE dws.tb_emedia_jd_sem_adgroup_mapping_success ADD COLUMNS (dw_create_time BIGINT,dw_batch_number BIGINT);
+ALTER TABLE dws.tb_emedia_jd_sem_adgroup_mapping_success CHANGE dw_create_time dw_create_time BIGINT AFTER totalOrderCnt;
+ALTER TABLE dws.tb_emedia_jd_sem_adgroup_mapping_success CHANGE dw_batch_number dw_batch_number BIGINT AFTER dw_create_time;
+ALTER TABLE stg.tb_emedia_jd_sem_adgroup_mapping_fail ADD COLUMNS (dw_create_time BIGINT,dw_batch_number BIGINT);
+ALTER TABLE stg.tb_emedia_jd_sem_adgroup_mapping_fail CHANGE dw_create_time dw_create_time BIGINT AFTER totalOrderCnt;
+ALTER TABLE stg.tb_emedia_jd_sem_adgroup_mapping_fail CHANGE dw_batch_number dw_batch_number BIGINT AFTER dw_create_time;
+
+ALTER TABLE dws.tb_emedia_jd_sem_adgroup_mapping_success SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
+ALTER TABLE stg.tb_emedia_jd_sem_adgroup_mapping_fail SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
+

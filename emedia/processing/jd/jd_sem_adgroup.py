@@ -72,6 +72,9 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
         , escape='\"'
     )
 
+    first_row_data = jd_sem_adgroup_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
     jd_sem_adgroup_fail_df = spark.table("stg.tb_emedia_jd_sem_adgroup_mapping_fail") \
         .drop('category_id') \
         .drop('brand_id') \
@@ -112,7 +115,9 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
                         , `retrievalType2`
                         , '3'
                         , `retrievalType3`
-                    ) AS (`source`, `retrievalType`)
+                    ) AS (`source`, `retrievalType`),
+                    dw_create_time,
+                    dw_batch_number
             FROM jd_sem_adgroup
     ''').createOrReplaceTempView('stack_retrivialType')
 
@@ -172,6 +177,8 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
             , from_json(retrievalType, "MAP<STRING,STRING>")["totalPresaleOrderSum"] AS totalPresaleOrderSum
             , from_json(retrievalType, "MAP<STRING,STRING>")["preorderCnt"] AS preorderCnt
             , from_json(retrievalType, "MAP<STRING,STRING>")["totalOrderCnt"] AS totalOrderCnt
+            ,dw_create_time
+            ,dw_batch_number
         FROM stack_retrivialType
     ''')
 
@@ -260,6 +267,8 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
             , nvl(totalPresaleOrderSum,0) AS totalPresaleOrderSum
             , nvl(preorderCnt,0) AS preorderCnt
             , nvl(totalOrderCnt,0) AS totalOrderCnt
+            , dw_create_time
+            , dw_batch_number
             , mapping_1.category_id
             , mapping_1.brand_id
         FROM jd_sem_adgroup_daily LEFT JOIN mapping_1 ON jd_sem_adgroup_daily.pin = mapping_1.account_id
@@ -422,7 +431,9 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
                 visitPageCnt as visit_page_quantity,
                 visitTimeAverage as visit_time_length,
                 visitorCnt as visitor_quantity,
-                etl_date
+                etl_date,
+                dw_create_time,
+                dw_batch_number
         FROM(
             SELECT *
             FROM dws.tb_emedia_jd_sem_adgroup_mapping_success 
@@ -533,13 +544,11 @@ def jd_sem_adgroup_etl(airflow_execution_date, run_id):
                     dw_batch_id as dw_batch_id,
                     source as source,
                     effect as effect
-        from    emedia_jd_sem_daily_adgroup_report   where etl_date = '{etl_date}'
+        from    emedia_jd_sem_daily_adgroup_report   where dw_batch_number = '{dw_batch_number}'
     """)
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
-
-    spark.sql("optimize dws.tb_emedia_jd_sem_adgroup_mapping_success")
 
     return 0
