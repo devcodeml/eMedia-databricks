@@ -84,6 +84,9 @@ def jd_sem_creative_etl(airflow_execution_date, run_id):
         , escape='\"'
     )
 
+    first_row_data = jd_sem_creative_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
     jd_sem_creative_fail_df = spark.table("stg.tb_emedia_jd_sem_creative_mapping_fail") \
         .drop('category_id') \
         .drop('brand_id') \
@@ -443,7 +446,8 @@ def jd_sem_creative_etl(airflow_execution_date, run_id):
             channelROI as channelroi,
             departmentCnt as departmentcnt,
             adVisitorCntForInternalSummary as advisitorcntforinternalsummary,
-            etl_date
+            etl_date,
+            dw_batch_number
         FROM(
             SELECT *
             FROM dws.tb_emedia_jd_sem_creative_mapping_success 
@@ -570,14 +574,12 @@ def jd_sem_creative_etl(airflow_execution_date, run_id):
             dw_etl_date as dw_etl_date,
             concat_ws("@", ad_date,campaign_id,adgroup_id,creative_id,source,effect_days,pin_name,req_isdaily) as rowkey,
             req_isdaily as req_isdaily
-          from emedia_jd_sem_daily_creative_report where etl_date = '{etl_date}'
+          from emedia_jd_sem_daily_creative_report where dw_batch_number = '{dw_batch_number}'
         """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_CREATIVE_NEW_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
-
-    spark.sql("optimize dws.tb_emedia_jd_sem_creative_mapping_success")
 
     return 0
