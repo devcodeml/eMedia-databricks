@@ -122,5 +122,7 @@ LOCATION 'dbfs:/mnt/qa/data_warehouse/media_stg.db/media_emedia_tmall_ylmf_campa
 
 
 ---modify
-ALTER TABLE dws.media_emedia_tmall_ylmf_campaignReport_mapping_success ADD COLUMNS (effect_type STRING) AFTER end_time;
-ALTER TABLE stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail ADD COLUMNS (effect_type STRING) AFTER end_time;
+ALTER TABLE dws.media_emedia_tmall_ylmf_campaignReport_mapping_success ADD COLUMNS (effect_type STRING) ;
+ALTER TABLE dws.media_emedia_tmall_ylmf_campaignReport_mapping_success change effect_type effect_type STRING AFTER end_time;
+ALTER TABLE stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail ADD COLUMNS (effect_type STRING) ;
+ALTER TABLE stg.media_emedia_tmall_ylmf_campaignReport_mapping_fail change effect_type effect_type STRING AFTER end_time;
