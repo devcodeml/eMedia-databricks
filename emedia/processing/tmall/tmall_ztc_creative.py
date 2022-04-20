@@ -3,15 +3,12 @@
 import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
-
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
 
-
 tmall_ztc_creative_mapping_success_tbl = 'dws.tb_emedia_tmall_ztc_creative_mapping_success'
 tmall_ztc_creative_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_creative_mapping_fail'
-
 
 tmall_ztc_creative_pks = [
     'thedate'
@@ -21,9 +18,8 @@ tmall_ztc_creative_pks = [
     , 'creativeid'
     , 'req_effect_days'
     , 'req_storeId'
-    ,'req_pv_type_in'
+    , 'req_pv_type_in'
 ]
-
 
 output_tmall_ztc_creative_pks = [
     'ad_date'
@@ -33,11 +29,11 @@ output_tmall_ztc_creative_pks = [
     , 'creativeid'
     , 'effect_days'
     , 'req_storeId'
-    ,'source'
+    , 'source'
 ]
 
 
-def tmall_ztc_creative_etl(airflow_execution_date,run_id):
+def tmall_ztc_creative_etl(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -57,7 +53,6 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
     input_container = emedia_conf_dict.get('input_blob_container')
     input_sas = emedia_conf_dict.get('input_blob_sas')
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
-    
 
     mapping_account = emedia_conf_dict.get('mapping_blob_account')
     mapping_container = emedia_conf_dict.get('mapping_blob_container')
@@ -71,50 +66,51 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
     log.info(f'tmall_ztc_creative file: {tmall_ztc_creative_path}')
 
     tmall_ztc_creative_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_creative_path}"
-                    , header = True
-                    , multiLine = True
-                    , sep = "|"
+        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_ztc_creative_path}"
+        , header=True
+        , multiLine=True
+        , sep="|"
     )
-    
+
+    first_row_data = tmall_ztc_creative_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
     tmall_ztc_creative_fail_df = spark.table("stg.tb_emedia_tmall_ztc_creative_mapping_fail") \
-                .drop('data_source') \
-                .drop('dw_etl_date') \
-                .drop('dw_batch_id') \
-                .drop('category_id') \
-                .drop('brand_id') \
-                .drop('etl_date') \
-                .drop('etl_create_time')
+        .drop('data_source') \
+        .drop('dw_etl_date') \
+        .drop('dw_batch_id') \
+        .drop('category_id') \
+        .drop('brand_id') \
+        .drop('etl_date') \
+        .drop('etl_create_time')
 
     # Union unmapped records
     tmall_ztc_creative_daily_df.union(tmall_ztc_creative_fail_df).createOrReplaceTempView("tmall_ztc_creative_daily")
-
 
     # Loading Mapping tbls
     mapping1_path = 'hdi_etl_brand_mapping/t_brandmap_account/t_brandmap_account.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping1_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_1")
 
     mapping2_path = 'hdi_etl_brand_mapping/t_brandmap_keyword1/t_brandmap_keyword1.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping2_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_2")
 
     mapping3_path = 'hdi_etl_brand_mapping/t_brandmap_keyword2/t_brandmap_keyword2.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping3_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_3")
-
 
     # First stage mapping
     mapping_1_result_df = spark.sql(f'''
@@ -139,8 +135,7 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_1")
-    
-    
+
     # Second stage mapping
     mapping_2_result_df = spark.sql('''
         SELECT
@@ -162,7 +157,6 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_2")
-    
 
     # Third stage mapping
     mapping_3_result_df = spark.sql('''
@@ -184,14 +178,13 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
         .filter("category_id is NULL and brand_id is NULL") \
         .createOrReplaceTempView("mapping_fail_3")
 
-
     tmall_ztc_creative_mapped_df = spark.table("mapping_success_1") \
-                .union(spark.table("mapping_success_2")) \
-                .union(spark.table("mapping_success_3")) \
-                .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(tmall_ztc_creative_pks)
-                
+        .union(spark.table("mapping_success_2")) \
+        .union(spark.table("mapping_success_3")) \
+        .withColumn("etl_date", current_date()) \
+        .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(tmall_ztc_creative_pks)
+
     tmall_ztc_creative_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
@@ -222,7 +215,6 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
             THEN INSERT *
     """)
 
-
     # save the unmapped record
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
@@ -232,7 +224,6 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
         .mode("overwrite") \
         .option("mergeSchema", "true") \
         .insertInto("stg.tb_emedia_tmall_ztc_creative_mapping_fail")
-
 
     # Query output result
     tb_emedia_tmall_ztc_creative_df = spark.sql(f'''
@@ -316,7 +307,8 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
             req_pv_type_in as source,
             data_source,	
             dw_etl_date,
-            dw_batch_id	
+            dw_batch_id,
+            dw_batch_number
         FROM (
             SELECT *
             FROM dws.tb_emedia_tmall_ztc_creative_mapping_success 
@@ -328,6 +320,7 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
     ''').dropDuplicates(output_tmall_ztc_creative_pks)
 
     tb_emedia_tmall_ztc_creative_df.createOrReplaceTempView('tb_emedia_tmall_ztc_creative')
+    gm_db = tb_emedia_tmall_ztc_creative_df.drop('dw_batch_number')
 
     # Query db output result
     eab_db = spark.sql(f"""
@@ -413,10 +406,10 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
                     req_offset as req_offset,
                     req_page_size as req_page_size,
                     req_effect as req_effect
-                   from    tb_emedia_tmall_ztc_creative   where dw_etl_date = '{etl_date}'
+                   from    tb_emedia_tmall_ztc_creative   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = '{run_id}'
                """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_creative_df, f'{date}/{date_time}/ztc','EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT.CSV')
+    output_to_emedia(gm_db, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_CREATIVE_REPORT_NEW_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tmall_ztc_day_creative_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
@@ -424,4 +417,3 @@ def tmall_ztc_creative_etl(airflow_execution_date,run_id):
     spark.sql("optimize dws.tb_emedia_tmall_ztc_creative_mapping_success")
 
     return 0
-

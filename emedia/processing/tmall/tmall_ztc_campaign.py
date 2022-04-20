@@ -67,6 +67,9 @@ def tmall_ztc_campaign_etl(airflow_execution_date,run_id):
                     , multiLine = True
                     , sep = "|"
     )
+
+    first_row_data = tmall_ztc_campaign_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
     
     tmall_ztc_campaign_fail_df = spark.table("stg.tb_emedia_tmall_ztc_campaign_mapping_fail") \
                 .drop('data_source') \
@@ -297,7 +300,8 @@ def tmall_ztc_campaign_etl(airflow_execution_date,run_id):
             req_pv_type_in as source,
             data_source,
             dw_etl_date,
-            dw_batch_id
+            dw_batch_id,
+            dw_batch_number
         FROM (
             SELECT *
             FROM dws.tb_emedia_tmall_ztc_campaign_mapping_success 
@@ -309,7 +313,7 @@ def tmall_ztc_campaign_etl(airflow_execution_date,run_id):
     ''').dropDuplicates(output_tmall_ztc_campaign_pks)
 
     tb_emedia_tmall_ztc_campaign_df.createOrReplaceTempView('tb_emedia_tmall_ztc_campaign')
-
+    gm_db = tb_emedia_tmall_ztc_campaign_df.drop('dw_batch_number')
     # Query db output result
     eab_db = spark.sql(f"""
                select  	direct_cart_total as directcarttotal,
@@ -391,10 +395,10 @@ def tmall_ztc_campaign_etl(airflow_execution_date,run_id):
                         req_offset as req_offset,
                         req_page_size as req_page_size,
                         req_effect as req_effect
-               from    tb_emedia_tmall_ztc_campaign   where dw_etl_date = '{etl_date}'
+               from    tb_emedia_tmall_ztc_campaign   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = '{run_id}'
            """)
 
-    output_to_emedia(tb_emedia_tmall_ztc_campaign_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_CAMPAIGN_REPORT_NEW_FACT.CSV')
+    output_to_emedia(gm_db, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_CAMPAIGN_REPORT_NEW_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/ALI_days/ZTC/{run_id}', f'tmall_ztc_day_campaign_{date}.csv.gz',dict_key='eab', compression = 'gzip', sep='|')
 
