@@ -70,6 +70,9 @@ def jd_sem_campaign_etl(airflow_execution_date, run_id):
         , escape='\"'
     )
 
+    first_row_data = jd_sem_campaign_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
+
     jd_sem_campaign_fail_df = spark.table("stg.tb_emedia_jd_sem_campaign_mapping_fail") \
         .drop('category_id') \
         .drop('brand_id') \
@@ -335,7 +338,8 @@ def jd_sem_campaign_etl(airflow_execution_date, run_id):
                     req_productName as req_productName ,                     
                     req_clickOrOrderCaliber as req_clickOrOrderCaliber ,                     
                     req_clickOrOrderDay  as req_clickOrOrderDay,
-                    etl_date
+                    etl_date,
+                    dw_batch_number
                 FROM(
                     SELECT *
                     FROM dws.tb_emedia_jd_sem_campaign_mapping_success 
@@ -437,14 +441,12 @@ def jd_sem_campaign_etl(airflow_execution_date, run_id):
                 data_source as data_source, 
                 dw_etl_date as dw_etl_date, 
                 concat_ws("@", ad_date,campaign_id,effect_days,mobile_type,pin_name,req_isdaily) as rowkey 
-        from    emedia_jd_sem_daily_campaign_report      where etl_date = '{etl_date}'
+        from    emedia_jd_sem_daily_campaign_report      where dw_batch_number = '{dw_batch_number}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
 
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_campaign_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
-
-    spark.sql("optimize dws.tb_emedia_jd_sem_campaign_mapping_success")
 
     return 0
