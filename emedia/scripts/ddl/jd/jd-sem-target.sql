@@ -95,9 +95,3 @@ CREATE TABLE IF NOT EXISTS `stg`.`tb_emedia_jd_sem_target_mapping_fail` (
 USING delta
 PARTITIONED BY (`req_startDay`)
 LOCATION  'dbfs:/mnt/${spark.dbr_env}/data_warehouse/media_stg.db/tb_emedia_jd_sem_target_mapping_fail';
-
-
--- optimize(2022-04-20)
-ALTER TABLE `dws`.`tb_emedia_jd_sem_target_mapping_success` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-ALTER TABLE `stg`.`tb_emedia_jd_sem_target_mapping_fail` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-

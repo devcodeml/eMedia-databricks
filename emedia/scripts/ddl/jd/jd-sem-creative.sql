@@ -132,10 +132,4 @@ USING delta
 PARTITIONED BY (`date`)
 LOCATION  'dbfs:/mnt/${spark.dbr_env}/data_warehouse/media_stg.db/tb_emedia_jd_sem_creative_mapping_fail';
 
--- auto optimize(2022-04-20)
-ALTER TABLE `dws`.`tb_emedia_jd_sem_creative_mapping_success` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-ALTER TABLE `stg`.`tb_emedia_jd_sem_creative_mapping_fail` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-
-
-
 

@@ -100,8 +100,3 @@ ALTER TABLE `stg`.`tb_emedia_jd_sem_keyword_mapping_fail` ADD COLUMNS (dw_create
 ALTER TABLE `stg`.`tb_emedia_jd_sem_keyword_mapping_fail` CHANGE dw_create_time dw_create_time BIGINT AFTER req_groupId;
 ALTER TABLE `stg`.`tb_emedia_jd_sem_keyword_mapping_fail` CHANGE dw_batch_number dw_batch_number BIGINT AFTER dw_create_time;
 
-ALTER TABLE `dws`.`tb_emedia_jd_sem_keyword_mapping_success` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-ALTER TABLE `stg`.`tb_emedia_jd_sem_keyword_mapping_fail` SET TBLPROPERTIES (delta.autoOptimize.optimizeWrite = true, delta.autoOptimize.autoCompact = true);
-
-
-

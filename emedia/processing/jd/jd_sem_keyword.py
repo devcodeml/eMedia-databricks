@@ -474,4 +474,6 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
 
+    spark.sql("optimize dws.tb_emedia_jd_sem_keyword_mapping_success")
+
     return 0
