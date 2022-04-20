@@ -447,7 +447,7 @@ def jd_sem_target_etl(airflow_execution_date, run_id):
                 data_source as data_source,
                 dw_etl_date as dw_etl_date,
                 dw_batch_id as dw_batch_id
-        from    emedia_jd_sem_daily_target_report   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
+        from    emedia_jd_sem_daily_target_report   where dw_batch_number = '{dw_batch_number}' and dw_batch_id = '{run_id}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'TB_EMEDIA_JD_SEM_TARGET_NEW_FACT.CSV')

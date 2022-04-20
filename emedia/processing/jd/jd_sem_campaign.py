@@ -441,7 +441,7 @@ def jd_sem_campaign_etl(airflow_execution_date, run_id):
                 data_source as data_source, 
                 dw_etl_date as dw_etl_date, 
                 concat_ws("@", ad_date,campaign_id,effect_days,mobile_type,pin_name,req_isdaily) as rowkey 
-        from    emedia_jd_sem_daily_campaign_report      where dw_batch_number = '{dw_batch_number}' and dw_batch_id = {run_id}
+        from    emedia_jd_sem_daily_campaign_report      where dw_batch_number = '{dw_batch_number}' and dw_batch_id = '{run_id}'
     """)
 
     output_to_emedia(blob_df, f'{date}/{date_time}/sem', 'EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV')
