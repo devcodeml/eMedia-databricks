@@ -60,33 +60,31 @@ def jd_sem_target_etl(airflow_execution_date, run_id):
 
     log.info(f'jd sem target file: {jd_sem_target_path}')
 
-    jd_sem_target_daily_df = spark.read.csv(
+    spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_target_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    )
-
-    first_row_data = jd_sem_target_daily_df.first().asDict()
-    dw_batch_number = first_row_data.get('dw_batch_number')
-    jd_sem_target_daily_df.createOrReplaceTempView('jd_sem_target_daily')
-
-
+    ).createOrReplaceTempView('jd_sem_target_daily')
 
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    df_mapping_campaign_adgorup = spark.read.csv(
+    spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
-    )
+    ).selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
 
-    df_mapping_campaign_adgorup.selectExpr(['campaignId', 'campaignName']).distinct().createOrReplaceTempView('campaign_dim')
-
-    df_mapping_campaign_adgorup.selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
+    spark.read.csv(
+        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_adgroup_path}"
+        , header=True
+        , multiLine=True
+        , sep="|"
+        , escape='\"'
+    ).selectExpr(['adGroupId', 'adGroupName']).distinct().createOrReplaceTempView('adgroup_dim')
 
     jd_sem_target_daily_df = spark.sql(f'''
         SELECT
