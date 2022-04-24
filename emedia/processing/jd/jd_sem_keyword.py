@@ -63,13 +63,16 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
 
     log.info(f'jd sem keyword file: {jd_sem_keyword_path}')
 
-    spark.read.csv(
+    jd_sem_keyword_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_sem_keyword_path}"
         , header=True
         , multiLine=True
         , sep="|"
         , escape='\"'
     ).createOrReplaceTempView('jd_sem_keyword_daily')
+
+    first_row_data = jd_sem_keyword_daily_df.first().asDict()
+    dw_batch_number = first_row_data.get('dw_batch_number')
 
     # join campaignName / adGroupName
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
