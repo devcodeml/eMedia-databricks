@@ -69,10 +69,11 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
         , multiLine=True
         , sep="|"
         , escape='\"'
-    ).createOrReplaceTempView('jd_sem_keyword_daily')
-
+    )
     first_row_data = jd_sem_keyword_daily_df.first().asDict()
     dw_batch_number = first_row_data.get('dw_batch_number')
+
+    jd_sem_keyword_daily_df.createOrReplaceTempView('jd_sem_keyword_daily')
 
     # join campaignName / adGroupName
     jd_sem_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/sem_daily_groupreport/jd_sem_groupReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
