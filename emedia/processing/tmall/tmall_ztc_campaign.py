@@ -13,7 +13,6 @@ tmall_ztc_campaign_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_campaign_mapping_
 tmall_ztc_campaign_pks = [
     'thedate'
     , 'campaign_id'
-    , 'campaign_type'
     ,'req_effect_days'
     ,'req_storeId'
     ,'req_pv_type_in'
@@ -22,7 +21,6 @@ tmall_ztc_campaign_pks = [
 output_tmall_ztc_campaign_pks = [
     'ad_date'
     , 'campaign_id'
-    , 'campaign_type'
     , 'effect_days'
     , 'req_storeId'
     ,'source'
@@ -197,8 +195,6 @@ def tmall_ztc_campaign_etl(airflow_execution_date,run_id):
         ON dws.tb_emedia_tmall_ztc_campaign_mapping_success.thedate = all_mapping_success.thedate
 
         AND dws.tb_emedia_tmall_ztc_campaign_mapping_success.campaign_id = all_mapping_success.campaign_id
-        
-        AND dws.tb_emedia_tmall_ztc_campaign_mapping_success.campaign_type = all_mapping_success.campaign_type
         
         AND dws.tb_emedia_tmall_ztc_campaign_mapping_success.req_effect_days = all_mapping_success.req_effect_days
         

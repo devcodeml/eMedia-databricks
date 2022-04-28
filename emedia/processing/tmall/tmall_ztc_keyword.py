@@ -16,7 +16,6 @@ tmall_ztc_keyword_mapping_fail_tbl = 'stg.tb_emedia_tmall_ztc_keyword_mapping_fa
 tmall_ztc_keyword_pks = [
     'thedate'
     , 'campaign_id'
-    , 'campaign_type'
     , 'adgroup_id'
     , 'req_effect_days'
     , 'req_storeId'
@@ -28,7 +27,6 @@ tmall_ztc_keyword_pks = [
 output_tmall_ztc_keyword_pks = [
     'ad_date'
     , 'campaign_id'
-    , 'campaign_type'
     , 'adgroup_id'
     , 'effect_days'
     , 'req_storeId'
@@ -206,8 +204,6 @@ def tmall_ztc_keyword_etl(airflow_execution_date,run_id):
         ON dws.tb_emedia_tmall_ztc_keyword_mapping_success.thedate = all_mapping_success.thedate
 
         AND dws.tb_emedia_tmall_ztc_keyword_mapping_success.campaign_id = all_mapping_success.campaign_id
-        
-        AND dws.tb_emedia_tmall_ztc_keyword_mapping_success.campaign_type = all_mapping_success.campaign_type
         
         AND dws.tb_emedia_tmall_ztc_keyword_mapping_success.adgroup_id = all_mapping_success.adgroup_id
         

@@ -14,7 +14,6 @@ tmall_ztc_creative_pks = [
     'thedate'
     , 'adgroup_id'
     , 'campaign_id'
-    , 'campaign_type_name'
     , 'creativeid'
     , 'req_effect_days'
     , 'req_storeId'
@@ -25,7 +24,6 @@ output_tmall_ztc_creative_pks = [
     'ad_date'
     , 'adgroup_id'
     , 'campaign_id'
-    , 'campaign_type_name'
     , 'creativeid'
     , 'effect_days'
     , 'req_storeId'
@@ -200,8 +198,6 @@ def tmall_ztc_creative_etl(airflow_execution_date, run_id):
         AND dws.tb_emedia_tmall_ztc_creative_mapping_success.campaign_id = all_mapping_success.campaign_id
         
         AND dws.tb_emedia_tmall_ztc_creative_mapping_success.creativeid = all_mapping_success.creativeid
-        
-        AND dws.tb_emedia_tmall_ztc_creative_mapping_success.campaign_type_name = all_mapping_success.campaign_type_name
         
         AND dws.tb_emedia_tmall_ztc_creative_mapping_success.req_effect_days = all_mapping_success.req_effect_days
         

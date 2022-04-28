@@ -17,7 +17,6 @@ tmall_ztc_target_pks = [
     'thedate'
     , 'campaign_id'
     , 'adgroup_id'
-    , 'campaign_type'
     , 'crowd_id'
     , 'req_effect_days'
     , 'req_storeId'
@@ -29,7 +28,6 @@ output_tmall_ztc_target_pks = [
     'ad_date'
     , 'campaign_id'
     , 'adgroup_id'
-    , 'campaign_type'
     , 'crowd_id'
     , 'effect_days'
     , 'req_storeId'
@@ -208,8 +206,6 @@ def tmall_ztc_target_etl(airflow_execution_date,run_id):
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_id = all_mapping_success.campaign_id
         
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.adgroup_id = all_mapping_success.adgroup_id
-        
-        AND dws.tb_emedia_tmall_ztc_target_mapping_success.campaign_type = all_mapping_success.campaign_type
         
         AND dws.tb_emedia_tmall_ztc_target_mapping_success.crowd_id = all_mapping_success.crowd_id
         
