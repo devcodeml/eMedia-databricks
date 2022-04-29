@@ -168,5 +168,7 @@ def tmall_ztc_account_etl(airflow_execution_date,run_id):
 
     output_to_emedia(tb_emedia_tmall_ztc_account_df, f'{date}/{date_time}/ztc', 'EMEDIA_TMALL_ZTC_DAILY_ACCOUNT_REPORT_NEW_FACT.CSV')
 
+    spark.sql('optimize dws.tb_emedia_tmall_ztc_account_mapping_success')
+
     return 0
 

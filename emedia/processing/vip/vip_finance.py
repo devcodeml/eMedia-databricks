@@ -73,6 +73,23 @@ def vip_finance_etl(airflow_execution_date):
                     , multiLine = True
                     , sep = "|"
     )
+
+    vip_finance_daily_df.distinct().createOrReplaceTempView("source_data")
+    vip_finance_source_df = spark.sql('''
+            select fundType,date,sum(amount) as amount,
+                        accountType,
+                        max(description) as description,
+                        max(tradeType) as tradeType,
+                        advertiserId,req_advertiser_id,
+                        max(req_account_type) as req_account_type,
+                        max(req_start_date) as req_start_date,
+                        max(req_end_date) as req_end_date,
+                        max(dw_batch_number) as dw_batch_number,
+                        max(dw_create_time) as dw_create_time,
+                        max(dw_resource) as dw_resource,
+                        max(effect) as effect
+            from source_data group by fundType,date,req_advertiser_id,accountType,advertiserId
+    ''')
     
     vip_finance_fail_df = spark.table("stg.tb_emedia_vip_finance_mapping_fail") \
                 .drop('category_id') \
@@ -81,7 +98,7 @@ def vip_finance_etl(airflow_execution_date):
                 .drop('etl_create_time')
 
     # Union unmapped records
-    vip_finance_daily_df.union(vip_finance_fail_df).createOrReplaceTempView("vip_finance_daily")
+    vip_finance_source_df.union(vip_finance_fail_df).createOrReplaceTempView("vip_finance_daily")
 
 
     # Loading Mapping tbls
@@ -263,8 +280,6 @@ def vip_finance_etl(airflow_execution_date):
     output_to_emedia(tb_emedia_vip_finance_df, f'{date}/{date_time}/otdfa', 'TB_EMEDIA_VIP_OTD_FA_FACT.CSV')
 
     spark.sql("optimize dws.tb_emedia_vip_finance_mapping_success")
-
-    #create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 

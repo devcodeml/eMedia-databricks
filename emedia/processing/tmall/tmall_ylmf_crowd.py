@@ -325,4 +325,7 @@ def tmall_ylmf_daliy_crowd_etl(airflow_execution_date, run_id):
     output_to_emedia(incre_output,
                      f'fetchResultFiles/ALI_days/YLMF/{run_id}', f'tmall_ylmf_day_crowd_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    spark.sql('optimize dws.media_emedia_aliylmf_day_crowd_report_mapping_success')
+
     return 0

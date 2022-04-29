@@ -323,4 +323,7 @@ def tmall_ylmf_daliy_adzone_etl(airflow_execution_date, run_id):
                      f'fetchResultFiles/ALI_days/YLMF/{run_id}',
                      f'tmall_ylmf_day_adzone_{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    spark.sql("optimize dws.media_emedia_aliylmf_day_adzone_report_mapping_success")
+
     return 0
