@@ -1,15 +1,14 @@
 # coding: utf-8
 
 import datetime
-from pyspark.sql.functions import current_date, current_timestamp
 
-
+import pyspark.sql.functions as F
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia
 
-tmall_super_effect_mapping_success_tbl = 'dws.tb_emedia_tmall_super_effect_mapping_success'
-tmall_super_effect_mapping_fail_tbl = 'stg.tb_emedia_tmall_super_effect_mapping_fail'
+tmall_super_effect_mapping_success_tbl = 'dws.tb_emedia_tmall_super_new_effect_mapping_success'
+tmall_super_effect_mapping_fail_tbl = 'stg.tb_emedia_tmall_super_new_effect_mapping_fail'
 
 tmall_super_effect_pks = [
     'req_date'
@@ -35,7 +34,8 @@ output_tmall_super_effect_pks = [
     , 'is_brand'
 ]
 
-def tmall_super_effect_etl(airflow_execution_date,run_id):
+
+def tmall_super_new_effect_etl(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -63,9 +63,9 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
 
     file_date = etl_date - datetime.timedelta(days=1)
 
-    tmall_super_effect_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/tmsha_daily_effectreport/tmsha_daily_effectreport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    tmall_super_effect_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/tmsha_daily_effectreport/tmsha_new_daily_effectreport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
-    log.info(f'tmall_super_effect file: {tmall_super_effect_path}')
+    log.info(f'tmall_super_new_effect file: {tmall_super_effect_path}')
 
     tmall_super_effect_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{tmall_super_effect_path}"
@@ -73,44 +73,43 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
         , multiLine=True
         , sep="|"
     )
-    tmall_super_effect_fail_df = spark.table("stg.tb_emedia_tmall_super_effect_mapping_fail") \
-                .drop('data_source') \
-                .drop('dw_etl_date') \
-                .drop('dw_batch_id') \
-                .drop('category_id') \
-                .drop('brand_id') \
-                .drop('etl_date') \
-                .drop('etl_create_time')
+    tmall_super_effect_fail_df = spark.table("stg.tb_emedia_tmall_super_new_effect_mapping_fail") \
+        .drop('data_source') \
+        .drop('dw_etl_date') \
+        .drop('dw_batch_id') \
+        .drop('category_id') \
+        .drop('brand_id') \
+        .drop('etl_date') \
+        .drop('etl_create_time')
 
     # Union unmapped records
-    tmall_super_effect_daily_df.union(tmall_super_effect_fail_df).createOrReplaceTempView("tmall_super_effect_daily")
-
+    tmall_super_effect_daily_df.union(tmall_super_effect_fail_df).createOrReplaceTempView(
+        "tmall_super_new_effect_daily")
 
     # Loading Mapping tbls
     mapping1_path = 'hdi_etl_brand_mapping/t_brandmap_account/t_brandmap_account.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping1_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_1")
 
     mapping2_path = 'hdi_etl_brand_mapping/t_brandmap_keyword1/t_brandmap_keyword1.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping2_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_2")
 
     mapping3_path = 'hdi_etl_brand_mapping/t_brandmap_keyword2/t_brandmap_keyword2.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping3_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_3")
-
 
     # First stage mapping
     mapping_1_result_df = spark.sql(f'''
@@ -121,7 +120,7 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
             '{run_id}' as dw_batch_id,
             mapping_1.category_id,
             mapping_1.brand_id  
-        FROM tmall_super_effect_daily t1 LEFT JOIN mapping_1 ON mapping_1.account_id = '2017001'
+        FROM tmall_super_new_effect_daily t1 LEFT JOIN mapping_1 ON mapping_1.account_id = '2017001'
     ''')
 
     ## First stage unmapped
@@ -135,8 +134,7 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_1")
-    
-    
+
     # Second stage mapping
     mapping_2_result_df = spark.sql('''
         SELECT
@@ -158,7 +156,6 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_2")
-    
 
     # Third stage mapping
     mapping_3_result_df = spark.sql('''
@@ -179,40 +176,40 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
     mapping_3_result_df \
         .filter("category_id is NULL and brand_id is NULL") \
         .createOrReplaceTempView("mapping_fail_3")
-
-
+    current_date_str = F.current_date()
+    current_timestamp_str = F.current_timestamp()
     tmall_super_effect_mapped_df = spark.table("mapping_success_1") \
-                .union(spark.table("mapping_success_2")) \
-                .union(spark.table("mapping_success_3")) \
-                .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(tmall_super_effect_pks)
-                
+        .union(spark.table("mapping_success_2")) \
+        .union(spark.table("mapping_success_3")) \
+        .withColumn("etl_date", current_date_str) \
+        .withColumn("etl_create_time", current_timestamp_str) \
+        .dropDuplicates(tmall_super_effect_pks)
+
     tmall_super_effect_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
     spark.sql("""
-        MERGE INTO dws.tb_emedia_tmall_super_effect_mapping_success
+        MERGE INTO dws.tb_emedia_tmall_super_new_effect_mapping_success
 
         USING all_mapping_success
         
-        ON dws.tb_emedia_tmall_super_effect_mapping_success.req_date = all_mapping_success.req_date
+        ON dws.tb_emedia_tmall_super_new_effect_mapping_success.req_date = all_mapping_success.req_date
 
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.alipayUv = all_mapping_success.alipayUv
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.alipayUv = all_mapping_success.alipayUv
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.alipayNum = all_mapping_success.alipayNum
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.alipayNum = all_mapping_success.alipayNum
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.alipayFee = all_mapping_success.alipayFee
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.alipayFee = all_mapping_success.alipayFee
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.brandName = all_mapping_success.brandName
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.brandName = all_mapping_success.brandName
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.adzoneName = all_mapping_success.adzoneName
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.adzoneName = all_mapping_success.adzoneName
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.req_attribution_period = all_mapping_success.req_attribution_period
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.req_attribution_period = all_mapping_success.req_attribution_period
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.req_group_by_adzone = all_mapping_success.req_group_by_adzone
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.req_group_by_adzone = all_mapping_success.req_group_by_adzone
         
-        AND dws.tb_emedia_tmall_super_effect_mapping_success.req_group_by_brand = all_mapping_success.req_group_by_brand
+        AND dws.tb_emedia_tmall_super_new_effect_mapping_success.req_group_by_brand = all_mapping_success.req_group_by_brand
         
         
         WHEN MATCHED THEN
@@ -221,46 +218,43 @@ def tmall_super_effect_etl(airflow_execution_date,run_id):
             THEN INSERT *
     """)
 
-
     # save the unmapped record
     spark.table("mapping_fail_3") \
-        .withColumn("etl_date", current_date()) \
-        .withColumn("etl_create_time", current_timestamp()) \
+        .withColumn("etl_date", current_date_str) \
+        .withColumn("etl_create_time", current_timestamp_str) \
         .dropDuplicates(tmall_super_effect_pks) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
-        .insertInto("stg.tb_emedia_tmall_super_effect_mapping_fail")
+        .insertInto("stg.tb_emedia_tmall_super_new_effect_mapping_fail")
 
+    # Query output result
+    tb_emedia_tmall_super_effect_df = spark.sql(f'''
+        SELECT
+            date_format(req_date, 'yyyyMMdd') as ad_date,
+            category_id,
+            brand_id,
+            alipayUv as alipay_uv,
+            alipayNum as alipay_num,
+            alipayFee as alipay_fee,
+            brandName as brand_name,
+            adzoneName as position_name,
+            req_attribution_period as effect,
+            req_group_by_adzone as is_position,
+            req_group_by_brand as is_brand,
+            dw_create_time as create_time,
+            data_source,
+            dw_etl_date
+        FROM (
+            SELECT *
+            FROM dws.tb_emedia_tmall_super_new_effect_mapping_success 
+                UNION
+            SELECT *
+            FROM stg.tb_emedia_tmall_super_new_effect_mapping_fail
+        )
+        WHERE req_date >= '{days_ago912}' AND req_date <= '{etl_date}'
+    ''').dropDuplicates(output_tmall_super_effect_pks)
 
-    # # Query output result
-    # tb_emedia_tmall_super_effect_df = spark.sql(f'''
-    #     SELECT
-    #         date_format(req_date, 'yyyyMMdd') as ad_date,
-    #         category_id,
-    #         brand_id,
-    #         alipayUv as alipay_uv,
-    #         alipayNum as alipay_num,
-    #         alipayFee as alipay_fee,
-    #         brandName as brand_name,
-    #         adzoneName as position_name,
-    #         req_attribution_period as effect,
-    #         req_group_by_adzone as is_position,
-    #         req_group_by_brand as is_brand,
-    #         dw_create_time as create_time,
-    #         data_source,
-    #         dw_etl_date
-    #     FROM (
-    #         SELECT *
-    #         FROM dws.tb_emedia_tmall_super_effect_mapping_success
-    #             UNION
-    #         SELECT *
-    #         FROM stg.tb_emedia_tmall_super_effect_mapping_fail
-    #     )
-    #     WHERE req_date >= '{days_ago912}' AND req_date <= '{etl_date}'
-    # ''').dropDuplicates(output_tmall_super_effect_pks)
-    #
-    # output_to_emedia(tb_emedia_tmall_super_effect_df, f'{date}/{date_time}/ha', 'TMALL_SUPER_EFFECT_FACT.CSV')
+    output_to_emedia(tb_emedia_tmall_super_effect_df, f'{date}/{date_time}/ha', 'TMALL_SUPER_EFFECT_FACT.CSV')
 
     return 0
-

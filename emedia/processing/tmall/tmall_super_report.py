@@ -94,28 +94,28 @@ def tmall_super_report_etl(airflow_execution_date,run_id):
 
 
 
-    # Query output result
-    tb_emedia_tmall_super_report_df = spark.sql(f'''
-        SELECT
-            date_format(req_date, 'yyyyMMdd') as ad_date,
-            clickPv as click_pv,
-            clickUv as click_uv,
-            adzoneName as position_name,
-            req_group_by_adzone as is_position,
-            dw_create_time as create_time,
-            data_source,
-            dw_etl_date
-        FROM (
-            SELECT *
-            FROM dws.tb_emedia_tmall_super_report_mapping_success 
-                UNION
-            SELECT *
-            FROM stg.tb_emedia_tmall_super_report_mapping_fail
-        )
-        WHERE req_date >= '{days_ago912}' AND req_date <= '{etl_date}'
-    ''').dropDuplicates(output_tmall_super_report_pks)
-
-    output_to_emedia(tb_emedia_tmall_super_report_df, f'{date}/{date_time}/ha', 'TMALL_SUPER_REPORT_FACT.CSV')
+    # # Query output result
+    # tb_emedia_tmall_super_report_df = spark.sql(f'''
+    #     SELECT
+    #         date_format(req_date, 'yyyyMMdd') as ad_date,
+    #         clickPv as click_pv,
+    #         clickUv as click_uv,
+    #         adzoneName as position_name,
+    #         req_group_by_adzone as is_position,
+    #         dw_create_time as create_time,
+    #         data_source,
+    #         dw_etl_date
+    #     FROM (
+    #         SELECT *
+    #         FROM dws.tb_emedia_tmall_super_report_mapping_success
+    #             UNION
+    #         SELECT *
+    #         FROM stg.tb_emedia_tmall_super_report_mapping_fail
+    #     )
+    #     WHERE req_date >= '{days_ago912}' AND req_date <= '{etl_date}'
+    # ''').dropDuplicates(output_tmall_super_report_pks)
+    #
+    # output_to_emedia(tb_emedia_tmall_super_report_df, f'{date}/{date_time}/ha', 'TMALL_SUPER_REPORT_FACT.CSV')
 
     return 0
 
