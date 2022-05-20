@@ -211,6 +211,10 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         AND dws.tb_emedia_jd_jst_daily_search_mapping_success.campaignId = all_mapping_success.campaignId
 
         AND dws.tb_emedia_jd_jst_daily_search_mapping_success.req_clickOrOrderDay = all_mapping_success.req_clickOrOrderDay
+        
+        AND dws.tb_emedia_jd_jst_daily_search_mapping_success.req_clickOrOrderCaliber = all_mapping_success.req_clickOrOrderCaliber
+        
+        AND dws.tb_emedia_jd_jst_daily_search_mapping_success.searchTerm = all_mapping_success.searchTerm
 
         WHEN MATCHED THEN
             UPDATE SET *

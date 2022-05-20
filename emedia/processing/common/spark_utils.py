@@ -8,4 +8,4 @@ def replace_bank(row):
     :param row:
     :return: row
     """
-    return row.replace('\n', '').replace('\r', '').strip()
+    return row.replace('\n', '').replace('\r', '').strip("\'").strip()
