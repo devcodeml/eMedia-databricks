@@ -4,6 +4,7 @@ import datetime
 import pyspark.sql.functions as F
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.common.spark_utils import replace_bank
 from emedia.utils.output_df import output_to_emedia
 
 jd_jst_daily_search_mapping_success_tbl = 'dws.tb_emedia_jd_jst_daily_search_mapping_success'
@@ -58,6 +59,9 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , multiLine=True
         , sep="|"
     )
+
+    for col in jd_jst_daily_search_df.columns:
+        jd_jst_daily_search_df = jd_jst_daily_search_df.withColumn(col, replace_bank(col))
 
     jd_jst_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/jst_daily_campaignreport/jd_jst_campaignReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
