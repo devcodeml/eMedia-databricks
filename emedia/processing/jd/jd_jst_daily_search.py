@@ -10,11 +10,11 @@ from emedia.utils.output_df import output_to_emedia
 jd_jst_daily_search_mapping_success_tbl = 'dws.tb_emedia_jd_jst_daily_search_mapping_success'
 jd_jst_daily_search_mapping_fail_tbl = 'stg.tb_emedia_jd_jst_daily_search_mapping_fail'
 
-jd_jst_campaign_pks = [
+jd_jst_daily_search_pks = [
     'date', 'searchTerm','req_pin', 'campaignId', 'req_clickOrOrderDay', 'req_clickOrOrderCaliber'
 ]
 
-output_jd_jst_campaign_pks = [
+output_jd_jst_daily_search_pks = [
     'ad_date', 'category_id', 'brand_id', 'pin_name', 'campaign_id', 'effect_days', 'searchTerm', 'req_clickOrOrderDay',
     'req_clickOrOrderCaliber'
 ]
@@ -194,7 +194,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         .withColumn("etl_date", current_date_str) \
         .withColumn("etl_create_time",current_timestamp_str) \
         .withColumn("dw_batch_id", F.lit(run_id)) \
-        .dropDuplicates(jd_jst_campaign_pks)
+        .dropDuplicates(jd_jst_daily_search_pks)
 
     jd_jst_mapped_df.createOrReplaceTempView("all_mapping_success")
 
@@ -227,7 +227,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         .withColumn("etl_date", current_date_str) \
         .withColumn("etl_create_time", current_timestamp_str) \
         .withColumn("dw_batch_id", F.lit(run_id)) \
-        .dropDuplicates(jd_jst_campaign_pks) \
+        .dropDuplicates(jd_jst_daily_search_pks) \
         .write \
         .mode("overwrite") \
         .option("mergeSchema", "true") \
@@ -286,7 +286,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         )
         WHERE date >= '{days_ago912}'
               AND date <= '{etl_date_where}'
-    ''').dropDuplicates(output_jd_jst_campaign_pks)
+    ''').dropDuplicates(output_jd_jst_daily_search_pks)
 
     output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst',
                      'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
