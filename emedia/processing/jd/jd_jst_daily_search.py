@@ -208,7 +208,10 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
 
         AND dws.tb_emedia_jd_jst_daily_search_mapping_success.req_pin = all_mapping_success.req_pin
 
-        AND dws.tb_emedia_jd_jst_daily_search_mapping_success.campaignId = all_mapping_success.campaignId
+        AND (dws.tb_emedia_jd_jst_daily_search_mapping_success.campaignId = all_mapping_success.campaignId
+            OR
+            (dws.tb_emedia_jd_jst_daily_search_mapping_success.campaignId is null and all_mapping_success.campaignId is null)
+            )
 
         AND dws.tb_emedia_jd_jst_daily_search_mapping_success.req_clickOrOrderDay = all_mapping_success.req_clickOrOrderDay
         
