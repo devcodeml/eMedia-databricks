@@ -11,7 +11,7 @@ jd_jst_daily_search_mapping_success_tbl = 'dws.tb_emedia_jd_jst_daily_search_map
 jd_jst_daily_search_mapping_fail_tbl = 'stg.tb_emedia_jd_jst_daily_search_mapping_fail'
 
 jd_jst_daily_search_pks = [
-    'date', 'searchTerm','req_pin', 'campaignId', 'req_clickOrOrderDay', 'req_clickOrOrderCaliber'
+    'date', 'searchTerm', 'req_pin', 'campaignId', 'req_clickOrOrderDay', 'req_clickOrOrderCaliber'
 ]
 
 output_jd_jst_daily_search_pks = [
@@ -60,9 +60,6 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , sep="|"
     )
 
-    for col in jd_jst_daily_search_df.columns:
-        jd_jst_daily_search_df = jd_jst_daily_search_df.withColumn(col, replace_bank(col))
-
     jd_jst_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/jst_daily_campaignreport/jd_jst_campaignReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     jd_jst_campaign_df = spark.read.csv(
@@ -73,9 +70,8 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
     )
     jd_jst_daily_search_df.distinct().createOrReplaceTempView('jd_jst_daily_search_base')
 
-
-
-    jd_jst_campaign_df.select('campaignId','campaignName').distinct().createOrReplaceTempView('jd_jst_campaign_report_mapping')
+    jd_jst_campaign_df.select('campaignId', 'campaignName').distinct().createOrReplaceTempView(
+        'jd_jst_campaign_report_mapping')
 
     jd_jst_daily_search_base_df = spark.sql('''
             select t1.*,t2.campaignId as campaignId from jd_jst_daily_search_base t1 left join jd_jst_campaign_report_mapping t2 on t1.campaignName = t2.campaignName
@@ -192,7 +188,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         .union(spark.table("mapping_success_2")) \
         .union(spark.table("mapping_success_3")) \
         .withColumn("etl_date", current_date_str) \
-        .withColumn("etl_create_time",current_timestamp_str) \
+        .withColumn("etl_create_time", current_timestamp_str) \
         .withColumn("dw_batch_id", F.lit(run_id)) \
         .dropDuplicates(jd_jst_daily_search_pks)
 
@@ -290,6 +286,10 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         WHERE date >= '{days_ago912}'
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_jst_daily_search_pks)
+
+    tb_emedia_jd_jst_daily_search_df = tb_emedia_jd_jst_daily_search_df.withColumn('searchTerm', replace_bank(
+        tb_emedia_jd_jst_daily_search_df.searchTerm)) \
+        .withColumn('campaign_name', replace_bank(tb_emedia_jd_jst_daily_search_df.campaign_name))
 
     output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst',
                      'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')

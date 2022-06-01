@@ -1,6 +1,7 @@
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 
+
 @F.udf(T.StringType())
 def replace_bank(row):
     """
@@ -8,4 +9,5 @@ def replace_bank(row):
     :param row:
     :return: row
     """
-    return row.replace('\n', '').replace('\r', '').strip("\'").strip()
+    return row.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '').replace(',', '，') \
+        .strip("\'").strip('\"').strip("'").strip('"').strip()

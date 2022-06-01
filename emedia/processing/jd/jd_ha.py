@@ -3,24 +3,21 @@
 import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
-
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.common.spark_utils import replace_bank
 from emedia.utils.output_df import output_to_emedia
-
 
 jd_ha_campaign_mapping_success_tbl = 'dws.tb_emedia_jd_ha_campaign_mapping_success'
 jd_ha_campaign_mapping_fail_tbl = 'stg.tb_emedia_jd_ha_campaign_mapping_fail'
-
 
 jd_ha_campaign_pks = [
     'date'
     , 'brandName'
     , 'campaignName'
     , 'spaceName'
-    ,'pin'
+    , 'pin'
 ]
-
 
 output_jd_ha_campaign_pks = [
     'ad_date'
@@ -52,13 +49,11 @@ def jd_ha_campaign_etl(airflow_execution_date):
     input_container = emedia_conf_dict.get('input_blob_container')
     input_sas = emedia_conf_dict.get('input_blob_sas')
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
-    
 
     mapping_account = emedia_conf_dict.get('mapping_blob_account')
     mapping_container = emedia_conf_dict.get('mapping_blob_container')
     mapping_sas = emedia_conf_dict.get('mapping_blob_sas')
     spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
-    
 
     file_date = etl_date - datetime.timedelta(days=1)
 
@@ -67,47 +62,45 @@ def jd_ha_campaign_etl(airflow_execution_date):
     log.info(f'jd ha campaign file: {jd_ha_campaign_path}')
 
     jd_ha_campaign_daily_df = spark.read.csv(
-                    f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_ha_campaign_path}"
-                    , header = True
-                    , multiLine = True
-                    , sep = "|"
+        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_ha_campaign_path}"
+        , header=True
+        , multiLine=True
+        , sep="|"
     )
-    
+
     jd_ha_campaign_fail_df = spark.table("stg.tb_emedia_jd_ha_campaign_mapping_fail") \
-                .drop('category_id') \
-                .drop('brand_id') \
-                .drop('etl_date') \
-                .drop('etl_create_time')
+        .drop('category_id') \
+        .drop('brand_id') \
+        .drop('etl_date') \
+        .drop('etl_create_time')
 
     # Union unmapped records
     jd_ha_campaign_daily_df.union(jd_ha_campaign_fail_df).createOrReplaceTempView("jd_ha_campaign_daily")
-
 
     # Loading Mapping tbls
     mapping1_path = 'hdi_etl_brand_mapping/t_brandmap_account/t_brandmap_account.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping1_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_1")
 
     mapping2_path = 'hdi_etl_brand_mapping/t_brandmap_keyword1/t_brandmap_keyword1.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping2_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_2")
 
     mapping3_path = 'hdi_etl_brand_mapping/t_brandmap_keyword2/t_brandmap_keyword2.csv'
     spark.read.csv(
         f"wasbs://{mapping_container}@{mapping_account}.blob.core.chinacloudapi.cn/{mapping3_path}"
-        , header = True
-        , multiLine = True
-        , sep = "="
+        , header=True
+        , multiLine=True
+        , sep="="
     ).createOrReplaceTempView("mapping_3")
-
 
     # First stage mapping
     mapping_1_result_df = spark.sql('''
@@ -143,8 +136,7 @@ def jd_ha_campaign_etl(airflow_execution_date):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_1")
-    
-    
+
     # Second stage mapping
     mapping_2_result_df = spark.sql('''
         SELECT
@@ -166,7 +158,6 @@ def jd_ha_campaign_etl(airflow_execution_date):
         .drop("category_id") \
         .drop("brand_id") \
         .createOrReplaceTempView("mapping_fail_2")
-    
 
     # Third stage mapping
     mapping_3_result_df = spark.sql('''
@@ -188,14 +179,13 @@ def jd_ha_campaign_etl(airflow_execution_date):
         .filter("category_id is NULL and brand_id is NULL") \
         .createOrReplaceTempView("mapping_fail_3")
 
-
     jd_ha_mapped_df = spark.table("mapping_success_1") \
-                .union(spark.table("mapping_success_2")) \
-                .union(spark.table("mapping_success_3")) \
-                .withColumn("etl_date", current_date()) \
-                .withColumn("etl_create_time", current_timestamp()) \
-                .dropDuplicates(jd_ha_campaign_pks)
-                
+        .union(spark.table("mapping_success_2")) \
+        .union(spark.table("mapping_success_3")) \
+        .withColumn("etl_date", current_date()) \
+        .withColumn("etl_create_time", current_timestamp()) \
+        .dropDuplicates(jd_ha_campaign_pks)
+
     jd_ha_mapped_df.createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
@@ -220,7 +210,6 @@ def jd_ha_campaign_etl(airflow_execution_date):
             THEN INSERT *
     """)
 
-
     # save the unmapped record
     spark.table("mapping_fail_3") \
         .withColumn("etl_date", current_date()) \
@@ -230,7 +219,6 @@ def jd_ha_campaign_etl(airflow_execution_date):
         .mode("overwrite") \
         .option("mergeSchema", "true") \
         .insertInto("stg.tb_emedia_jd_ha_campaign_mapping_fail")
-
 
     # Query output result
     tb_emedia_jd_ha_campaign_df = spark.sql(f'''
@@ -266,9 +254,13 @@ def jd_ha_campaign_etl(airflow_execution_date):
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_ha_campaign_pks)
 
-    output_to_emedia(tb_emedia_jd_ha_campaign_df, f'{date}/{date_time}/jdha', 'TB_EMEDIA_JD_HA_FACT.CSV')
+    out_df = tb_emedia_jd_ha_campaign_df.withColumn('brand_name', replace_bank(tb_emedia_jd_ha_campaign_df.brand_name)) \
+        .withColumn('campaign_name', replace_bank(tb_emedia_jd_ha_campaign_df.campaign_name)) \
+        .withColumn('first_cate_name', replace_bank(tb_emedia_jd_ha_campaign_df.first_cate_name)) \
+        .withColumn('space_name', replace_bank(tb_emedia_jd_ha_campaign_df.space_name))
+
+    output_to_emedia(out_df, f'{date}/{date_time}/jdha', 'TB_EMEDIA_JD_HA_FACT.CSV')
 
     spark.sql("optimize dws.tb_emedia_jd_ha_campaign_mapping_success")
 
     return 0
-
