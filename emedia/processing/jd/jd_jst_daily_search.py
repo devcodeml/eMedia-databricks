@@ -60,6 +60,13 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , sep="|"
     )
 
+    jd_jst_daily_search_df = jd_jst_daily_search_df.withColumn('campaignName',
+                                                               replace_bank(jd_jst_daily_search_df.campaignName)) \
+        .withColumn('searchTerm', replace_bank(jd_jst_daily_search_df.searchTerm)) \
+        .distinct()
+
+    jd_jst_daily_search_df.createOrReplaceTempView('jd_jst_daily_search_base')
+
     jd_jst_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/jst_daily_campaignreport/jd_jst_campaignReport_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     jd_jst_campaign_df = spark.read.csv(
@@ -68,10 +75,10 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , multiLine=True
         , sep="|"
     )
-    jd_jst_daily_search_df.distinct().createOrReplaceTempView('jd_jst_daily_search_base')
 
-    jd_jst_campaign_df.select('campaignId', 'campaignName').distinct().createOrReplaceTempView(
-        'jd_jst_campaign_report_mapping')
+    jd_jst_campaign_df.select('campaignId', 'campaignName') \
+        .withColumn('campaignName', replace_bank(jd_jst_campaign_df.campaignName)) \
+        .distinct().createOrReplaceTempView('jd_jst_campaign_report_mapping')
 
     jd_jst_daily_search_base_df = spark.sql('''
             select t1.*,t2.campaignId as campaignId from jd_jst_daily_search_base t1 left join jd_jst_campaign_report_mapping t2 on t1.campaignName = t2.campaignName
@@ -287,12 +294,11 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_jst_daily_search_pks)
 
-    tb_emedia_jd_jst_daily_search_df = tb_emedia_jd_jst_daily_search_df.withColumn('searchTerm', replace_bank(
+    out_df = tb_emedia_jd_jst_daily_search_df.withColumn('searchTerm', replace_bank(
         tb_emedia_jd_jst_daily_search_df.searchTerm)) \
         .withColumn('campaign_name', replace_bank(tb_emedia_jd_jst_daily_search_df.campaign_name))
 
-    output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst',
-                     'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
+    output_to_emedia(out_df, f'{date}/{date_time}/jst', 'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
 
     spark.sql("optimize dws.tb_emedia_jd_jst_daily_search_mapping_success")
 
