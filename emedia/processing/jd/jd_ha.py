@@ -5,8 +5,9 @@ from pyspark.sql.functions import current_date, current_timestamp
 
 from emedia import log, spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.common.spark_utils import replace_bank
 from emedia.utils.output_df import output_to_emedia
+
+import pyspark.sql.functions as F
 
 jd_ha_campaign_mapping_success_tbl = 'dws.tb_emedia_jd_ha_campaign_mapping_success'
 jd_ha_campaign_mapping_fail_tbl = 'stg.tb_emedia_jd_ha_campaign_mapping_fail'
@@ -254,10 +255,10 @@ def jd_ha_campaign_etl(airflow_execution_date):
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_ha_campaign_pks)
 
-    out_df = tb_emedia_jd_ha_campaign_df.withColumn('brand_name', replace_bank(tb_emedia_jd_ha_campaign_df.brand_name)) \
-        .withColumn('campaign_name', replace_bank(tb_emedia_jd_ha_campaign_df.campaign_name)) \
-        .withColumn('first_cate_name', replace_bank(tb_emedia_jd_ha_campaign_df.first_cate_name)) \
-        .withColumn('space_name', replace_bank(tb_emedia_jd_ha_campaign_df.space_name))
+    out_df = tb_emedia_jd_ha_campaign_df.withColumn('brand_name', F.regexp_replace('brand_name', ',', '，')) \
+        .withColumn('campaign_name', F.regexp_replace('campaign_name', ',', '，')) \
+        .withColumn('first_cate_name', F.regexp_replace('first_cate_name', ',', '，')) \
+        .withColumn('space_name', F.regexp_replace('space_name', ',', '，'))
 
     output_to_emedia(out_df, f'{date}/{date_time}/jdha', 'TB_EMEDIA_JD_HA_FACT.CSV')
 

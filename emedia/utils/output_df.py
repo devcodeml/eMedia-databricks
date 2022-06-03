@@ -45,7 +45,7 @@ def output_to_emedia(df, parent_path, filename, sep=r'\\001', dict_key='target',
 
     tmp_path = f"tmp/{random_str}/{parent_path}".replace(':', '_', -1)
 
-    df.coalesce(1).write.csv(
+    df.repartition(1).write.csv(
         path=f"wasbs://{container}@{account}.blob.core.chinacloudapi.cn/{tmp_path}"
         , header=True
         , sep=sep
