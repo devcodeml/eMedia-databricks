@@ -95,7 +95,7 @@ def emedia_brand_mapping(spark, daily_reports, ad_type, **mapping_dict):
                 , m2.category_id
                 , m2.brand_id
             FROM mapping_fail_1 mfr1 LEFT JOIN mapping2 m2 ON mfr1.{0} = m2.account_id
-            AND instr(mfr1.{1}, m2.keyword) > 0
+            AND instr(upper(mfr1.{1}), upper(m2.keyword)) > 0
         '''.format(account_id, keyword))
     mappint2_result_df \
         .filter("category_id IS null and brand_id IS null") \
@@ -112,7 +112,7 @@ def emedia_brand_mapping(spark, daily_reports, ad_type, **mapping_dict):
                 , m3.category_id
                 , m3.brand_id
             FROM mapping_fail_2 mfr2 LEFT JOIN mapping3 m3 ON mfr2.{0} = m3.account_id
-            AND instr(mfr2.{1}, m3.keyword) > 0
+            AND instr(upper(mfr2.{1}), upper(m3.keyword)) > 0
         '''.format(account_id, keyword))
     mappint3_result_df \
         .filter("category_id is null and brand_id is null") \
