@@ -15,7 +15,7 @@ jd_jst_daily_search_pks = [
 ]
 
 output_jd_jst_daily_search_pks = [
-    'ad_date', 'category_id', 'brand_id', 'pin_name', 'campaign_id', 'effect_days', 'searchTerm', 'req_clickOrOrderDay',
+    'ad_date', 'pin_name', 'campaign_id', 'effect_days', 'searchTerm', 'req_clickOrOrderDay',
     'req_clickOrOrderCaliber'
 ]
 
