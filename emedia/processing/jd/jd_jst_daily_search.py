@@ -294,11 +294,8 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_jst_daily_search_pks)
 
-    out_df = tb_emedia_jd_jst_daily_search_df.withColumn('searchTerm', replace_bank(
-        tb_emedia_jd_jst_daily_search_df.searchTerm)) \
-        .withColumn('campaign_name', replace_bank(tb_emedia_jd_jst_daily_search_df.campaign_name))
 
-    output_to_emedia(out_df, f'{date}/{date_time}/jst', 'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
+    output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst', 'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
 
     spark.sql("optimize dws.tb_emedia_jd_jst_daily_search_mapping_success")
 
