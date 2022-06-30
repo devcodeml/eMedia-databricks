@@ -17,6 +17,7 @@ jd_sem_keyword_pks = [
     , 'req_orderStatusCategory'
     , 'req_pin'
     , 'date'
+    , 'targetingType'
 ]
 
 output_jd_sem_keyword_pks = [
@@ -27,6 +28,7 @@ output_jd_sem_keyword_pks = [
     , 'order_statuscategory'
     , 'pin_name'
     , 'ad_date'
+    , 'req_targeting_type'
 ]
 
 
@@ -69,7 +71,7 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
         , multiLine=True
         , sep="|"
         , escape='\"'
-    )
+    ).distinct()
     first_row_data = jd_sem_keyword_daily_df.first().asDict()
     dw_batch_number = first_row_data.get('dw_batch_number')
 
@@ -300,6 +302,8 @@ def jd_sem_keyword_etl(airflow_execution_date, run_id):
         AND dws.tb_emedia_jd_sem_keyword_mapping_success.req_pin = all_mapping_success.req_pin
 
         AND dws.tb_emedia_jd_sem_keyword_mapping_success.date = all_mapping_success.date
+        
+        AND dws.tb_emedia_jd_sem_keyword_mapping_success.targetingType = all_mapping_success.targetingType
 
         WHEN MATCHED THEN
             UPDATE SET *
