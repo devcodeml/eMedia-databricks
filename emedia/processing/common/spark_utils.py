@@ -9,6 +9,5 @@ def replace_bank(row):
     :param row:
     :return: row
     """
-    if row:
-        return row.replace('\n', '').replace('\r', '').replace('\t', '').replace(',', '，') \
-            .strip("\'").strip('\"').strip("'").strip('"')
+    return row.replace('\n', '').replace('\r', '').replace('\t', '').replace(',', '，') \
+        .strip("\'").strip('\"').strip("'").strip('"')

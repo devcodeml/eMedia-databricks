@@ -58,7 +58,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , header=True
         , multiLine=True
         , sep="|"
-    )
+    ).fillna('', subset=['campaignName', 'searchTerm'])
 
     jd_jst_daily_search_df = jd_jst_daily_search_df.withColumn('campaignName',
                                                                replace_bank(jd_jst_daily_search_df.campaignName)) \
@@ -74,7 +74,7 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
         , header=True
         , multiLine=True
         , sep="|"
-    )
+    ).fillna('', subset=['campaignId', 'campaignName'])
 
     jd_jst_campaign_df.select('campaignId', 'campaignName') \
         .withColumn('campaignName', replace_bank(jd_jst_campaign_df.campaignName)) \
@@ -294,8 +294,8 @@ def jd_jst_daily_search_etl(airflow_execution_date, run_id):
               AND date <= '{etl_date_where}'
     ''').dropDuplicates(output_jd_jst_daily_search_pks)
 
-
-    output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst', 'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
+    output_to_emedia(tb_emedia_jd_jst_daily_search_df, f'{date}/{date_time}/jst',
+                     'EMEDIA_JD_JST_DAILY_SEARCH_REPORT_FACT.CSV')
 
     spark.sql("optimize dws.tb_emedia_jd_jst_daily_search_mapping_success")
 
