@@ -8,7 +8,7 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.output_df import output_to_emedia, create_blob_by_text
 from pyspark.sql import functions as F
 from pyspark.sql.types import *
-def tamll_wxt__day_campaign_etl(airflow_execution_date):
+def tamll_wxt_day_campaign_etl(airflow_execution_date,run_id):
 
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
@@ -53,7 +53,7 @@ def tamll_wxt__day_campaign_etl(airflow_execution_date):
  'campaign_id','`req_report_query.campaign_name` as campaign_name', '`req_api_service_context.biz_code` as biz_code', 'item_id', 'charge', 'click', 'ad_pv', 'ctr', 'ecpm','ecpc', 'car_num', 'dir_car_num', 'indir_car_num',
  'inshop_item_col_num', 'inshop_item_col_car_num_cost', 'alipay_inshop_amt', 'alipay_inshop_num', 'cvr', 'roi', 'prepay_inshop_amt', 'prepay_inshop_num', 'no_lalipay_inshop_amt_proprtion', 'dir_alipay_inshop_num', 'dir_alipay_inshop_amt', 'indir_alipay_inshop_num', 'indir_alipay_inshop_amt', 'sample_alipay_num', 'sample_alipay_amt',"'taobao.onebp.dkx.report.report.campaign.daylist' as data_source"
 )
-    report_df = report_df.withColumn('ecpm', report_df.ecpm.cast(DoubleType()))
+    report_df = report_df.withColumn('ecpm', report_df.ecpm.cast(DoubleType())).withColumn('dw_batch_id', F.lit(run_id)) \
     # spark.sql("drop table if exists stg.media_emedia_tmall_wxt_campaign_report")
     report_df.distinct().write.mode("overwrite").insertInto("stg.media_emedia_tmall_wxt_campaign_report")
 

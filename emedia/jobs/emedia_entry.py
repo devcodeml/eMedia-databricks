@@ -3,6 +3,7 @@
 import sys
 
 from emedia.processing.jd.jd_jst_daily_search import jd_jst_daily_search_etl
+from emedia.processing.tmall.tmail_wxt_day_campaign import tamll_wxt_day_campaign_etl
 from emedia.processing.tmall.tmall_super_new_effect import tmall_super_new_effect_etl
 from emedia.processing.tmall.tmall_super_new_report import tmall_super_new_report_etl
 from emedia.processing.tmall.tmall_ylmf_adzone import tmall_ylmf_daliy_adzone_etl
@@ -185,6 +186,9 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     elif etl_action == 'tmall_super_new_report_etl':
         tmall_super_new_report_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tamll_wxt_day_campaign_etl':
+        tamll_wxt_day_campaign_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'update_cumul_flag':
         # "2022-01-23 22:15:00+00:00"
