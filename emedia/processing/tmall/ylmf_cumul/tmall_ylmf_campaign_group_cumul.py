@@ -32,7 +32,7 @@ def tmall_ylmf_campaign_group_cumul_etl(airflow_execution_date, run_id):
     spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn"
                    , mapping_blob_sas)
     file_date = etl_date - datetime.timedelta(days=1)
-    input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ylmf_cuml_daily_displayreport/tmall_ylmf_day_campaignGroup_cuml_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ylmf_cumul_daily_displayreport/aliylmf_day_campaignGroup_cumul_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     tmall_ylmf_df = spark.read.csv(
         f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{input_path}"
@@ -252,11 +252,11 @@ def tmall_ylmf_campaign_group_cumul_etl(airflow_execution_date, run_id):
     ''')
 
     #输出GM
-    output_to_emedia(out_df, f'{date}/{date_time}/ylmf_cuml','EMEDIA_TMALL_YLMF_CUML_DAILY_CAMPAIGN_GROUP_REPORT_FACT.CSV')
+    output_to_emedia(out_df, f'{date}/{date_time}/ylmf_cuml','EMEDIA_TMALL_YLMF_CUML_DAILY_CAMPAIGN_GROUP_REPORT_FACT.CSV',dict_key='cumul')
 
     # 输出eab(暂时不需要)
-    # output_to_emedia(out_df,f'fetchResultFiles/ALI_days/YLMF_CUMUL/{run_id}', f'tmall_ylmf_day_campaign_group_{date}.csv.gz',
-    #                  dict_key='eab', compression='gzip', sep='|')
+    output_to_emedia(out_df,f'fetchResultFiles/ALI_days/YLMF_CUMUL/{run_id}', f'tmall_ylmf_day_campaign_group_{date}.csv.gz',
+                     dict_key='eab', compression='gzip', sep='|')
 
     spark.sql('optimize dws.media_emedia_tmall_ylmf_day_campaign_group_mapping_success')
 
