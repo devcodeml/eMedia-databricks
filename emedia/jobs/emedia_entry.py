@@ -12,6 +12,13 @@ from emedia.processing.tmall.tmall_ylmf_campaign_group import tmall_ylmf_campaig
 from emedia.processing.tmall.tmall_ylmf_creativepackage import tmall_ylmf_daliy_creativepackage_etl
 from emedia.processing.tmall.tmall_ylmf_crowd import tmall_ylmf_daliy_crowd_etl
 from emedia.processing.tmall.tmall_ylmf_promotion import tmall_ylmf_daliy_promotion_etl
+from emedia.processing.tmall.ylmf_cumul.tamll_ylmf_campaign_cumul import tmall_ylmf_campaign_cumul_etl
+from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_adzone_cumul import tmall_ylmf_daliy_adzone_cumul_etl
+from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_campaign_group_cumul import tmall_ylmf_campaign_group_cumul_etl
+from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_creativepackage_cumul import \
+    tmall_ylmf_daliy_creativepackage_cumul_etl
+from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_crowd_cumul import tmall_ylmf_daliy_crowd_cumul_etl
+from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_promotion_cumul import tmall_ylmf_daliy_promotion_cumul_etl
 from emedia.utils import output_df
 from emedia.processing.vip.otd_vip_job import vip_etl
 
@@ -189,6 +196,24 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     elif etl_action == 'tamll_wxt_day_campaign_etl':
         tamll_wxt_day_campaign_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_campaign_cumul_etl':
+        tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_daliy_adzone_cumul_etl':
+        tmall_ylmf_daliy_adzone_cumul_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_campaign_group_cumul_etl':
+        tmall_ylmf_campaign_group_cumul_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_daliy_creativepackage_cumul_etl':
+        tmall_ylmf_daliy_creativepackage_cumul_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_daliy_crowd_cumul_etl':
+        tmall_ylmf_daliy_crowd_cumul_etl(airflow_execution_date, run_id)
+
+    elif etl_action == 'tmall_ylmf_daliy_promotion_cumul_etl':
+        tmall_ylmf_daliy_promotion_cumul_etl(airflow_execution_date, run_id)
 
     elif etl_action == 'update_cumul_flag':
         # "2022-01-23 22:15:00+00:00"
