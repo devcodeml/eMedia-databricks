@@ -152,7 +152,7 @@ def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date, run_id):
         "show tables in dws like 'media_emedia_aliylmf_day_creativepackage_report_mapping_success'").count()
     # AND dws.media_emedia_tmall_ylmf_day_campaignGroup_mapping_success.effect_days = all_mappint_success.effect_days
     if table_exist == 0:
-        res[0].write.mode("overwrite").option("mergeSchema", "true").insertInto.saveAsTable(
+        res[0].write.mode("overwrite").option("mergeSchema", "true").insertInto(
             "dws.media_emedia_aliylmf_day_creativepackage_report_mapping_success")
     else:
         spark.sql("""

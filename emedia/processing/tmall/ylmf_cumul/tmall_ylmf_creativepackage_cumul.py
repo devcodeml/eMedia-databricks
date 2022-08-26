@@ -152,7 +152,7 @@ def tmall_ylmf_daliy_creativepackage_cumul_etl(airflow_execution_date, run_id):
         all_success_df.write \
             .mode("overwrite") \
             .option("mergeSchema", "true") \
-            .insertInto.saveAsTable("dws.media_emedia_aliylmf_day_creativepackage_report_cumul_mapping_success")
+            .insertInto("dws.media_emedia_aliylmf_day_creativepackage_report_cumul_mapping_success")
     else:
         spark.sql("""
               MERGE INTO dws.media_emedia_aliylmf_day_creativepackage_report_cumul_mapping_success
