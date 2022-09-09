@@ -34,3 +34,10 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.getOrCreate()
 
+
+def get_spark():
+    spark = SparkSession.builder.appName('media_social')\
+        .config("spark.jars.packages","com.crealytics:spark-excel_2.12:0.13.4").config("spark.sql.legacy.timeParserPolicy", "LEGACY")\
+        .getOrCreate()
+    return spark
+
