@@ -6,6 +6,7 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import *
 from emedia import log, get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.utils import output_df
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
@@ -226,14 +227,14 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
         .insertInto("dwd.gwcd_adgroup_daily_mapping_fail")
 
 
+    spark.table("dwd.gwcd_adgroup_daily_mapping_success").union(spark.table("dwd.gwcd_adgroup_daily_mapping_fail")).createOrReplaceTempView("gwcd_adgroup_daily")
+    gwcd_adgroup_daily_res = spark.sql("""
+        select a.*,'' as mdm_productline_id,c.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
+        from gwcd_adgroup_daily a 
+        left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
+    """)
 
-
-
-
-
-
-    spark.table("dwd.gwcd_adgroup_daily_mapping_success").union(spark.table("dwd.gwcd_adgroup_daily_mapping_fail"))\
-        .selectExpr( 'ad_date', "'pin' as pin_name", 'effect', 'effect_days', 'category_id', 'brand_id', 'campaign_id',
+    gwcd_adgroup_daily_res.selectExpr( 'ad_date', "'pin' as pin_name", 'effect', 'effect_days', 'category_id', 'brand_id', 'campaign_id',
                      'campaignName as campaign_name', 'adgroup_id', 'adgroup_name', 'cost', 'clicks', 'impressions',
                      'cpa', 'cpc', 'cpm', 'ctr', 'total_order_roi', 'total_order_cvs', 'direct_cart_cnt', 'indirect_cart_cnt',
                      'total_cart_quantity', 'direct_order_value', 'indirect_order_value', 'order_value', 'favorite_item_quantity',
@@ -251,9 +252,7 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
 
 
 
-
-
-
+def push_to_dw():
     project_name = "emedia"
     table_name = "gwcd_campaign_daily"
     emedia_conf_dict = get_emedia_conf_dict()
@@ -296,4 +295,6 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
+
+
 

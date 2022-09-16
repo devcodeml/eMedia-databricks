@@ -6,6 +6,7 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import *
 from emedia import log, get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.utils import output_df
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
@@ -77,6 +78,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         ,case when req_clickOrOrderDay =0 then 0 when req_clickOrOrderDay =1 then 1 when req_clickOrOrderDay =7 then 8 when req_clickOrOrderDay =15 then 24 else  req_clickOrOrderDay end as effect_days
         ,campaignId as campaign_id
         ,campaignName
+        ,cost
         ,cast(clicks as int) as clicks
         ,cast(impressions as int) as impressions
         ,cast(CPA as int) as cpa
@@ -106,6 +108,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         ,cast(presaleIndirectOrderSum as decimal(20, 4)) as presale_indirect_order_sum
         ,cast(presaleDirectOrderSum as decimal(20, 4)) as presale_direct_order_sum
         ,cast(totalPresaleOrderSum as decimal(20, 4)) as total_presale_order_sum
+        ,totalOrderCnt as order_quantity
         ,deliveryVersion
         ,putType as put_type
         ,mobileType as mobile_type
@@ -121,6 +124,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         ,req_endDay as end_day
         ,req_isDaily as is_daily
         ,'stg.gwcd_campaign_daily' as data_source
+        ,cast(dw_etl_date as string) as dw_create_time
         ,dw_batch_id
         from stg.gwcd_campaign_daily
     """).distinct().withColumn(
@@ -170,26 +174,73 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         .option("mergeSchema", "true") \
         .insertInto("dwd.gwcd_campaign_daily_mapping_fail")
 
-    spark.table("dwd.gwcd_campaign_daily_mapping_success").union(spark.table("dwd.gwcd_campaign_daily_mapping_fail"))\
-        .selectExpr( 'ad_date', 'pin as pin_name', 'effect', 'effect_days', 'category_id', 'brand_id',
-                     'campaign_id', 'campaignName as campaign_name', 'clicks', 'impressions', 'cpa', 'cpc', 'cpm', 'ctr',
-                     'total_order_roi', 'total_order_cvs', 'direct_cart_cnt', 'indirect_cart_cnt', 'total_cart_quantity',
-                     'direct_order_value', 'indirect_order_value', 'order_value', 'favorite_item_quantity',
+    spark.table("dwd.gwcd_campaign_daily_mapping_success").union(spark.table("dwd.gwcd_campaign_daily_mapping_fail")).createOrReplaceTempView("gwcd_campaign_daily")
+
+    gwcd_campaign_daily_res = spark.sql("""
+        select a.*,'' as mdm_productline_id,a.category_id as emedia_category_id,a.brand_id as emedia_brand_id,c.category2_code as mdm_category_id,c.brand_code as mdm_brand_id
+        from gwcd_campaign_daily a 
+        left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
+    """)
+
+    gwcd_campaign_daily_res.selectExpr( 'ad_date',"'购物触点' as ad_format_lv2", 'pin as pin_name', 'effect', 'effect_days', 'campaign_id', 'campaignName as campaign_name',
+                                        "'' as adgroup_id" ,"'' as adgroup_name","'campaign' as report_level","'' as report_level_id","'' as report_level_name",
+                                        'emedia_category_id', 'emedia_brand_id','mdm_category_id','mdm_brand_id','mdm_productline_id','deliveryVersion as delivery_version',
+                                         "'' as delivery_type", 'mobile_type',"'' as source",'business_type','gift_flag','order_status_category','click_or_order_caliber',
+                                        'put_type', 'campaign_type', 'campaign_put_type',"cost", 'clicks as click', 'impressions','order_quantity','order_value',
+                                        'total_cart_quantity', 'new_customer_quantity', "'ods.gwcd_campaign_daily' as dw_source" ,'dw_create_time',
+                                        'dw_batch_id as dw_batch_number', "'ods.gwcd_campaign_daily' as etl_source_table",
+                     'cpa', 'cpc', 'cpm', 'ctr', 'total_order_roi', 'total_order_cvs', 'direct_cart_cnt', 'indirect_cart_cnt',
+                     'direct_order_value', 'indirect_order_value', 'favorite_item_quantity',
                      'favorite_shop_quantity', 'coupon_quantity', 'preorder_quantity', 'depth_passenger_quantity',
-                     'new_customer_quantity', 'visit_time_length', 'visitor_quantity', 'visit_page_quantity',
+                      'visit_time_length', 'visitor_quantity', 'visit_page_quantity',
                      'presale_direct_order_cnt', 'presale_indirect_order_cnt', 'total_presale_order_cnt',
                      'presale_indirect_order_sum', 'presale_direct_order_sum', 'total_presale_order_sum',
-                     'deliveryVersion', 'put_type', 'mobile_type', 'campaign_type', 'campaign_put_type', 'click_date',
-                     'business_type', 'gift_flag', 'order_status_category', 'click_or_order_caliber',
-                     'impression_or_click_effect', 'start_day', 'end_day', 'is_daily', "'ods.gwcd_campaign_daily' as data_source" , 'dw_batch_id')\
+                      'click_date','impression_or_click_effect', 'start_day', 'end_day', 'is_daily')\
         .distinct().withColumn("dw_etl_date", F.current_date()).distinct()\
         .write.mode("overwrite").insertInto("dwd.gwcd_campaign_daily")
-    # campaignName as campaign_name pin as pin_name
-    #stg.gwcd_campaign_daily
-    #ods.gwcd_campaign_daily
-    #dwd.gwcd_campaign_daily
+
+    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' ")
+    spark.table("dwd.gwcd_campaign_daily").selectExpr('ad_date',"ad_format_lv2", 'pin_name', 'effect', 'effect_days', 'campaign_id', 'campaign_name',
+                                        "adgroup_id" ,"adgroup_name","report_level","report_level_id","report_level_name",
+                                        'emedia_category_id', 'emedia_brand_id','mdm_category_id','mdm_brand_id','mdm_productline_id','delivery_version',
+                                         "delivery_type", 'mobile_type',"source",'business_type','gift_flag','order_status_category','click_or_order_caliber',
+                                        'put_type', 'campaign_type', 'campaign_put_type',"cost", 'click', 'impressions','order_quantity','order_value',
+                                        'total_cart_quantity', 'new_customer_quantity', "dw_source" ,'dw_create_time',
+                                        'dw_batch_number', "etl_source_table") \
+        .withColumn("etl_create_time", F.current_timestamp()) \
+        .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
+        "append").insertInto("dwd.tb_media_emedia_gwcd_daily_fact")
+
+    # ds
+
+    # 推送数据到dw
+    write_to_dw = spark.table("dwd.gwcd_campaign_daily").distinct()
+    table_name = 'dbo.tb_emedia_jd_gwcd_campaign_daily_v202209_fact'
+    model = "overwrite"
+    push_to_dw(write_to_dw,table_name,model)
 
 
+
+def push_status(airflow_execution_date):
+    output_date = airflow_execution_date[0:10]
+    output_date_time = output_date + "T" + airflow_execution_date[11:19]
+    output_date_text = ''
+
+    # jd_gwcd_compaign
+    # 写空文件到blob
+    output_df.create_blob_by_text(
+        f'{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV', output_date_text,
+        'target')
+    #写状态到dw
+    status_sql = spark.sql(f"""
+        select 'jd_gwcd_campaign_etl' as job_name,'emedia' as type,'{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV' as file_name,'' as job_id,
+        1 as status,now() as updateAt,'{output_date}' as period,'{output_date_time}' as flag,'' as related_job
+    """)
+    push_to_dw(status_sql, 'dbo.mpt_etl_job', 'append')
+
+
+
+def push_to_dw(dataframe,table,model):
     project_name = "emedia"
     table_name = "gwcd_campaign_daily"
     emedia_conf_dict = get_emedia_conf_dict()
@@ -209,27 +260,15 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
     # 将key配置到环境中
     spark.conf.set(blobKey, synapsekey)
 
-    spark.table("dwd.gwcd_campaign_daily").distinct().write.mode("overwrite") \
+    dataframe.write.mode(model) \
         .format("com.databricks.spark.sqldw") \
         .option("url", url) \
         .option("user", user) \
         .option("password", password) \
         .option("forwardSparkAzureStorageCredentials", "true") \
-        .option("dbTable", 'dbo.tb_emedia_jd_gwcd_campaign_daily_v202209_fact') \
+        .option("dbTable", table) \
         .option("tempDir", tempDir) \
         .save()
-
-
-    #dwd.tb_media_emedia_gwcd_daily_fact
-
-    #stg.gwcd_adgroup_daily
-    #ods.gwcd_adgroup_daily
-    #dwd.gwcd_adgroup_daily
-
-
-    spark.sql("optimize dws.tb_emedia_jd_gwcd_campaign_mapping_success")
-
-    # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
 
