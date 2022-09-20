@@ -26,14 +26,14 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
     )
 
     # daily report
-    jd_sem_campaign_daily_path = (
+    jd_sem_keyword_daily_path = (
         f"fetchResultFiles/{file_date.strftime('%Y-%m-%d')}/jd/sem_daily_Report"
-        f"/jd_sem_campaign_{file_date.strftime('%Y-%m-%d')}.csv.gz"
+        f"/jd_sem_keyword_{file_date.strftime('%Y-%m-%d')}.csv.gz"
     )
 
-    origin_jd_sem_campaign_daily_df = spark.read.csv(
+    origin_jd_sem_keyword_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/"
-        f"{jd_sem_campaign_daily_path}",
+        f"{jd_sem_keyword_daily_path}",
         header=True,
         multiLine=True,
         sep="|",
@@ -42,14 +42,14 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         inferSchema=True,
     )
 
-    origin_jd_sem_campaign_daily_df.withColumn(
-        "data_source", lit("jingdong.ads.ibg.UniversalJosService.campaign.query")
+    origin_jd_sem_keyword_daily_df.withColumn(
+        "data_source", lit("jingdong.ads.ibg.UniversalJosService.searchWord.query")
     ).withColumn("dw_batch_id", lit(run_id)).withColumn(
         "dw_etl_date", current_date()
     ).distinct().write.mode(
         "overwrite"
     ).insertInto(
-        "stg.jdkc_campaign_daily"
+        "stg.jdkc_keyword_daily"
     )
 
     spark.sql(
@@ -63,12 +63,14 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
                 when req_clickOrOrderDay = 15 then '24'
                 else cast(req_clickOrOrderDay as string)
             end as effect_days,
-            cast(campaignId as string) as campaign_id,
-            cast(campaignName as string) as campaign_name,
+            cast(req_campaignId as string) as campaign_id,
+            cast(req_campaignName as string) as campaign_name,
+            cast(req_GroupId as string) as adgroup_id,
+            cast(req_adGroupName as string) as adgroup_name,
+            cast(searchTerm as string) as keyword_name,
             cast(cost as decimal(20, 4)) as cost,
             cast(clicks as bigint) as clicks,
             cast(impressions as bigint) as impressions,
-            cast(CPA as string) as cpa,
             cast(CPC as decimal(20, 4)) as cpc,
             cast(CPM as decimal(20, 4)) as cpm,
             cast(CTR as decimal(9, 4)) as ctr,
@@ -83,26 +85,8 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             cast(directOrderCnt as bigint) as direct_order_quantity,
             cast(indirectOrderCnt as bigint) as indirect_order_quantity,
             cast(totalOrderCnt as bigint) as order_quantity,
-            cast(goodsAttentionCnt as bigint) as favorite_item_quantity,
-            cast(shopAttentionCnt as bigint) as favorite_shop_quantity,
-            cast(couponCnt as bigint) as coupon_quantity,
-            cast(preorderCnt as bigint) as preorder_quantity,
-            cast(depthPassengerCnt as bigint) as depth_passenger_quantity,
-            cast(newCustomersCnt as bigint) as new_customer_quantity,
-            cast(visitTimeAverage as decimal(20, 4)) as visit_time_length,
-            cast(visitorCnt as bigint) as visitor_quantity,
-            cast(presaleDirectOrderCnt as bigint) as presale_direct_order_cnt,
-            cast(presaleIndirectOrderCnt as bigint) as presale_indirect_order_cnt,
             cast(totalPresaleOrderCnt as bigint) as total_presale_order_cnt,
-            cast(presaleDirectOrderSum as decimal(20, 4)) as presale_direct_order_sum,
-            cast(presaleIndirectOrderSum as decimal(20, 4)) as presale_indirect_order_sum,
             cast(totalPresaleOrderSum as decimal(20, 4)) as total_presale_order_sum,
-            cast(deliveryVersion as string) as delivery_version,
-            cast(putType as string) as put_type,
-            cast(mobileType as string) as mobile_type,
-            cast(campaignType as string) as campaign_type,
-            cast(campaignPutType as string) as campaign_put_type,
-            to_date(cast(`clickDate` as string), 'yyyyMMdd') as click_date,
             cast(req_businessType as string) as business_type,
             cast(req_giftFlag as string) as gift_flag,
             cast(req_orderStatusCategory as string) as order_status_category,
@@ -113,23 +97,23 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             cast(req_isDaily as string) as is_daily,
             cast(data_source as string) as data_source,
             cast(dw_batch_id as string) as dw_batch_id
-        from stg.jdkc_campaign_daily
+        from stg.jdkc_keyword_daily
         """
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
     ).insertInto(
-        "ods.jdkc_campaign_daily"
+        "ods.jdkc_keyword_daily"
     )
 
-    jd_kc_campaign_daily_pks = [
+    jd_kc_keyword_daily_pks = [
         "ad_date",
         "pin_name",
         "effect_days",
-        "put_type",
-        "mobile_type",
-        "campaign_type",
+        "campaign_id",
+        "adgroup_id",
+        "keyword_name",
         "business_type",
         "gift_flag",
         "order_status_category",
@@ -137,11 +121,11 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "impression_or_click_effect",
     ]
 
-    jdkc_campaign_df = (
-        spark.table("ods.jdkc_campaign_daily").drop("dw_etl_date").drop("data_source")
+    jdkc_keyword_df = (
+        spark.table("ods.jdkc_keyword_daily").drop("dw_etl_date").drop("data_source")
     )
-    jdkc_campaign_fail_df = (
-        spark.table("dwd.jdkc_campaign_daily_mapping_fail")
+    jdkc_keyword_fail_df = (
+        spark.table("dwd.jdkc_keyword_daily_mapping_fail")
         .drop("category_id")
         .drop("brand_id")
         .drop("etl_date")
@@ -149,21 +133,19 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
     )
 
     (
-        jdkc_campaign_daily_mapping_success,
-        jdkc_campaign_daily_mapping_fail,
-    ) = emedia_brand_mapping(
-        spark, jdkc_campaign_df.union(jdkc_campaign_fail_df), "sem"
-    )
+        jdkc_keyword_daily_mapping_success,
+        jdkc_keyword_daily_mapping_fail,
+    ) = emedia_brand_mapping(spark, jdkc_keyword_df.union(jdkc_keyword_fail_df), "sem")
 
-    jdkc_campaign_daily_mapping_success.dropDuplicates(
-        jd_kc_campaign_daily_pks
+    jdkc_keyword_daily_mapping_success.dropDuplicates(
+        jd_kc_keyword_daily_pks
     ).createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
-    dwd_table = "dwd.jdkc_campaign_daily_mapping_success"
+    dwd_table = "dwd.jdkc_keyword_daily_mapping_success"
     tmp_table = "all_mapping_success"
     and_str = " AND ".join(
-        [f"{dwd_table}.{col} = {tmp_table}.{col}" for col in jd_kc_campaign_daily_pks]
+        [f"{dwd_table}.{col} = {tmp_table}.{col}" for col in jd_kc_keyword_daily_pks]
     )
     spark.sql(
         f"""
@@ -177,31 +159,29 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         """
     )
 
-    jdkc_campaign_daily_mapping_fail.dropDuplicates(
-        jd_kc_campaign_daily_pks
-    ).write.mode("overwrite").option("mergeSchema", "true").insertInto(
-        "dwd.jdkc_campaign_daily_mapping_fail"
-    )
+    jdkc_keyword_daily_mapping_fail.dropDuplicates(jd_kc_keyword_daily_pks).write.mode(
+        "overwrite"
+    ).option("mergeSchema", "true").insertInto("dwd.jdkc_keyword_daily_mapping_fail")
 
-    spark.table("dwd.jdkc_campaign_daily_mapping_success").union(
-        spark.table("dwd.jdkc_campaign_daily_mapping_fail")
-    ).createOrReplaceTempView("jdkc_campaign_daily")
+    spark.table("dwd.jdkc_keyword_daily_mapping_success").union(
+        spark.table("dwd.jdkc_keyword_daily_mapping_fail")
+    ).createOrReplaceTempView("jdkc_keyword_daily")
 
-    jdkc_campaign_daily_res = spark.sql(
+    jdkc_keyword_daily_res = spark.sql(
         """
         select
             a.*,
             '' as mdm_productline_id,
             c.category2_code as emedia_category_id,
             c.brand_code as emedia_brand_id
-        from jdkc_campaign_daily a 
+        from jdkc_keyword_daily a
         left join ods.media_category_brand_mapping c
             on a.brand_id = c.emedia_brand_code and
             a.category_id = c.emedia_category_code
     """
     )
 
-    jdkc_campaign_daily_res.selectExpr(
+    jdkc_keyword_daily_res.selectExpr(
         "ad_date",
         "pin_name",
         "effect",
@@ -210,10 +190,12 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "emedia_brand_id as brand_id",
         "campaign_id",
         "campaign_name",
+        "adgroup_id",
+        "adgroup_name",
+        "keyword_name",
         "cost",
         "clicks",
         "impressions",
-        "cpa",
         "cpc",
         "cpm",
         "ctr",
@@ -228,26 +210,8 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "direct_order_quantity",
         "indirect_order_quantity",
         "order_quantity",
-        "favorite_item_quantity",
-        "favorite_shop_quantity",
-        "coupon_quantity",
-        "preorder_quantity",
-        "depth_passenger_quantity",
-        "new_customer_quantity",
-        "visit_time_length",
-        "visitor_quantity",
-        "presale_direct_order_cnt",
-        "presale_indirect_order_cnt",
         "total_presale_order_cnt",
-        "presale_direct_order_sum",
-        "presale_indirect_order_sum",
         "total_presale_order_sum",
-        "delivery_version",
-        "put_type",
-        "mobile_type",
-        "campaign_type",
-        "campaign_put_type",
-        "click_date",
         "business_type",
         "gift_flag",
         "order_status_category",
@@ -256,20 +220,20 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "start_day",
         "end_day",
         "is_daily",
-        "'ods.jdkc_campaign_daily' as data_source",
+        "'ods.jdkc_keyword_daily' as data_source",
         "dw_batch_id",
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
     ).insertInto(
-        "dwd.jdkc_campaign_daily"
+        "dwd.jdkc_keyword_daily"
     )
 
 
 def push_to_dw():
     project_name = "emedia"
-    table_name = "jdkc_campaign_daily"
+    table_name = "jdkc_keyword_daily"
     emedia_conf_dict = get_emedia_conf_dict()
     user = "pgadmin"
     password = "93xx5Px1bkVuHgOo"
@@ -293,12 +257,12 @@ def push_to_dw():
     # 将key配置到环境中
     spark.conf.set(blob_key, synapsekey)
 
-    spark.table("dwd.jdkc_campaign_daily").distinct().write.mode("overwrite").format(
+    spark.table("dwd.jdkc_keyword_daily").distinct().write.mode("overwrite").format(
         "com.databricks.spark.sqldw"
     ).option("url", url).option("user", user).option("password", password).option(
         "forwardSparkAzureStorageCredentials", "true"
     ).option(
-        "dbTable", "dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact"
+        "dbTable", "dbo.tb_emedia_jd_kc_keyword_daily_v202209_fact"
     ).option(
         "tempDir", temp_dir
     ).save()
@@ -309,7 +273,7 @@ def push_to_dw():
     # ods.jdkc_adgroup_daily
     # dwd.jdkc_adgroup_daily
 
-    spark.sql("optimize dwd.jdkc_campaign_daily_mapping_success")
+    spark.sql("optimize dwd.jdkc_keyword_daily_mapping_success")
 
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 

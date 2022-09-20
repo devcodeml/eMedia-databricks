@@ -232,7 +232,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             cast(channelROI as string) as channel_roi,
             cast(deliveryVersion as string) as delivery_version,
             cast(mobileType as string) as mobile_type,
-            cast(status as string) as source,
+            cast(source as string) as source,
             cast(req_businessType as string) as business_type,
             cast(req_giftFlag as string) as gift_flag,
             cast(req_orderStatusCategory as string) as order_status_category,
@@ -398,7 +398,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdkc_creative_daily' as data_source",
         "dw_batch_id",
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"

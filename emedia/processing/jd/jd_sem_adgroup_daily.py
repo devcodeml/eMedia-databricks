@@ -79,7 +79,7 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
             stack({len(retrieval_types)},
                 {", ".join([f"'{col[-1]}', `{col}`" for col in retrieval_types])}
                 ) AS (`source`, `retrievalType`)
-        FROM stg.jdkc_campaign_daily
+        FROM stg.jdkc_adgroup_daily
         """
     ).select(
         "*",
@@ -359,7 +359,7 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdkc_adgroup_daily' as data_source",
         "dw_batch_id",
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
