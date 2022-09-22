@@ -143,7 +143,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         , 'impression_or_click_effect'
     ]
 
-    jd_gwcd_campaign_df = spark.table('ods.gwcd_campaign_daily').drop('dw_etl_date').drop('data_source')
+    jd_gwcd_campaign_df = spark.table('ods.gwcd_campaign_daily').drop('dw_etl_date')
     jd_gwcd_campaign_fail_df = spark.table("dwd.gwcd_campaign_daily_mapping_fail").drop('category_id').drop('brand_id').drop('etl_date').drop('etl_create_time')
 
     res = emedia_brand_mapping(spark, jd_gwcd_campaign_df.union(jd_gwcd_campaign_fail_df), 'gwcd')
@@ -186,7 +186,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
                                         'emedia_category_id', 'emedia_brand_id','mdm_category_id','mdm_brand_id','mdm_productline_id','deliveryVersion as delivery_version',
                                          "'' as delivery_type", 'mobile_type',"'' as source",'business_type','gift_flag','order_status_category','click_or_order_caliber',
                                         'put_type', 'campaign_type', 'campaign_put_type',"cost", 'clicks as click', 'impressions','order_quantity','order_value',
-                                        'total_cart_quantity', 'new_customer_quantity', "dw_source" ,'dw_create_time',
+                                        'total_cart_quantity', 'new_customer_quantity', "data_source as dw_source" ,'dw_create_time',
                                         'dw_batch_id as dw_batch_number', "'ods.gwcd_campaign_daily' as etl_source_table",
                      'cpa', 'cpc', 'cpm', 'ctr', 'total_order_roi', 'total_order_cvs', 'direct_cart_cnt', 'indirect_cart_cnt',
                      'direct_order_value', 'indirect_order_value', 'favorite_item_quantity',
@@ -198,17 +198,7 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
         .distinct().withColumn("dw_etl_date", F.current_date()).distinct()\
         .write.mode("overwrite").insertInto("dwd.gwcd_campaign_daily")
 
-    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' ")
-    spark.table("dwd.gwcd_campaign_daily").selectExpr('ad_date',"ad_format_lv2", 'pin_name', 'effect', 'effect_days', 'campaign_id', 'campaign_name',
-                                        "adgroup_id" ,"adgroup_name","report_level","report_level_id","report_level_name",
-                                        'emedia_category_id', 'emedia_brand_id','mdm_category_id','mdm_brand_id','mdm_productline_id','delivery_version',
-                                         "delivery_type", 'mobile_type',"source",'business_type','gift_flag','order_status_category','click_or_order_caliber',
-                                        'put_type', 'campaign_type', 'campaign_put_type',"cost", 'click', 'impressions','order_quantity','order_value',
-                                        'total_cart_quantity', 'new_customer_quantity', "dw_source" ,'dw_create_time',
-                                        'dw_batch_number', "'dwd.gwcd_campaign_daily' as etl_source_table") \
-        .withColumn("etl_create_time", F.current_timestamp()) \
-        .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
-        "append").insertInto("dwd.tb_media_emedia_gwcd_daily_fact")
+
 
 
     # 推送数据到dw
@@ -216,6 +206,25 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
     table_name = 'dbo.tb_emedia_jd_gwcd_campaign_daily_v202209_fact'
     model = "overwrite"
     push_to_dw(write_to_dw,table_name,model)
+
+
+
+
+# 以下这次不上线  待测试验证
+#     spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' ")
+#     spark.table("dwd.gwcd_campaign_daily").selectExpr('ad_date',"ad_format_lv2", 'pin_name', 'effect', 'effect_days', 'campaign_id', 'campaign_name',
+#                                         "adgroup_id" ,"adgroup_name","report_level","report_level_id","report_level_name",
+#                                         'emedia_category_id', 'emedia_brand_id','mdm_category_id','mdm_brand_id','mdm_productline_id','delivery_version',
+#                                          "delivery_type", 'mobile_type',"source",'business_type','gift_flag','order_status_category','click_or_order_caliber',
+#                                         'put_type', 'campaign_type', 'campaign_put_type',"cost", 'click', 'impressions','order_quantity','order_value',
+#                                         'total_cart_quantity', 'new_customer_quantity', "dw_source" ,'dw_create_time',
+#                                         'dw_batch_number', "'dwd.gwcd_campaign_daily' as etl_source_table") \
+#         .withColumn("etl_create_time", F.current_timestamp()) \
+#         .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
+#         "append").insertInto("dwd.tb_media_emedia_gwcd_daily_fact")
+
+
+
 
 
 # ds.hc_emedia_gwcd_deep_dive_download_campaign_adgroup_daily_fact

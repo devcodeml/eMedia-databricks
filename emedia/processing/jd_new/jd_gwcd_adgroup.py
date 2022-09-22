@@ -77,12 +77,14 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
     jd_gwcd_adgroup_daily_df.withColumn("data_source", F.lit('jingdong.ads.ibg.UniversalJosService.group.query')).withColumn("dw_batch_id", F.lit(run_id)).withColumn("dw_etl_date", F.current_date()).distinct().write.mode(
         "overwrite").insertInto("stg.gwcd_adgroup_daily")
 
-
+# stg层的retrievalType2，retrievalType0，retrievalType1字段中都有
+    # directOrderCnt、 indirectOrderCnt、totalOrderCnt字段，
+    # 但是ods缺了direct_order_quantity、indirect_order_quantity、order_quantity
 
     update = F.udf(lambda x: x.strip('"').strip('[').strip(']').replace("\"\"", "\""), StringType())
     spark.udf.register('update', update)
     spark.sql('''
-                    select date,adBillingType,IR,adGroupId,pin,commentCnt,followCnt,shareCnt,campaignType,adGroupName
+                    select dw_etl_date,date,adBillingType,IR,adGroupId,pin,commentCnt,followCnt,shareCnt,campaignType,adGroupName
                     ,campaignId,deliveryType,likeCnt,retrievalType2,update(retrievalType0),retrievalType1,interactCnt,campaignName
                     ,req_giftFlag,req_startDay,req_endDay,req_clickOrOrderDay,req_orderStatusCategory,req_page,req_pageSize
                     ,req_impressionOrClickEffect,req_clickOrOrderCaliber,req_isDaily,req_businessType,req_pin,data_source
@@ -122,6 +124,9 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
         ,cast(directOrderSum as decimal(20, 4)) as direct_order_value
         ,cast(indirectOrderSum as decimal(20, 4)) as indirect_order_value
         ,cast(totalOrderSum as decimal(20, 4)) as order_value
+        ,directOrderCnt as direct_order_quantity
+        ,indirectOrderCnt as indirect_order_quantity
+        ,totalOrderCnt as order_quantity
         ,cast(goodsAttentionCnt as int) as favorite_item_quantity
         ,cast(shopAttentionCnt as int) as favorite_shop_quantity
         ,cast(couponCnt as int) as coupon_quantity
@@ -171,6 +176,7 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
         ,req_endDay as end_day
         ,req_isDaily as is_daily
         ,'stg.gwcd_adgroup_daily' as data_source
+        ,cast(dw_etl_date as string) as dw_create_time
         ,dw_batch_id
         from stack_retrivialType
     """).distinct().withColumn(
@@ -194,7 +200,7 @@ def jd_gwcd_adgroup_etl(airflow_execution_date,run_id):
         , 'source'
     ]
 
-    jd_gwcd_adgroup_df = spark.table('ods.gwcd_adgroup_daily').drop('dw_etl_date').drop('data_source')
+    jd_gwcd_adgroup_df = spark.table('ods.gwcd_adgroup_daily').drop('dw_etl_date')
     jd_gwcd_adgroup_fail_df = spark.table("dwd.gwcd_adgroup_daily_mapping_fail").drop('category_id').drop('brand_id').drop('etl_date').drop('etl_create_time')
 
     res = emedia_brand_mapping(spark, jd_gwcd_adgroup_df.union(jd_gwcd_adgroup_fail_df), 'gwcd')

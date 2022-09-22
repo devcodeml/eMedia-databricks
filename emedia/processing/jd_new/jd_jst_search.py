@@ -121,7 +121,7 @@ def jd_jst_search_etl(airflow_execution_date,run_id):
                 ,req_endDay as end_day
                 ,req_isDaily as is_daily
                 ,data_source
-                ,dw_batch_id
+                ,dw_batch_id,cast(dw_etl_date as string) as dw_create_time
             from stg.jst_search_daily
         """).distinct().withColumn(
         "dw_etl_date", F.current_date()).distinct().write.mode(
@@ -197,7 +197,7 @@ def jd_jst_search_etl(airflow_execution_date,run_id):
                                        "'' as put_type", "'' as campaign_put_type", "cost", 'clicks as click',
                                        'impressions', 'order_quantity', 'order_value','total_cart_quantity',
                                        "'' as new_customer_quantity", "data_source as dw_source",
-                                       "'' as dw_create_time",'dw_batch_id as dw_batch_number',
+                                       "dw_create_time",'dw_batch_id as dw_batch_number',
                                        "'ods.jst_search_daily' as etl_source_table",
                                        'direct_order_quantity', 'indirect_order_quantity',
                                        'cpc', 'cpm', 'ctr', 'total_order_roi', 'total_order_cvs',

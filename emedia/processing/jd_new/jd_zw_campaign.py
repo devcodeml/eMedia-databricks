@@ -203,17 +203,22 @@ def jd_zw_campaign_etl(airflow_execution_date,run_id):
 
 
     jdzw_campaign_daily_res = spark.sql("""
-            select a.*,'' as mdm_productline_id,a.category_id as emedia_category_id,a.brand_id as emedia_brand_id,c.category2_code as mdm_category_id,c.brand_code as mdm_brand_id
+            select a.*,case when a.campaign_name like '%智能%' then '智能推广' else '标准推广' end as campaign_subtype,'' as mdm_productline_id,a.category_id as emedia_category_id,a.brand_id as emedia_brand_id,c.category2_code as mdm_category_id,c.brand_code as mdm_brand_id
             from jdzw_campaign_daily a 
             left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
         """)
 
-    jdzw_campaign_daily_res.selectExpr('ad_date', "'品牌聚效' as ad_format_lv2",'pin_name','effect','effect_days','campaign_id','campaign_name',"'' as adgroup_id", "'' as adgroup_name", "'campaign' as report_level","'' as report_level_id", "'' as report_level_name",'emedia_category_id','emedia_brand_id', 'mdm_category_id', 'mdm_brand_id','mdm_productline_id', 'deliveryVersion as delivery_version',"'' as delivery_type", 'mobile_type', "'' as source", 'business_type','gift_flag', 'order_status_category', 'click_or_order_caliber',
-                                   'put_type', 'campaign_type', 'campaign_put_type', "cost", 'clicks as click',
-                                   'impressions', 'order_quantity', 'order_value','direct_order_quantity','indirect_order_quantity',
+    jdzw_campaign_daily_res.selectExpr('ad_date', "'品牌聚效' as ad_format_lv2",'pin_name','effect','effect_days','campaign_id','campaign_name',
+                                       "campaign_subtype","'' as adgroup_id", "'' as adgroup_name", "'campaign' as report_level",
+                                       "'' as report_level_id", "'' as report_level_name",'emedia_category_id','emedia_brand_id',
+                                       'mdm_category_id', 'mdm_brand_id','mdm_productline_id', 'deliveryVersion as delivery_version',
+                                        'mobile_type','business_type','gift_flag', 'order_status_category', 'click_or_order_caliber',
+                                   'put_type', 'campaign_put_type', 'campaign_type', "cost", 'clicks as click',
+                                   'impressions', 'order_quantity', 'order_value',
                                    'total_cart_quantity', 'new_customer_quantity', "data_source as dw_source", 'dw_create_time',
                                    'dw_batch_id as dw_batch_number',
                                    "'ods.jdzw_campaign_daily' as etl_source_table",
+                                       'direct_order_quantity','indirect_order_quantity',
                                    'cpa', 'cpc', 'cpm', 'ctr', 'total_order_roi', 'total_order_cvs',
                                    'direct_cart_cnt', 'indirect_cart_cnt',
                                    'direct_order_value', 'indirect_order_value', 'favorite_item_quantity',
