@@ -1,20 +1,17 @@
 # coding: utf-8
 
 import datetime
-from pyspark.sql.functions import current_date, json_tuple, lit, current_timestamp
 
-import pyspark.sql.functions as F
-from pyspark.sql.types import *
-from emedia import log, get_spark
+from pyspark.sql.functions import current_date, lit
+
+from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.utils import output_df
 from emedia.utils.cdl_code_mapping2 import emedia_brand_mapping
-from emedia.utils.output_df import output_to_emedia
 
 spark = get_spark()
 
 
-def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
+def jdzt_account_daily_etl(airflow_execution_date, run_id):
     file_date = datetime.datetime.strptime(
         airflow_execution_date, "%Y-%m-%d %H:%M:%S"
     ) - datetime.timedelta(days=1)
@@ -145,20 +142,18 @@ def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
     jdzt_account_df = (
         spark.table("ods.jdzt_account_daily").drop("dw_etl_date").drop("data_source")
     )
-    # jdzc_account_fail_df = (
-    #     spark.table("dwd.jdzc_account_daily_mapping_fail")
-    #     .drop("category_id")
-    #     .drop("brand_id")
-    #     .drop("etl_date")
-    #     .drop("etl_create_time")
-    # )
+    jdzc_account_fail_df = (
+        spark.table("dwd.jdzc_account_daily_mapping_fail")
+        .drop("category_id")
+        .drop("brand_id")
+        .drop("etl_date")
+        .drop("etl_create_time")
+    )
 
     (
         jdzt_account_daily_mapping_success,
         jdzt_account_daily_mapping_fail,
-    ) = emedia_brand_mapping(
-        spark, jdzt_account_df, "jdzt"
-    )
+    ) = emedia_brand_mapping(spark, jdzt_account_df.union(jdzc_account_fail_df), "jdzt")
 
     jdzt_account_daily_mapping_success.dropDuplicates(
         jd_zt_account_daily_pks
@@ -186,9 +181,9 @@ def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
         "overwrite"
     ).option("mergeSchema", "true").insertInto("dwd.jdzt_account_daily_mapping_fail")
 
-    jdzt_account_daily_res = spark.table("dwd.jdzt_account_daily_mapping_success").union(
-        spark.table("dwd.jdzt_account_daily_mapping_fail")
-    )
+    jdzt_account_daily_res = spark.table(
+        "dwd.jdzt_account_daily_mapping_success"
+    ).union(spark.table("dwd.jdzt_account_daily_mapping_fail"))
 
     jdzt_account_daily_res.selectExpr(
         "ad_date",
@@ -247,8 +242,8 @@ def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
         "end_day",
         "is_daily",
         "'ods.jdzt_account_daily' as data_source",
-        "dw_batch_id"
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+        "dw_batch_id",
+    ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
