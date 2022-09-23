@@ -168,7 +168,7 @@ def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
     dwd_table = "dwd.jdzt_account_daily_mapping_success"
     tmp_table = "all_mapping_success"
     and_str = " AND ".join(
-        [f"{dwd_table}.{col} = {tmp_table}.{col}" for col in jd_zt_account_daily_pks]
+        [f"{dwd_table}.{col} <=> {tmp_table}.{col}" for col in jd_zt_account_daily_pks]
     )
     spark.sql(
         f"""
@@ -255,3 +255,4 @@ def jd_jdzt_account_daily_etl(airflow_execution_date,run_id):
     ).insertInto(
         "dwd.jdzt_account_daily"
     )
+    return 0
