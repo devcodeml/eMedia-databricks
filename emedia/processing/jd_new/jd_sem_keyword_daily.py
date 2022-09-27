@@ -11,7 +11,7 @@ from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 spark = get_spark()
 
 
-def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
+def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     file_date = datetime.datetime.strptime(
         airflow_execution_date, "%Y-%m-%d %H:%M:%S"
     ) - datetime.timedelta(days=1)

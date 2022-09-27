@@ -15,7 +15,7 @@ from emedia.utils.output_df import output_to_emedia
 
 spark = get_spark()
 
-def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
+def jd_gwcd_campaign_etl_new(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
@@ -200,16 +200,6 @@ def jd_gwcd_campaign_etl(airflow_execution_date,run_id):
 
 
 
-
-    # 推送数据到dw
-    write_to_dw = spark.table("dwd.gwcd_campaign_daily").distinct()
-    table_name = 'dbo.tb_emedia_jd_gwcd_campaign_daily_v202209_fact'
-    model = "overwrite"
-    push_to_dw(write_to_dw,table_name,model)
-
-
-
-
 # 以下这次不上线  待测试验证
 #     spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' ")
 #     spark.table("dwd.gwcd_campaign_daily").selectExpr('ad_date',"ad_format_lv2", 'pin_name', 'effect', 'effect_days', 'campaign_id', 'campaign_name',
@@ -245,56 +235,3 @@ def gwcd_deep_dive_download_campaign_adgroup_daily_fact():
         .withColumn("etl_create_time", F.current_timestamp()) \
         .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
         "overwrite").insertInto("ds.hc_emedia_gwcd_deep_dive_download_campaign_adgroup_daily_fact")
-
-
-def push_status(airflow_execution_date):
-    output_date = airflow_execution_date[0:10]
-    output_date_time = output_date + "T" + airflow_execution_date[11:19]
-    output_date_text = ''
-
-    # jd_gwcd_compaign
-    # 写空文件到blob
-    output_df.create_blob_by_text(
-        f'{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV', output_date_text,
-        'target')
-    #写状态到dw
-    status_sql = spark.sql(f"""
-        select 'jd_gwcd_campaign_etl' as job_name,'emedia' as type,'{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV' as file_name,'' as job_id,
-        1 as status,now() as updateAt,'{output_date}' as period,'{output_date_time}' as flag,'' as related_job
-    """)
-    push_to_dw(status_sql, 'dbo.mpt_etl_job', 'append')
-
-
-
-def push_to_dw(dataframe,table,model):
-    project_name = "emedia"
-    table_name = "gwcd_campaign_daily"
-    emedia_conf_dict = get_emedia_conf_dict()
-    user = 'pgadmin'
-    password = '93xx5Px1bkVuHgOo'
-    synapseaccountname = emedia_conf_dict.get('synapseaccountname')
-    synapsedirpath = emedia_conf_dict.get('synapsedirpath')
-    synapsekey = emedia_conf_dict.get('synapsekey')
-    url = "jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
-
-# b2bmptbiqa0101.database.chinacloudapi.cn
-    # pgadmin    93xx5Px1bkVuHgOo
-    # 获取key
-    blobKey = "fs.azure.account.key.{0}.blob.core.chinacloudapi.cn".format(synapseaccountname)
-    # 获取然后拼接 blob 临时路径
-    tempDir = r"{0}/{1}/{2}/".format(synapsedirpath, project_name,table_name)
-    # 将key配置到环境中
-    spark.conf.set(blobKey, synapsekey)
-
-    dataframe.write.mode(model) \
-        .format("com.databricks.spark.sqldw") \
-        .option("url", url) \
-        .option("user", user) \
-        .option("password", password) \
-        .option("forwardSparkAzureStorageCredentials", "true") \
-        .option("dbTable", table) \
-        .option("tempDir", tempDir) \
-        .save()
-
-    return 0
-

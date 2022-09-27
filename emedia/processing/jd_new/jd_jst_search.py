@@ -15,7 +15,7 @@ from emedia.utils.output_df import output_to_emedia
 
 
 
-def jd_jst_search_etl(airflow_execution_date,run_id):
+def jd_jst_search_etl_new(airflow_execution_date,run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''

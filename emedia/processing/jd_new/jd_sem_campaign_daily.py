@@ -266,51 +266,9 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_campaign_daily"
     )
 
-
-def push_to_dw():
-    project_name = "emedia"
-    table_name = "jdkc_campaign_daily"
-    emedia_conf_dict = get_emedia_conf_dict()
-    user = "pgadmin"
-    password = "93xx5Px1bkVuHgOo"
-    synapseaccountname = emedia_conf_dict.get("synapseaccountname")
-    synapsedirpath = emedia_conf_dict.get("synapsedirpath")
-    synapsekey = emedia_conf_dict.get("synapsekey")
-    url = (
-        "jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;"
-        "database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;"
-        "hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
-    )
-
-    # b2bmptbiqa0101.database.chinacloudapi.cn
-    # pgadmin    93xx5Px1bkVuHgOo
-    # 获取key
-    blob_key = "fs.azure.account.key.{0}.blob.core.chinacloudapi.cn".format(
-        synapseaccountname
-    )
-    # 获取然后拼接 blob 临时路径
-    temp_dir = r"{0}/{1}/{2}/".format(synapsedirpath, project_name, table_name)
-    # 将key配置到环境中
-    spark.conf.set(blob_key, synapsekey)
-
-    spark.table("dwd.jdkc_campaign_daily").distinct().write.mode("overwrite").format(
-        "com.databricks.spark.sqldw"
-    ).option("url", url).option("user", user).option("password", password).option(
-        "forwardSparkAzureStorageCredentials", "true"
-    ).option(
-        "dbTable", "dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact"
-    ).option(
-        "tempDir", temp_dir
-    ).save()
-
-    # dwd.tb_media_emedia_jdkc_daily_fact
-
-    # stg.jdkc_adgroup_daily
-    # ods.jdkc_adgroup_daily
-    # dwd.jdkc_adgroup_daily
-
     spark.sql("optimize dwd.jdkc_campaign_daily_mapping_success")
 
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
+
