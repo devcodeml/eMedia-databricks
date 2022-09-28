@@ -112,7 +112,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            cast(data_source as string) as data_source,
+            'stg.jdzt_adgroup_daily' as data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdzt_adgroup_daily
         """
@@ -205,6 +205,8 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "pin_name",
         "effect",
         "effect_days",
+        "emedia_category_id as category_id",
+        "emedia_brand_id as brand_id",
         "campaign_id",
         "campaign_name",
         "adgroup_id",

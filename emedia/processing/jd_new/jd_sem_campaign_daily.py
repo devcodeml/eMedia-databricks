@@ -59,6 +59,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             cast(req_pin as string) as pin_name,
             cast(req_clickOrOrderDay as string) as effect,
             case
+                when req_clickOrOrderDay = 3 then '4'
                 when req_clickOrOrderDay = 7 then '8'
                 when req_clickOrOrderDay = 15 then '24'
                 else cast(req_clickOrOrderDay as string)
@@ -111,7 +112,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            cast(data_source as string) as data_source,
+            'stg.jdkc_campaign_daily' as data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdkc_campaign_daily
         """
@@ -127,6 +128,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "ad_date",
         "pin_name",
         "effect_days",
+        "campaign_id",
         "put_type",
         "mobile_type",
         "campaign_type",

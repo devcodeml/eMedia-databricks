@@ -67,6 +67,9 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
             campaignName,
             adGroupId,
             adGroupName,
+            stack({len(retrieval_types)},
+                {", ".join([f"'{col[-1]}', `{col}`" for col in retrieval_types])}
+                ) AS (`source`, `retrievalType`),
             mobileType,
             req_businessType,
             req_giftFlag,
@@ -76,9 +79,8 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
             req_startDay,
             req_endDay,
             req_isDaily,
-            stack({len(retrieval_types)},
-                {", ".join([f"'{col[-1]}', `{col}`" for col in retrieval_types])}
-                ) AS (`source`, `retrievalType`)
+            data_source,
+            dw_batch_id
         FROM stg.jdkc_adgroup_daily
         """
     ).select(
@@ -217,11 +219,11 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            cast(data_source as string) as data_source,
+            'stg.jdkc_adgroup_daily' as data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stack_retrivialType
         """
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
@@ -359,7 +361,7 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdkc_adgroup_daily' as data_source",
         "dw_batch_id",
-    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"

@@ -59,34 +59,34 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
     ]
     spark.sql(
         f"""
-            SELECT
-                date,
-                req_pin,
-                req_clickOrOrderDay,
-                campaignId,
-                campaignName,
-                adGroupId,
-                adGroupName,
-                adId,
-                adName,
-                stack({len(retrieval_types)},
-                    {", ".join([f"'{col[-1]}', `{col}`" for col in retrieval_types])}
-                    ) AS (`source`, `retrievalType`),
-                deliveryVersion,
-                mobileType,
-                status,
-                req_businessType,
-                req_giftFlag,
-                req_orderStatusCategory,
-                req_clickOrOrderCaliber,
-                req_impressionOrClickEffect,
-                req_startDay,
-                req_endDay,
-                req_isDaily,
-                data_source,
-                dw_batch_id
-            FROM stg.jdkc_creative_daily
-            """
+        SELECT
+            date,
+            req_pin,
+            req_clickOrOrderDay,
+            campaignId,
+            campaignName,
+            adGroupId,
+            adGroupName,
+            adId,
+            adName,
+            stack({len(retrieval_types)},
+                {", ".join([f"'{col[-1]}', `{col}`" for col in retrieval_types])}
+                ) AS (`source`, `retrievalType`),
+            deliveryVersion,
+            mobileType,
+            status,
+            req_businessType,
+            req_giftFlag,
+            req_orderStatusCategory,
+            req_clickOrOrderCaliber,
+            req_impressionOrClickEffect,
+            req_startDay,
+            req_endDay,
+            req_isDaily,
+            data_source,
+            dw_batch_id
+        FROM stg.jdkc_creative_daily
+        """
     ).select(
         "*",
         json_tuple(
@@ -129,6 +129,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             "platformGmv",
             "departmentGmv",
             "channelROI",
+            "visitPageCnt",
         ).alias(
             "cost",
             "clicks",
@@ -168,6 +169,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             "platformGmv",
             "departmentGmv",
             "channelROI",
+            "visitPageCnt",
         ),
     ).drop(
         "retrievalType"
@@ -218,6 +220,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             cast(newCustomersCnt as bigint) as new_customer_quantity,
             cast(visitTimeAverage as decimal(20, 4)) as visit_time_length,
             cast(visitorCnt as bigint) as visitor_quantity,
+            cast(visitPageCnt as bigint) as visit_page_cnt,
             cast(presaleDirectOrderCnt as bigint) as presale_direct_order_cnt,
             cast(presaleIndirectOrderCnt as bigint) as presale_indirect_order_cnt,
             cast(totalPresaleOrderCnt as bigint) as total_presale_order_cnt,
@@ -241,11 +244,11 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            cast(data_source as string) as data_source,
+            'stg.jdkc_creative_daily' as data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stack_retrivialType
         """
-    ).distinct().withColumn("dw_etl_date", current_date()).distinct().write.mode(
+    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
@@ -373,6 +376,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         "new_customer_quantity",
         "visit_time_length",
         "visitor_quantity",
+        "visit_page_cnt",
         "presale_direct_order_cnt",
         "presale_indirect_order_cnt",
         "total_presale_order_cnt",
