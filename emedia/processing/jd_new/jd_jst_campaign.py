@@ -11,8 +11,8 @@ from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 spark = get_spark()
 
 
-def jd_jst_campaign_etl_new(airflow_execution_date,run_id):
-    '''
+def jd_jst_campaign_etl_new(airflow_execution_date, run_id):
+    """
     airflow_execution_date: to identify upstream file
     """
     emedia_conf_dict = get_emedia_conf_dict()
