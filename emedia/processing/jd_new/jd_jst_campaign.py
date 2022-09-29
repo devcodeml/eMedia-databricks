@@ -29,7 +29,7 @@ def jd_jst_campaign_etl_new(airflow_execution_date, run_id):
     ) - datetime.timedelta(days=1)
 
     jd_jst_campaign_path = (
-        f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jst/'
+        f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/'
         f'jst_daily_Report/jd_jst_campaign_{file_date.strftime("%Y-%m-%d")}.csv.gz'
     )
 

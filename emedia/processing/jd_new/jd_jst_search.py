@@ -28,7 +28,7 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
         airflow_execution_date, "%Y-%m-%d %H:%M:%S"
     ) - datetime.timedelta(days=1)
 
-    jd_jst_search_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jst/jst_daily_Report/jd_jst_keyword_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    jd_jst_search_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/jst_daily_Report/jd_jst_keyword_{file_date.strftime("%Y-%m-%d")}.csv.gz'
 
     log.info("jd_jst_search_path: " + jd_jst_search_path)
 
