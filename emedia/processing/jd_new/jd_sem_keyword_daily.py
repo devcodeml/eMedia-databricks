@@ -43,7 +43,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     )
 
     origin_jd_sem_keyword_daily_df.withColumn(
-        "data_source", lit("jingdong.ads.ibg.UniversalJosService.searchWord.query")
+        "data_source", lit("jingdong.ads.ibg.UniversalJosService.keyword.query")
     ).withColumn("dw_batch_id", lit(run_id)).withColumn(
         "dw_etl_date", current_date()
     ).distinct().write.mode(
@@ -65,9 +65,9 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             end as effect_days,
             cast(req_campaignId as string) as campaign_id,
             cast(req_campaignName as string) as campaign_name,
-            cast(req_GroupId as string) as adgroup_id,
+            cast(req_adGroupId as string) as adgroup_id,
             cast(req_adGroupName as string) as adgroup_name,
-            cast(searchTerm as string) as keyword_name,
+            cast(keywordName as string) as keyword_name,
             cast(cost as decimal(20, 4)) as cost,
             cast(clicks as bigint) as clicks,
             cast(impressions as bigint) as impressions,
@@ -91,7 +91,6 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             cast(req_giftFlag as string) as gift_flag,
             cast(req_orderStatusCategory as string) as order_status_category,
             cast(req_clickOrOrderCaliber as string) as click_or_order_caliber,
-            cast(req_impressionOrClickEffect as string) as impression_or_click_effect,
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
@@ -118,7 +117,6 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "gift_flag",
         "order_status_category",
         "click_or_order_caliber",
-        "impression_or_click_effect",
     ]
 
     jdkc_keyword_df = (
@@ -216,7 +214,6 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "gift_flag",
         "order_status_category",
         "click_or_order_caliber",
-        "impression_or_click_effect",
         "start_day",
         "end_day",
         "is_daily",
