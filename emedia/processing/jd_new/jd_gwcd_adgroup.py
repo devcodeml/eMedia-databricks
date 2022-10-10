@@ -369,8 +369,10 @@ def jd_gwcd_adgroup_etl(airflow_execution_date, run_id):
         select
           a.*,
           '' as mdm_productline_id,
-          c.category2_code as emedia_category_id,
-          c.brand_code as emedia_brand_id
+          a.category_id as emedia_category_id,
+          a.brand_id as emedia_brand_id,
+          c.category2_code as mdm_category_id,
+          c.brand_code as mdm_brand_id
         from gwcd_adgroup_daily a
         left join ods.media_category_brand_mapping c
           on a.brand_id = c.emedia_brand_code and
@@ -383,8 +385,10 @@ def jd_gwcd_adgroup_etl(airflow_execution_date, run_id):
         "pin as pin_name",
         "effect",
         "effect_days",
-        "emedia_category_id as category_id",
-        "emedia_brand_id as brand_id",
+        "emedia_category_id",
+        "emedia_brand_id",
+        "mdm_category_id",
+        "mdm_brand_id",
         "campaign_id",
         "campaignName as campaign_name",
         "adgroup_id",

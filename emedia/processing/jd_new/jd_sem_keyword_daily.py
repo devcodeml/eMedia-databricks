@@ -94,7 +94,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            cast(data_source as string) as data_source,
+            'stg.jdkc_keyword_daily' as data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdkc_keyword_daily
         """
@@ -170,8 +170,10 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         select
             a.*,
             '' as mdm_productline_id,
-            c.category2_code as emedia_category_id,
-            c.brand_code as emedia_brand_id
+            a.category_id as emedia_category_id,
+            a.brand_id as emedia_brand_id,
+            c.category2_code as mdm_category_id,
+            c.brand_code as mdm_brand_id
         from jdkc_keyword_daily a
         left join ods.media_category_brand_mapping c
             on a.brand_id = c.emedia_brand_code and
@@ -184,8 +186,10 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "pin_name",
         "effect",
         "effect_days",
-        "emedia_category_id as category_id",
-        "emedia_brand_id as brand_id",
+        "emedia_category_id",
+        "emedia_brand_id",
+        "mdm_category_id",
+        "mdm_brand_id",
         "campaign_id",
         "campaign_name",
         "adgroup_id",
