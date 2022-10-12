@@ -36,8 +36,7 @@ def push_to_dw(dataframe, dw_table_name, model, table_name):
     synapseaccountname = emedia_conf_dict.get("synapseaccountname")
     synapsedirpath = emedia_conf_dict.get("synapsedirpath")
     synapsekey = emedia_conf_dict.get("synapsekey")
-    url = "jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
-
+    url = emedia_conf_dict.get("dwurl")
     # 获取key
     blobKey = "fs.azure.account.key.{0}.blob.core.chinacloudapi.cn".format(
         synapseaccountname
