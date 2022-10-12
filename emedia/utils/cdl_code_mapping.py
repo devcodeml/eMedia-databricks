@@ -5,10 +5,6 @@ from pyspark.sql.functions import current_date, current_timestamp
 
 
 
-## 下面是mapping函数，可以提取出来，作为独立文件后引用
-from mdl_emedia_etl_dbs.config.mdl_conf import get_emedia_conf_dict
-
-
 def emedia_brand_mapping(spark,daily_reports,ad_type):
     """
     将传入的Dataframe进行mapping得到 Brand Mapping 后的Dataframe
@@ -23,15 +19,15 @@ def emedia_brand_mapping(spark,daily_reports,ad_type):
     :param emedia_adformat_mapping_path:   emedia_adformat_mapping blob路径
     :return out1,out2   mapping成功和失败的dataframe
     """
-    emedia_conf_dict = get_emedia_conf_dict()
-    mapping_blob_account = emedia_conf_dict.get('mapping_account')
-    mapping_blob_container = emedia_conf_dict.get('mapping_container')
-    mapping_blob_sas = emedia_conf_dict.get('mapping_sas')
+    # emedia_conf_dict = get_emedia_conf_dict()
+    # mapping_blob_account = emedia_conf_dict.get('mapping_account')
+    # mapping_blob_container = emedia_conf_dict.get('mapping_container')
+    # mapping_blob_sas = emedia_conf_dict.get('mapping_sas')
     # spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn"
     #                , mapping_blob_sas)
-    # mapping_blob_account = 'b2bmptbiprd01'
-    # mapping_blob_container = 'emedia-resource'
-    # mapping_blob_sas = 'st=2020-07-14T09%3A08%3A06Z&se=2030-12-31T09%3A08%3A00Z&sp=racwl&sv=2018-03-28&sr=c&sig=0YVHwfcoCDh53MESP2JzAD7stj5RFmFEmJbi5KGjB2c%3D'
+    mapping_blob_account = 'b2bmptbiprd01'
+    mapping_blob_container = 'emedia-resource'
+    mapping_blob_sas = 'st=2020-07-14T09%3A08%3A06Z&se=2030-12-31T09%3A08%3A00Z&sp=racwl&sv=2018-03-28&sr=c&sig=0YVHwfcoCDh53MESP2JzAD7stj5RFmFEmJbi5KGjB2c%3D'
     spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn", mapping_blob_sas)
 
 

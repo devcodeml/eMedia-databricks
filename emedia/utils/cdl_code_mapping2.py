@@ -3,10 +3,7 @@
 import datetime
 from pyspark.sql.functions import current_date, current_timestamp
 
-
-
-## 下面是mapping函数，可以提取出来，作为独立文件后引用
-from mdl_emedia_etl_dbs.config.mdl_conf import get_emedia_conf_dict
+from emedia.config.emedia_conf import get_emedia_conf_dict
 
 
 def emedia_brand_mapping(spark,daily_reports,ad_type):
