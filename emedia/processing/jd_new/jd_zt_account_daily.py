@@ -390,3 +390,5 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
     ).insertInto(
         "dwd.jdzt_account_daily"
     )
+
+    return 0

@@ -6,6 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.jd_new.push_to_dw import push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -233,6 +234,9 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
         "dwd.jst_search_daily"
     )
 
+    push_to_dw(spark.table("dwd.jst_search_daily"), 'dbo.tb_emedia_jd_jst_search_daily_v202209_fact', 'overwrite',
+               'jst_search_daily')
+
     # dwd.tb_media_emedia_jst_daily_fact
     # dbo.tb_emedia_jd_jst_search_daily_v202209_fact
 
@@ -286,3 +290,5 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
     # ).insertInto(
     #    "dwd.tb_media_emedia_jst_daily_fact"
     # )
+
+    return 0

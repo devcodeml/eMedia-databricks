@@ -271,4 +271,6 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
         "dwd.jdzw_campaign_daily"
     )
 
+    return 0
+
     # dwd.tb_media_emedia_jdzw_daily_fact

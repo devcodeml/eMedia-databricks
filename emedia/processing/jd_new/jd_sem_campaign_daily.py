@@ -6,6 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.jd_new.push_to_dw import push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -271,6 +272,9 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
     ).insertInto(
         "dwd.jdkc_campaign_daily"
     )
+
+    push_to_dw(spark.table("dwd.jdkc_campaign_daily"), 'dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact', 'overwrite',
+               'jdkc_campaign_daily')
 
     spark.sql("optimize dwd.jdkc_campaign_daily_mapping_success")
 

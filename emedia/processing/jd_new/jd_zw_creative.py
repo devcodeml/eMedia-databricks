@@ -6,6 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.jd_new.push_to_dw import push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -290,3 +291,6 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
     ).insertInto(
         "dwd.jdzw_creative_daily"
     )
+
+    push_to_dw(spark.table("dwd.jdzw_creative_daily"), 'dbo.tb_emedia_jd_zw_creative_daily_v202209_fact', 'overwrite', 'jdzw_creative_daily')
+    return 0

@@ -7,6 +7,7 @@ from pyspark.sql.types import StringType
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.processing.jd_new.push_to_dw import push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()

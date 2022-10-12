@@ -31,15 +31,13 @@ def push_status(airflow_execution_date):
 def push_to_dw(dataframe, dw_table_name, model, table_name):
     project_name = "emedia"
     emedia_conf_dict = get_emedia_conf_dict()
-    user = "pgadmin"
-    password = "93xx5Px1bkVuHgOo"
+    user = emedia_conf_dict.get("dwwriteuser")
+    password = emedia_conf_dict.get("dwwritepassword")
     synapseaccountname = emedia_conf_dict.get("synapseaccountname")
     synapsedirpath = emedia_conf_dict.get("synapsedirpath")
     synapsekey = emedia_conf_dict.get("synapsekey")
     url = "jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
 
-    # b2bmptbiqa0101.database.chinacloudapi.cn
-    # pgadmin    93xx5Px1bkVuHgOo
     # 获取key
     blobKey = "fs.azure.account.key.{0}.blob.core.chinacloudapi.cn".format(
         synapseaccountname
