@@ -25,7 +25,7 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
     )
 
     file_date = datetime.datetime.strptime(
-        airflow_execution_date, "%Y-%m-%d %H:%M:%S"
+        airflow_execution_date[0:19], "%Y-%m-%d %H:%M:%S"
     ) - datetime.timedelta(days=1)
 
     jd_zw_campaign_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/dmp_daily_Report/jd_dmp_campaign_{file_date.strftime("%Y-%m-%d")}.csv.gz'

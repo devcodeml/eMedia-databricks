@@ -25,7 +25,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         input_sas,
     )
     file_date = datetime.datetime.strptime(
-        airflow_execution_date, "%Y-%m-%d %H:%M:%S"
+        airflow_execution_date[0:19], "%Y-%m-%d %H:%M:%S"
     ) - datetime.timedelta(days=1)
 
     jd_dmp_creative_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/dmp_daily_Report/jd_dmp_creative_{file_date.strftime("%Y-%m-%d")}.csv.gz'
