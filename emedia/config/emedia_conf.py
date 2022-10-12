@@ -69,6 +69,9 @@ def get_emedia_conf_dict():
         scope_conf_dict.update({'dwwriteuser': 'etl_user_write',
                                 'dwwritepassword': '2wsXcde#',
                                 "dwurl" : "jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn:1433;database=B2B-prd-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
+        , 'synapseaccountname': dbutils.secrets.get("databrick-secret-scope", "synapseaccountname")
+        , 'synapsedirpath': dbutils.secrets.get("databrick-secret-scope", "synapsedirpath")
+        , 'synapsekey': dbutils.secrets.get("databrick-secret-scope", "synapsekey")
 })
 
     return scope_conf_dict
