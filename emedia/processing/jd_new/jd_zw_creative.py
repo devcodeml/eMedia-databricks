@@ -284,6 +284,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdzw_creative_daily' as data_source",
         "dw_batch_id",
+        "'' as audience_name",
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
@@ -292,5 +293,10 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         "dwd.jdzw_creative_daily"
     )
 
-    push_to_dw(spark.table("dwd.jdzw_creative_daily"), 'dbo.tb_emedia_jd_zw_creative_daily_v202209_fact', 'overwrite', 'jdzw_creative_daily')
+    push_to_dw(
+        spark.table("dwd.jdzw_creative_daily"),
+        "dbo.tb_emedia_jd_zw_creative_daily_v202209_fact",
+        "overwrite",
+        "jdzw_creative_daily",
+    )
     return 0

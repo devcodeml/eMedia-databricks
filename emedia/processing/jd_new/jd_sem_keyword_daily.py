@@ -224,6 +224,9 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdkc_keyword_daily' as data_source",
         "dw_batch_id",
+        "'' as campaign_subtype",
+        "'' as keyword_type",
+        "'' as niname",
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
@@ -232,9 +235,12 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_keyword_daily"
     )
 
-    push_to_dw(spark.table("dwd.jdkc_keyword_daily"), 'dbo.tb_emedia_jd_kc_keyword_daily_v202209_fact', 'overwrite',
-               'jdkc_keyword_daily')
-
+    push_to_dw(
+        spark.table("dwd.jdkc_keyword_daily"),
+        "dbo.tb_emedia_jd_kc_keyword_daily_v202209_fact",
+        "overwrite",
+        "jdkc_keyword_daily",
+    )
 
     spark.sql("optimize dwd.jdkc_keyword_daily_mapping_success")
 
