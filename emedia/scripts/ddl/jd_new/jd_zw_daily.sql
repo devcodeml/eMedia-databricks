@@ -673,6 +673,7 @@ CREATE TABLE IF NOT EXISTS `dwd`.`jdzw_creative_daily` (
   `is_daily` STRING,
   `data_source` STRING,
   `dw_batch_id` STRING,
+  `audience_name` STRING,
   `dw_etl_date` DATE)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/jdzw_creative_daily';
