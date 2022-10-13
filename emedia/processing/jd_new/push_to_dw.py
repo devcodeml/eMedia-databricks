@@ -1,6 +1,6 @@
 # coding: utf-8
 from emedia import get_spark
-from emedia.config.emedia_vip_conf import get_emedia_conf_dict
+from emedia.config.emedia_jd_conf import get_emedia_conf_dict
 
 from emedia.utils import output_df
 
