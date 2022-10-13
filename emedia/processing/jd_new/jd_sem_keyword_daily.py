@@ -174,12 +174,38 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             '' as mdm_productline_id,
             a.category_id as emedia_category_id,
             a.brand_id as emedia_brand_id,
-            c.category2_code as mdm_category_id,
-            c.brand_code as mdm_brand_id
+            b.category2_code as mdm_category_id,
+            b.brand_code as mdm_brand_id,
+            case
+                when a.campaign_name like '%智能%' then '智能推广'
+                else '标准推广'
+            end as campaign_subtype,
+            case
+                when c.sem_keyword is not null then 'brand'
+                else 'category'
+            end as keyword_type,
+            case
+                when d.ni_keyword is not null then 'ni'
+                else 'base'
+            end as niname
         from jdkc_keyword_daily a
-        left join ods.media_category_brand_mapping c
-            on a.brand_id = c.emedia_brand_code and
-            a.category_id = c.emedia_category_code
+        left join ods.media_category_brand_mapping b
+            on a.brand_id = b.emedia_brand_code
+            and a.category_id = b.emedia_category_code
+        left join (
+                select emedia_category_code, emedia_brand_code, sem_keyword
+                from stg.hc_media_emedia_category_brand_ni_keyword_mapping
+                where platform = 'jd') c
+            on a.category_id = c.emedia_category_code
+            and a.brand_id = c.emedia_brand_code
+            and instr(a.keyword_name, c.sem_keyword) > 0
+        left join (
+                select emedia_category_code, emedia_brand_code, ni_keyword
+                from stg.hc_media_emedia_category_brand_ni_keyword_mapping
+                where platform = 'jd') d
+            on a.category_id = d.emedia_category_code
+            and a.brand_id = d.emedia_brand_code
+            and instr(a.keyword_name, d.ni_keyword) > 0
     """
     )
 
@@ -226,9 +252,9 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdkc_keyword_daily' as data_source",
         "dw_batch_id",
-        "'' as campaign_subtype",
-        "'' as keyword_type",
-        "'' as niname",
+        "campaign_subtype",
+        "keyword_type",
+        "niname",
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
