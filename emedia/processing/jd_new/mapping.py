@@ -6,6 +6,7 @@ from pyspark.sql.functions import current_date, current_timestamp
 import pyspark.sql.functions as F
 
 from emedia import log
+from emedia.config.emedia_conf import get_emedia_conf_dict
 
 
 def mapping_input(spark):

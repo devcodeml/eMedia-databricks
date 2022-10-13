@@ -44,10 +44,6 @@ def get_emedia_conf_dict():
         , 'cumul_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
         , 'cumul_blob_sas': dbutils.secrets.get(scope_name, "target-blob-sas")
 
-        ,'dwwriteuser': 'etl_user_write'
-        ,'dwwritepassword': '2wsXcde#'
-        ,"dwurl" : "jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
-
         , 'mysql_user': 'datalake@consumer-qa-emedia-db-0'
         , 'mysql_pwd': 'b2062ff9122811e99ce54f08370059c1'
         ,'mysql_url': 'jdbc:mysql://consumer-qa-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'
@@ -63,10 +59,5 @@ def get_emedia_conf_dict():
                                 'cumul_blob_container': 'emedia-resource-cumul',
                                 'cumul_blob_sas': 'sv=2020-10-02&st=2022-03-16T07%3A42%3A31Z&se=2030-12-31T07%3A42%3A00Z&sr=c&sp=racwdxlt&sig=xYLVtiblre%2BoxxeB%2FljX5iejhDJac4Xj%2BPd6MD1gIVA%3D'})
 
-        scope_conf_dict.update({'dwwriteuser': 'etl_user_write',
-                                'dwwritepassword': '2wsXcde#',
-                                "dwurl" : "jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn:1433;database=B2B-prd-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
-
-})
 
     return scope_conf_dict

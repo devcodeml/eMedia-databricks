@@ -14,7 +14,7 @@ spark = get_spark()
 
 def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     file_date = datetime.datetime.strptime(
-        airflow_execution_date[0:19], "%Y-%m-%d %H:%M:%S"
+        airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
     ) - datetime.timedelta(days=1)
 
     emedia_conf_dict = get_emedia_conf_dict()
