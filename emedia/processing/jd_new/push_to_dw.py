@@ -1,6 +1,6 @@
 # coding: utf-8
 from emedia import get_spark
-from emedia.config.emedia_vip_conf import get_emedia_conf_dict
+from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils import output_df
 
 spark = get_spark()
@@ -29,7 +29,7 @@ def push_status(airflow_execution_date):
 
 
 def push_to_dw(dataframe, dw_table_name, model, table_name):
-    project_name = "media-jd"
+    project_name = "emedia"
     emedia_conf_dict = get_emedia_conf_dict()
     user = emedia_conf_dict.get("dwwriteuser")
     password = emedia_conf_dict.get("dwwritepassword")
@@ -57,3 +57,13 @@ def push_to_dw(dataframe, dw_table_name, model, table_name):
     ).save()
 
     return 0
+
+
+def push_table_to_dw():
+    # 推送数据到dw
+
+    model = "overwrite"
+
+    gwcd_campaign_df = spark.table("dwd.gwcd_campaign_daily").distinct()
+    gwcd_campaign_dw_table = "dbo.tb_emedia_jd_gwcd_campaign_daily_v202209_fact"
+    push_to_dw(gwcd_campaign_df, gwcd_campaign_dw_table, model, "gwcd_campaign_daily")
