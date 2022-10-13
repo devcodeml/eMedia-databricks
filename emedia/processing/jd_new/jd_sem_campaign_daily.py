@@ -113,7 +113,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            'stg.jdkc_campaign_daily' as data_source,
+            data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdkc_campaign_daily
         """
@@ -137,11 +137,11 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "gift_flag",
         "order_status_category",
         "click_or_order_caliber",
-        "impression_or_click_effect",
+        "impression_or_click_effect"
     ]
 
     jdkc_campaign_df = (
-        spark.table("ods.jdkc_campaign_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.jdkc_campaign_daily").drop("dw_etl_date")
     )
     jdkc_campaign_fail_df = (
         spark.table("dwd.jdkc_campaign_daily_mapping_fail")
@@ -211,6 +211,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "pin_name",
         "effect",
         "effect_days",
+        "mdm_productline_id",
         "emedia_category_id",
         "emedia_brand_id",
         "mdm_category_id",
@@ -263,8 +264,9 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "start_day",
         "end_day",
         "is_daily",
-        "'ods.jdkc_campaign_daily' as data_source",
-        "dw_batch_id",
+        "data_source as dw_source",
+        "'ods.jdkc_campaign_daily' as etl_source_table",
+        "dw_batch_id"
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(

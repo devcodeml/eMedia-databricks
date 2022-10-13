@@ -96,7 +96,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            'stg.jdkc_keyword_daily' as data_source,
+            data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdkc_keyword_daily
         """
@@ -122,7 +122,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     ]
 
     jdkc_keyword_df = (
-        spark.table("ods.jdkc_keyword_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.jdkc_keyword_daily").drop("dw_etl_date")
     )
     jdkc_keyword_fail_df = (
         spark.table("dwd.jdkc_keyword_daily_mapping_fail")
@@ -250,11 +250,12 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "start_day",
         "end_day",
         "is_daily",
-        "'ods.jdkc_keyword_daily' as data_source",
+        "data_source as dw_source",
+        "'ods.jdkc_keyword_daily' as etl_source_table",
         "dw_batch_id",
         "campaign_subtype",
         "keyword_type",
-        "niname",
+        "niname"
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(

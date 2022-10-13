@@ -245,7 +245,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
             cast(req_startDay as date) as start_day,
             cast(req_endDay as date) as end_day,
             cast(req_isDaily as string) as is_daily,
-            'stg.jdkc_creative_daily' as data_source,
+            data_source,
             cast(dw_batch_id as string) as dw_batch_id
         from stack_retrivialType
         """
@@ -275,7 +275,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
     ]
 
     jdkc_creative_df = (
-        spark.table("ods.jdkc_creative_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.jdkc_creative_daily").drop("dw_etl_date")
     )
     jdkc_creative_fail_df = (
         spark.table("dwd.jdkc_creative_daily_mapping_fail")
@@ -345,6 +345,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         "pin_name",
         "effect",
         "effect_days",
+        "mdm_productline_id",
         "emedia_category_id",
         "emedia_brand_id",
         "mdm_category_id",
@@ -405,8 +406,9 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         "start_day",
         "end_day",
         "is_daily",
-        "'ods.jdkc_creative_daily' as data_source",
-        "dw_batch_id",
+        "data_source as dw_source",
+        "'ods.jdkc_creative_daily' as etl_source_table",
+        "dw_batch_id"
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).option(
