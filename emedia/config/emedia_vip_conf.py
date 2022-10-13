@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from emedia import dbr_env
+from emedia import dbr_env, spark
+
 
 def get_dbutils():
     from pyspark.dbutils import DBUtils
