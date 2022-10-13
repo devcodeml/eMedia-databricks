@@ -1,6 +1,7 @@
 # coding: utf-8
 from emedia import get_spark
-from emedia.config.emedia_conf import get_emedia_conf_dict
+from emedia.config.emedia_vip_conf import get_emedia_conf_dict
+
 from emedia.utils import output_df
 
 spark = get_spark()
@@ -29,7 +30,7 @@ def push_status(airflow_execution_date):
 
 
 def push_to_dw(dataframe, dw_table_name, model, table_name):
-    project_name = "emedia"
+    project_name = "emedia-jd"
     emedia_conf_dict = get_emedia_conf_dict()
     user = emedia_conf_dict.get("dwwriteuser")
     password = emedia_conf_dict.get("dwwritepassword")

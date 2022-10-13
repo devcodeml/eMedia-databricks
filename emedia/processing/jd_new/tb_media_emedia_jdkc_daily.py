@@ -113,6 +113,9 @@ def jdkc_daily_fact():
         .withColumn("etl_update_time",F.current_timestamp()).distinct()\
         .write.mode("append").insertInto("dwd.tb_media_emedia_jdkc_daily_fact")
 
+    spark.table("dwd.tb_media_emedia_jdkc_daily_fact").drop('mdm_category_id')\
+        .drop('mdm_brand_id').drop('etl_create_time').drop('etl_update_time').distinct()\
+        .write.mode("overwrite").insertInto("ds.hc_emedia_jdkc_deep_dive_download_adgroup_keyword_daily_fact")
 
 
 
