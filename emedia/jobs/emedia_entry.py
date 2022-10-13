@@ -261,7 +261,7 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     elif etl_action == "jd_zt_etl":
         jdzt_account_daily_etl(airflow_execution_date, run_id)
-        jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
+        # jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
 
     elif etl_action == "jd_zw_etl":
         jd_zw_campaign_etl(airflow_execution_date, run_id)
