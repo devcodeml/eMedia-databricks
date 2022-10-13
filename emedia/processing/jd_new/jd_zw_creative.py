@@ -198,19 +198,110 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         spark.table("dwd.jdzw_creative_daily_mapping_fail")
     ).createOrReplaceTempView("jdzw_creative_daily")
 
+    spark.sql(
+        """
+        select
+            a.adgroup_name,
+            a.brand_id,
+            c.audience_name as audience_name1,
+            c.id as id1,
+            d.audience_name as audience_name2,
+            d.id as id2
+        from (
+            select
+                adgroup_name,
+                brand_id
+            from jdzw_creative_daily
+            group by adgroup_name, brand_id
+            ) a
+        left join (
+            select
+                cate_code,
+                audience_keyword,
+                id,
+                audience_name
+            from stg.emedia_sem_audience_mapping
+            where cate_code is not null
+                and platform = 'jd'
+            ) c
+        on c.cate_code = a.brand_id
+            and instr(a.adgroup_name, c.audience_keyword) > 0
+        left join (
+            select
+                audience_keyword,
+                id,
+                audience_name
+            from stg.emedia_sem_audience_mapping
+            where cate_code is null
+                and platform = 'jd') d
+        on instr(a.adgroup_name, d.audience_keyword) > 0
+        """
+    ).createOrReplaceTempView("audience_name_full_mapping")
+
+    spark.sql(
+        """
+        select
+            t1.adgroup_name,
+            t1.brand_id,
+            ifnull(t1.audience_name1, t2.audience_name2) as audience_name
+        from (
+            select
+                a.adgroup_name,
+                a.brand_id,
+                a.audience_name1
+            from audience_name_full_mapping a
+            left join (
+                select
+                    adgroup_name,
+                    brand_id,
+                    max(id1) as max_id
+                from audience_name_full_mapping
+                group by adgroup_name, brand_id
+                ) b
+            on a.adgroup_name = b.adgroup_name
+                and a.brand_id = b.brand_id
+                and a.id1 = b.max_id
+            ) t1
+        join (
+            select
+                a.adgroup_name,
+                a.brand_id,
+                a.audience_name2
+            from audience_name_full_mapping a
+            left join (
+                select
+                    adgroup_name,
+                    brand_id,
+                    max(id2) as max_id
+                from audience_name_full_mapping
+                group by adgroup_name, brand_id
+                ) b
+            on a.adgroup_name = b.adgroup_name
+                and a.brand_id = b.brand_id
+            and a.id2 = b.max_id
+            ) t2
+        on t1.adgroup_name = t2.adgroup_name
+            and t1.brand_id = t2.brand_id
+      """
+    ).createOrReplaceTempView("audience_name_mapping")
+
     jdzw_creative_daily_res = spark.sql(
         """
         select
-          a.*,
-          '' as mdm_productline_id,
-          a.category_id as emedia_category_id,
-          a.brand_id as emedia_brand_id,
-          c.category2_code as mdm_category_id,
-          c.brand_code as mdm_brand_id
+            a.*,
+            '' as mdm_productline_id,
+            a.category_id as emedia_category_id,
+            a.brand_id as emedia_brand_id,
+            b.category2_code as mdm_category_id,
+            b.brand_code as mdm_brand_id,
+            c.audience_name
         from jdzw_creative_daily a
-        left join ods.media_category_brand_mapping c
-          on a.brand_id = c.emedia_brand_code and
-          a.category_id = c.emedia_category_code
+        left join ods.media_category_brand_mapping b
+        on a.brand_id = b.emedia_brand_code
+            and a.category_id = b.emedia_category_code
+        left join audience_name_mapping c
+        on a.adgroup_name = c.adgroup_name
+          and a.brand_id = c.brand_id
         """
     )
 
@@ -284,7 +375,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         "is_daily",
         "'ods.jdzw_creative_daily' as data_source",
         "dw_batch_id",
-        "'' as audience_name",
+        "audience_name",
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
