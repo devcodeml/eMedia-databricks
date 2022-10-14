@@ -6,8 +6,9 @@ from pyspark.sql.functions import current_date, json_tuple, lit
 
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
+from emedia.utils.output_df import output_to_emedia
 
 spark = get_spark()
 
@@ -419,5 +420,76 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
 
     push_to_dw(spark.table("dwd.jdkc_creative_daily"), 'dbo.tb_emedia_jd_kc_creative_daily_v202209_fact', 'overwrite',
                'jdkc_creative_daily')
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CREATIVE_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_creative_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
+
+    eab_db = spark.sql(f"""
+              select 
+                ad_id as creative_id,
+                ad_name as creative_name,
+                advisitor_cnt_for_internal_summary as ad_visitor_cnt_for_internal_summary,
+                campaign_id as campaign_id,
+                campaign_name as campaign_name,
+                channel_roi as channel_roi,
+                '0' as req_isorderorclick,
+                clicks as clicks,
+                cost as cost,
+                coupon_quantity as coupon_quantity,
+                cpa as cpa,
+                cpc as cpc,
+                cpm as cpm,
+                ctr as ctr,
+                if(clicks = 0 ,0.0000, round(order_quantity/clicks,2)) as cvr,
+                source as source,
+                ad_date,
+                department_cnt as department_cnt,
+                department_gmv as department_gmv,
+                depth_passenger_quantity as depth_passenger_quantity,
+                direct_cart_cnt as direct_cart_cnt,
+                direct_order_quantity as direct_order_quantity,
+                direct_order_value as direct_order_value,
+                effect as effect,
+                effect_days as effect_days,
+                favorite_item_quantity as favorite_item_quantity,
+                adgroup_id as adgroup_id,
+                adgroup_name as adgroup_name,
+                impressions as impressions,
+                indirect_cart_cnt as indirect_cart_cnt,
+                indirect_order_quantity as indirect_order_quantity,
+                indirect_order_value as indirect_order_value,
+                effect as req_istodayor15days,
+                mobile_type as mobiletype,
+                new_customer_quantity as new_customer_quantity,
+                order_status_category as req_orderstatuscategory,
+                pin_name as pin_name,
+                platform_cnt as platform_cnt,
+                platform_gmv as platform_gmv,
+                preorder_quantity as preorder_quantity,
+                favorite_shop_quantity as favorite_shop_quantity,
+                total_cart_quantity as total_cart_quantity,
+                order_quantity as order_quantity,
+                total_order_cvs as total_order_cvs,
+                total_order_roi as total_order_roi,
+                order_value as order_value,
+                visitor_quantity as visitor_quantity,
+                visit_page_cnt as visit_page_quantity,
+                visit_time_length as visit_time_length,
+                '' as category_id,
+                '' as brand_id,
+                dw_batch_id as dw_batch_id,
+                data_source as data_source,
+                dw_etl_date as dw_etl_date,
+                concat_ws("@", ad_date,campaign_id,adgroup_id,ad_id,source,effect_days,pin_name,is_daily) as rowkey,
+                is_daily as req_isdaily
+                ,presale_direct_order_cnt,presale_indirect_order_cnt,total_presale_order_cnt,presale_direct_order_sum,presale_indirect_order_sum,total_presale_order_sum
+              from ods.jdkc_creative_daily
+            """)
+
+    date = airflow_execution_date[0:10]
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',
+                     dict_key='eab', compression='gzip', sep='|')
 
     return 0

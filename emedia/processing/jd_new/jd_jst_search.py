@@ -6,7 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -174,13 +174,20 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
           a.category_id as emedia_category_id,
           a.brand_id as emedia_brand_id,
           c.category2_code as mdm_category_id,
-          c.brand_code as mdm_brand_id
+          c.brand_code as mdm_brand_id,
+          case when e.sem_keyword is not null then 'brand' else 'category' end as keyword_type
         from jst_search_daily a
         left join ods.media_category_brand_mapping c
           on a.brand_id = c.emedia_brand_code and
           a.category_id = c.emedia_category_code
+        left join (select * from stg.hc_media_emedia_category_brand_ni_keyword_mapping where platform = 'jd') e
+         on a.category_id=e.emedia_category_code and 
+         a.brand_id=e.emedia_brand_code and  
+         instr(a.keyword_name,e.sem_keyword) >0 
+            
         """
     )
+
 
     # dwd.jst_search_daily
     jst_search_daily_res.selectExpr(
@@ -197,6 +204,7 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
         "adgroup_id",
         "adgroup_name",
         "keyword_name",
+        "keyword_type",
         "cost",
         "clicks",
         "impressions",
@@ -234,8 +242,14 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
         "dwd.jst_search_daily"
     )
 
+
+
     push_to_dw(spark.table("dwd.jst_search_daily"), 'dbo.tb_emedia_jd_jst_search_daily_v202209_fact', 'overwrite',
                'jst_search_daily')
+
+    file_name = 'jst/EMEDIA_JD_JST_DAILY_KEYWORD_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_jst_daily_keyword_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     # dwd.tb_media_emedia_jst_daily_fact
     # dbo.tb_emedia_jd_jst_search_daily_v202209_fact

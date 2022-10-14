@@ -6,8 +6,9 @@ from pyspark.sql.functions import current_date, json_tuple, lit
 
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
+from emedia.utils.output_df import output_to_emedia
 
 spark = get_spark()
 
@@ -379,6 +380,68 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
 
     push_to_dw(spark.table("dwd.jdkc_adgroup_daily"), 'dbo.tb_emedia_jd_kc_adgroup_daily_v202209_fact', 'overwrite',
                'jdkc_adgroup_daily')
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_adgroup_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
+
+    eab_db = spark.sql(f"""
+            select  	ad_date,
+                        pin_name as pin_name,
+                        campaign_id as campaign_id,
+                        campaign_name as campaign_name,
+                        adgroup_id as adgroup_id,
+                        adgroup_name as adgroup_name,
+                        '' as category_id,
+                        '' as brand_id,
+                        is_daily as req_isdaily,
+                        0 as req_isorderorclick,
+                        effect as req_istodayor15days,
+                        effect_days as effect_days,
+                        order_status_category as req_orderstatuscategory,
+                        mobile_type as mobiletype,
+                        clicks as clicks,
+                        cost as cost,
+                        direct_order_quantity as direct_order_quantity,
+                        direct_order_value as direct_order_value,
+                        impressions as impressions,
+                        indirect_order_quantity as indirect_order_quantity,
+                        indirect_order_value as indirect_order_value,
+                        total_cart_quantity as total_cart_quantity,
+                        total_order_roi as total_order_roi,
+                        total_order_cvs as total_order_cvs,
+                        indirect_cart_cnt as indirect_cart_cnt,
+                        direct_cart_cnt as direct_cart_cnt,
+                        cpc as cpc,
+                        cpa as cpa,
+                        ctr as ctr,
+                        cpm as cpm,
+                        order_quantity as order_quantity,
+                        order_value as order_value,
+                        depth_passenger_quantity as depth_passenger_quantity,
+                        visit_time_length as visit_time_length,
+                        visit_page_quantity as visit_page_quantity,
+                        new_customer_quantity as new_customer_quantity,
+                        favorite_item_quantity as favorite_item_quantity,
+                        favorite_shop_quantity as favorite_shop_quantity,
+                        preorder_quantity as preorder_quantity,
+                        coupon_quantity as coupon_quantity,
+                        visitor_quantity as visitor_quantity,
+                        data_source as data_source,
+                        dw_etl_date as dw_etl_date,
+                        dw_batch_id as dw_batch_id,
+                        source as source,
+                        effect as effect
+                        ,presale_direct_order_cnt,presale_indirect_order_cnt,total_presale_order_cnt,presale_direct_order_sum,presale_indirect_order_sum,total_presale_order_sum
+            from    ods.jdkc_adgroup_daily
+        """)
+
+    date = airflow_execution_date[0:10]
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',
+                     dict_key='eab', compression='gzip', sep='|')
+
+    spark.sql("optimize dwd.jdkc_adgroup_daily_mapping_success")
 
     return 0
 

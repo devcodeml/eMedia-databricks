@@ -6,8 +6,9 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
+from emedia.utils.output_df import output_to_emedia
 
 spark = get_spark()
 
@@ -119,6 +120,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "gift_flag",
         "order_status_category",
         "click_or_order_caliber",
+        "targeting_type"
     ]
 
     jdkc_keyword_df = (
@@ -224,6 +226,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "adgroup_id",
         "adgroup_name",
         "keyword_name",
+        "targeting_type",
         "cost",
         "clicks",
         "impressions",
@@ -270,6 +273,62 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "overwrite",
         "jdkc_keyword_daily",
     )
+
+    file_name = 'sem/TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_keyword_new_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
+
+    # Query db output result
+    eab_db = spark.sql(f"""
+                select  ad_date,
+                        pin_name as pin_name,
+                        campaign_id as campaign_id,
+                        campaign_name as campaign_name,
+                        adgroup_id as adgroup_id,
+                        adgroup_name as adgroup_name,
+                        '' as category_id,
+                        '' as brand_id,
+                        keyword_name as keyword_name,
+                        targeting_type as targeting_type,
+                        '0' as req_isorderorclick,
+                        effect as req_clickororderday,
+                        effect as effect,
+                        effect_days as effect_days,
+                        order_status_category as req_orderstatuscategory,
+                        '' as mobiletype,
+                        clicks as clicks,
+                        cost as cost,
+                        ctr as ctr,
+                        cpm as cpm,
+                        cpc as cpc,
+                        total_order_roi as totalorderroi,
+                        impressions as impressions,
+                        order_quantity as order_quantity,
+                        order_value as order_value,
+                        indirect_order_quantity as indirect_order_quantity,
+                        direct_order_quantity as direct_order_quantity,
+                        indirect_order_value as indirect_order_value,
+                        direct_order_value as direct_order_value,
+                        indirect_cart_cnt as indirectcartcnt,
+                        direct_cart_cnt as directcartcnt,
+                        total_cart_quantity as total_cart_quantity,
+                        total_order_cvs as total_order_cvs,
+                        '' as effect_order_cnt,
+                        '' as effect_cart_cnt,
+                        '' as effect_order_sum,
+                        data_source as data_source,
+                        dw_etl_date as dw_etl_date,
+                        dw_batch_id as dw_batch_id,
+                        concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_status_category,effect_days,pin_name,targeting_type) as rowkey,
+                        if(order_quantity = 0 ,0, round(cost/order_quantity,2) )  as cpa
+                        ,total_presale_order_cnt,total_presale_order_sum,targeting_type
+                    from    ods.jdkc_keyword_daily
+        """)
+
+    date = airflow_execution_date[0:10]
+    output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',
+                     dict_key='eab', compression='gzip', sep='|')
 
     spark.sql("optimize dwd.jdkc_keyword_daily_mapping_success")
 

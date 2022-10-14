@@ -6,7 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -390,4 +390,10 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         "overwrite",
         "jdzw_creative_daily",
     )
+
+    file_name = 'dmp/EMEDIA_JD_DMP_DAILY_CREATIVE_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_dmp_creative_new_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
+
     return 0

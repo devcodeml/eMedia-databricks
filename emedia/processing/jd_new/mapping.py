@@ -3,18 +3,18 @@
 
 import datetime
 from pyspark.sql.functions import current_date, current_timestamp
-import pyspark.sql.functions as F
-
-from emedia import log
+from emedia import log, get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
+import pyspark.sql.functions as F
+from pyspark.sql.types import *
 
 
-def mapping_input(spark):
-
+def emedia_sem_audience_mapping():
+    spark = get_spark()
     emedia_conf_dict = get_emedia_conf_dict()
-    mapping_blob_account = emedia_conf_dict.get('mapping_account')
-    mapping_blob_container = emedia_conf_dict.get('mapping_container')
-    mapping_blob_sas = emedia_conf_dict.get('mapping_sas')
+    mapping_blob_account = emedia_conf_dict.get('mapping_blob_account')
+    mapping_blob_container = emedia_conf_dict.get('mapping_blob_container')
+    mapping_blob_sas = emedia_conf_dict.get('mapping_blob_sas')
     # spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn"
     #                , mapping_blob_sas)
     # mapping_blob_account = 'b2bmptbiprd01'
@@ -30,16 +30,11 @@ def mapping_input(spark):
         , multiLine=True
         , sep=","
     )
-    spark.sql("drop table stg.emedia_sem_audience_mapping")
-    emedia_sem_audience_mapping_df.withColumn("etl_date", F.current_date()).distinct().write.mode(
-        "overwrite").saveAsTable("stg.emedia_sem_audience_mapping")
+    emedia_sem_audience_mapping_df.distinct().write.mode(
+        "overwrite").insertInto("stg.emedia_sem_audience_mapping")
 
-    from pyspark.sql.types import DateType, IntegerType
 
-    from mdl_emedia_etl_dbs import get_spark, log
-    from mdl_emedia_etl_dbs.config.mdl_conf import get_emedia_conf_dict
-    import pyspark.sql.functions as F
-
+def hc_emedia_jd_adgroup_skuid_mapping():
     spark = get_spark()
 
     cust_account = 'b2bmptbiprd01'
@@ -90,8 +85,6 @@ def mapping_input(spark):
     """)
 
     sp = sp.withColumn('ad_date', sp.ad_date.cast(DateType()))
-    import pyspark.sql.functions as F
-    from pyspark.sql.types import *
     sp.withColumn("etl_create_time", F.current_timestamp()).withColumn("etl_update_time",
                                                                        F.current_timestamp()).distinct().write.mode(
         "overwrite").insertInto("ds.hc_emedia_jd_adgroup_skuid_mapping")

@@ -470,11 +470,6 @@ def jd_gwcd_adgroup_etl(airflow_execution_date, run_id):
         "dwd.gwcd_adgroup_daily"
     )
 
-    # dwd.tb_media_emedia_gwcd_daily_fact
-
-    # stg.gwcd_adgroup_daily
-    # ods.gwcd_adgroup_daily
-    # dwd.gwcd_adgroup_daily
 
     spark.sql("optimize dwd.gwcd_adgroup_daily_mapping_success")
 

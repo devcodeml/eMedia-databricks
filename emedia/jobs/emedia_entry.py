@@ -28,6 +28,7 @@ from emedia.processing.jd_new.jd_zt_account_daily import jdzt_account_daily_etl
 from emedia.processing.jd_new.jd_zt_adgroup_daily import jdzt_adgroup_daily_etl
 from emedia.processing.jd_new.jd_zw_campaign import jd_zw_campaign_etl
 from emedia.processing.jd_new.jd_zw_creative import jd_zw_creative_etl
+from emedia.processing.jd_new.mapping import emedia_sem_audience_mapping
 from emedia.processing.jd_new.push_to_dw import push_table_to_dw
 from emedia.processing.tmall.tmail_wxt_day_campaign import tamll_wxt_day_campaign_etl
 from emedia.processing.tmall.tmall_mxdp import tmall_mxdp_etl
@@ -94,44 +95,64 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         vip_finance_etl(airflow_execution_date)
 
     # JD 部分
-    elif etl_action == "jd_dmp_campaign_etl":
-        jd_dmp_campaign_etl(airflow_execution_date)
+    # elif etl_action == "jd_dmp_campaign_etl":
+        # jd_dmp_campaign_etl(airflow_execution_date)
+    elif etl_action == "jd_zw_campaign_etl":
+        jd_zw_campaign_etl(airflow_execution_date, run_id)
+    elif etl_action == "jd_zw_creative_etl":
+        emedia_sem_audience_mapping()
+        jd_zw_creative_etl(airflow_execution_date, run_id)
 
     elif etl_action == "jd_finance_campaign_etl":
         jd_finance_campaign_etl(airflow_execution_date)
 
+    elif etl_action == "jd_gwcd_adgroup_etl":
+        # jd_gwcd_campaign_etl(airflow_execution_date)
+        jd_gwcd_adgroup_etl(airflow_execution_date, run_id)
     elif etl_action == "jd_gwcd_campaign_etl":
-        jd_gwcd_campaign_etl(airflow_execution_date)
+        jd_gwcd_campaign_etl_new(airflow_execution_date, run_id)
 
     elif etl_action == "jd_ha_campaign_etl":
         jd_ha_campaign_etl(airflow_execution_date)
 
-    elif etl_action == "jd_ht_campaign_etl":
-        jd_ht_campaign_etl(airflow_execution_date)
+    # elif etl_action == "jd_ht_campaign_etl":
+    #     jd_ht_campaign_etl(airflow_execution_date)
 
     elif etl_action == "jd_jst_campaign_etl":
-        jd_jst_campaign_etl(airflow_execution_date)
+        # jd_jst_campaign_etl(airflow_execution_date)
+        jd_jst_campaign_etl_new(airflow_execution_date, run_id)
+
+    elif etl_action == "jd_jst_daily_search_etl":
+        # jd_jst_daily_search_etl(airflow_execution_date, run_id)
+        jd_jst_search_etl_new(airflow_execution_date, run_id)
 
     elif etl_action == "jd_sem_adgroup_etl":
-        jd_sem_adgroup_etl(airflow_execution_date, run_id)
-
+        # jd_sem_adgroup_etl(airflow_execution_date, run_id)
+        jdkc_adgroup_daily_etl(airflow_execution_date, run_id)
     elif etl_action == "jd_sem_campaign_etl":
-        jd_sem_campaign_etl(airflow_execution_date, run_id)
-
+        # jd_sem_campaign_etl(airflow_execution_date, run_id)
+        jdkc_campaign_daily_etl(airflow_execution_date, run_id)
     elif etl_action == "jd_sem_creative_etl":
-        jd_sem_creative_etl(airflow_execution_date, run_id)
+        # jd_sem_creative_etl(airflow_execution_date, run_id)
+        jdkc_creative_daily_etl(airflow_execution_date, run_id)
 
     elif etl_action == "jd_sem_keyword_etl":
-        jd_sem_keyword_etl(airflow_execution_date, run_id)
+        # jd_sem_keyword_etl(airflow_execution_date, run_id)
+        jdkc_keyword_daily_etl(airflow_execution_date, run_id)
 
     elif etl_action == "jd_sem_target_etl":
         jd_sem_target_etl(airflow_execution_date, run_id)
 
-    elif etl_action == "jd_zt_campaign_etl":
-        jd_zt_campaign_etl(airflow_execution_date)
+    # elif etl_action == "jd_zt_campaign_etl":
+    #     jd_zt_campaign_etl(airflow_execution_date)
+    #
+    # elif etl_action == "jd_zt_adgroup_campaign_etl":
+    #     jd_zt_adgroup_campaign_etl(airflow_execution_date)
 
-    elif etl_action == "jd_zt_adgroup_campaign_etl":
-        jd_zt_adgroup_campaign_etl(airflow_execution_date)
+    elif etl_action == "jdzt_account_daily_etl":
+        jdzt_account_daily_etl(airflow_execution_date, run_id)
+    elif etl_action == "jdzt_adgroup_daily_etl":
+        jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
 
     # tmall 部分
     elif etl_action == "tmall_super_effect_etl":
@@ -200,8 +221,6 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "tmall_ylmf_daliy_promotion_etl":
         tmall_ylmf_daliy_promotion_etl(airflow_execution_date, run_id)
 
-    elif etl_action == "jd_jst_daily_search_etl":
-        jd_jst_daily_search_etl(airflow_execution_date, run_id)
 
     elif etl_action == "tmall_super_new_effect_etl":
         tmall_super_new_effect_etl(airflow_execution_date, run_id)
@@ -246,6 +265,7 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
             f"{output_date}/flag.txt", output_date_time, "target"
         )
 
+
     elif etl_action == "jd_gwcd_etl":
         jd_gwcd_adgroup_etl(airflow_execution_date, run_id)
         jd_gwcd_campaign_etl_new(airflow_execution_date, run_id)
@@ -261,9 +281,10 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
 
     elif etl_action == "jd_zt_etl":
         jdzt_account_daily_etl(airflow_execution_date, run_id)
-        # jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
+        jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
 
     elif etl_action == "jd_zw_etl":
+        emedia_sem_audience_mapping()
         jd_zw_campaign_etl(airflow_execution_date, run_id)
         jd_zw_creative_etl(airflow_execution_date, run_id)
 

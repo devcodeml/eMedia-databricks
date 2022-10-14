@@ -6,7 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw
+from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -273,8 +273,14 @@ def jd_jst_campaign_etl_new(airflow_execution_date, run_id):
         "dwd.jst_campaign_daily"
     )
 
+
+
     push_to_dw(spark.table("dwd.jst_campaign_daily"), 'dbo.tb_emedia_jd_jst_campaign_daily_v202209_fact', 'overwrite',
                'jst_campaign_daily')
+
+    file_name = 'jst/EMEDIA_JD_JST_DAILY_CAMPAIGN_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_jst_daily_campaign_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     return 0
 

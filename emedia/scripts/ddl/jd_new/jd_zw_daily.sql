@@ -1,3 +1,20 @@
+
+DROP TABLE IF EXISTS `stg`.`emedia_sem_audience_mapping`;
+CREATE TABLE `stg`.`emedia_sem_audience_mapping` (
+  `audience_name` STRING,
+  `definition` STRING,
+  `audience_keyword` STRING,
+  `platform` STRING,
+  `id` STRING,
+  `cate_code` STRING)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_stg.db/emedia_sem_audience_mapping';
+
+
+
+
+
+
 DROP TABLE IF EXISTS `stg`.`jdzw_campaign_daily`;
 CREATE TABLE IF NOT EXISTS `stg`.`jdzw_campaign_daily` (
   `CTR` STRING,

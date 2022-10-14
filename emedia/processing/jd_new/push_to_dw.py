@@ -7,7 +7,7 @@ from emedia.utils import output_df
 spark = get_spark()
 
 
-def push_status(airflow_execution_date):
+def push_status(airflow_execution_date,file_name,job_name):
     output_date = airflow_execution_date[0:10]
     output_date_time = output_date + "T" + airflow_execution_date[11:19]
     output_date_text = ""
@@ -15,18 +15,18 @@ def push_status(airflow_execution_date):
     # jd_gwcd_compaign
     # 写空文件到blob
     output_df.create_blob_by_text(
-        f"{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV",
+        f"{output_date}/{output_date_time}/{file_name}",
         output_date_text,
         "target",
     )
     # 写状态到dw
     status_sql = spark.sql(
         f"""
-        select 'jd_gwcd_campaign_etl' as job_name,'emedia' as type,'{output_date}/{output_date_time}/gwcd/EMEDIA_JD_GWCD_DAILY_CAMPAIGN_REPORT_FACT.CSV' as file_name,'' as job_id,
+        select '{job_name}' as job_name,'emedia' as type,'{output_date}/{output_date_time}/{file_name}' as file_name,'' as job_id,
         1 as status,now() as updateAt,'{output_date}' as period,'{output_date_time}' as flag,'' as related_job
     """
     )
-    push_to_dw(status_sql, "dbo.mpt_etl_job", "append")
+    push_to_dw(status_sql, "dbo.mpt_etl_job", "append",'mpt_etl_job')
 
 
 def push_to_dw(dataframe, dw_table_name, model, table_name):

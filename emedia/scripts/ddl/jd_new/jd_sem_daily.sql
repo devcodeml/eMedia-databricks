@@ -1108,6 +1108,7 @@ CREATE TABLE IF NOT EXISTS `dwd`.`jdkc_keyword_daily` (
   `adgroup_id` STRING,
   `adgroup_name` STRING,
   `keyword_name` STRING,
+  `targeting_type` STRING,
   `cost` DECIMAL(20,4),
   `clicks` BIGINT,
   `impressions` BIGINT,

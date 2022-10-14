@@ -508,6 +508,7 @@ CREATE TABLE IF NOT EXISTS `dwd`.`jst_search_daily` (
   `adgroup_id` STRING,
   `adgroup_name` STRING,
   `keyword_name` STRING,
+  `keyword_type` STRING,
   `cost` DECIMAL(20,4),
   `clicks` BIGINT,
   `impressions` BIGINT,

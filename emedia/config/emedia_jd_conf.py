@@ -27,8 +27,8 @@ def get_emedia_conf_dict():
             env = "prd"
     if env == 'qa':
         scope_conf_dict = {
-         'dwwriteuser': 'etl_user_write'
-        , 'dwwritepassword': '2wsXcde#'
+         'dwwriteuser': 'pgadmin'
+        , 'dwwritepassword': '93xx5Px1bkVuHgOo'
         , 'dwurl': 'jdbc:sqlserver://b2bmptbiqa0101.database.chinacloudapi.cn:1433;database=B2B-qa-MPT-DW-01;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;'
         , 'synapseaccountname': dbutils.secrets.get("databrick-secret-scope", "synapseaccountname")
         , 'synapsedirpath': dbutils.secrets.get("databrick-secret-scope", "synapsedirpath")
