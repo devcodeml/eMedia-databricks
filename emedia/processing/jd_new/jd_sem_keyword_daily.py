@@ -322,7 +322,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
                         dw_batch_id as dw_batch_id,
                         concat_ws("@", ad_date,campaign_id,adgroup_id,keyword_name,order_status_category,effect_days,pin_name,targeting_type) as rowkey,
                         if(order_quantity = 0 ,0, round(cost/order_quantity,2) )  as cpa
-                        ,total_presale_order_cnt,total_presale_order_sum,targeting_type
+                        ,total_presale_order_cnt,total_presale_order_sum
                     from    ods.jdkc_keyword_daily
         """)
 
