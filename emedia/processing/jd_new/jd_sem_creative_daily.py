@@ -421,9 +421,6 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
     push_to_dw(spark.table("dwd.jdkc_creative_daily"), 'dbo.tb_emedia_jd_kc_creative_daily_v202209_fact', 'overwrite',
                'jdkc_creative_daily')
 
-    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CREATIVE_REPORT_FACT.CSV'
-    job_name = 'tb_emedia_jd_sem_daily_creative_report_fact'
-    push_status(airflow_execution_date, file_name, job_name)
 
 
     eab_db = spark.sql(f"""
@@ -491,5 +488,9 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
     date = airflow_execution_date[0:10]
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_creative_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CREATIVE_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_creative_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     return 0

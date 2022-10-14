@@ -274,9 +274,6 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "jdkc_keyword_daily",
     )
 
-    file_name = 'sem/TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV'
-    job_name = 'tb_emedia_jd_sem_keyword_new_fact'
-    push_status(airflow_execution_date, file_name, job_name)
 
 
     # Query db output result
@@ -329,6 +326,10 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     date = airflow_execution_date[0:10]
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_keyword_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    file_name = 'sem/TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_keyword_new_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     spark.sql("optimize dwd.jdkc_keyword_daily_mapping_success")
 
