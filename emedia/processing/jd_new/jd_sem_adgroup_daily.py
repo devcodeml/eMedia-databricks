@@ -381,9 +381,6 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
     push_to_dw(spark.table("dwd.jdkc_adgroup_daily"), 'dbo.tb_emedia_jd_kc_adgroup_daily_v202209_fact', 'overwrite',
                'jdkc_adgroup_daily')
 
-    file_name = 'sem/EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV'
-    job_name = 'tb_emedia_jd_sem_daily_adgroup_report_fact'
-    push_status(airflow_execution_date, file_name, job_name)
 
 
     eab_db = spark.sql(f"""
@@ -440,6 +437,10 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
     date = airflow_execution_date[0:10]
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_adgroup_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_adgroup_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     spark.sql("optimize dwd.jdkc_adgroup_daily_mapping_success")
 

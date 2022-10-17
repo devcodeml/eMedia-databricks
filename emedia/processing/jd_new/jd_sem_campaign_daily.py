@@ -279,10 +279,6 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
     push_to_dw(spark.table("dwd.jdkc_campaign_daily"), 'dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact', 'overwrite',
                'jdkc_campaign_daily')
 
-    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV'
-    job_name = 'tb_emedia_jd_sem_daily_campaign_report_fact'
-    push_status(airflow_execution_date, file_name, job_name)
-
 
     eab_db = spark.sql(f"""
             select  order_status_category as req_orderstatuscategory, 
@@ -338,6 +334,11 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
     date = airflow_execution_date[0:10]
     output_to_emedia(eab_db, f'fetchResultFiles/JD_days/KC/{run_id}', f'tb_emedia_jd_kc_campaign_day-{date}.csv.gz',
                      dict_key='eab', compression='gzip', sep='|')
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_campaign_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
 
     spark.sql("optimize dwd.jdkc_campaign_daily_mapping_success")
 
