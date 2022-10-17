@@ -6,7 +6,7 @@ from pyspark.sql.functions import current_date, lit
 
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
+from emedia.processing.jd_new.push_to_dw import push_status, push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -224,7 +224,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
             where cate_code is not null
                 and platform = 'jd'
             ) c
-        on c.cate_code = a.brand_id
+        on c.cate_code <=> a.brand_id
             and instr(a.adgroup_name, c.audience_keyword) > 0
         left join (
             select
@@ -243,7 +243,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         select
             t1.adgroup_name,
             t1.brand_id,
-            ifnull(t1.audience_name1, t2.audience_name2) as audience_name
+            ifnull(ifnull(t1.audience_name1, t2.audience_name2), 'JD Others') as audience_name
         from (
             select
                 a.adgroup_name,
@@ -259,7 +259,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
                 group by adgroup_name, brand_id
                 ) b
             on a.adgroup_name = b.adgroup_name
-                and a.brand_id = b.brand_id
+                and a.brand_id <=> b.brand_id
                 and a.id1 = b.max_id
             ) t1
         join (
@@ -277,11 +277,11 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
                 group by adgroup_name, brand_id
                 ) b
             on a.adgroup_name = b.adgroup_name
-                and a.brand_id = b.brand_id
+                and a.brand_id <=> b.brand_id
             and a.id2 = b.max_id
             ) t2
         on t1.adgroup_name = t2.adgroup_name
-            and t1.brand_id = t2.brand_id
+            and t1.brand_id <=> t2.brand_id
       """
     ).createOrReplaceTempView("audience_name_mapping")
 
@@ -301,7 +301,7 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
             and a.category_id = b.emedia_category_code
         left join audience_name_mapping c
         on a.adgroup_name = c.adgroup_name
-          and a.brand_id = c.brand_id
+          and a.brand_id <=> c.brand_id
         """
     )
 
@@ -391,9 +391,8 @@ def jd_zw_creative_etl(airflow_execution_date, run_id):
         "jdzw_creative_daily",
     )
 
-    file_name = 'dmp/EMEDIA_JD_DMP_DAILY_CREATIVE_REPORT_FACT.CSV'
-    job_name = 'tb_emedia_jd_dmp_creative_new_fact'
+    file_name = "dmp/EMEDIA_JD_DMP_DAILY_CREATIVE_REPORT_FACT.CSV"
+    job_name = "tb_emedia_jd_dmp_creative_new_fact"
     push_status(airflow_execution_date, file_name, job_name)
-
 
     return 0
