@@ -101,7 +101,8 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         jd_zw_campaign_etl(airflow_execution_date, run_id)
     elif etl_action == "jd_zw_creative_etl":
         emedia_sem_audience_mapping()
-        jd_zw_creative_etl(airflow_execution_date, run_id)
+        # jd_zw_creative_etl(airflow_execution_date, run_id)
+        jd_dmp_campaign_etl(airflow_execution_date)
 
     elif etl_action == "jd_finance_campaign_etl":
         jd_finance_campaign_etl(airflow_execution_date)

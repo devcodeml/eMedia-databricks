@@ -45,6 +45,7 @@ def jdkc_daily_fact():
         ,click_or_order_caliber
         ,'' as put_type
         ,'' as campaign_put_type
+        ,'' as targeting_type
         ,cost
         ,clicks as click
         ,impressions as impression
@@ -95,6 +96,7 @@ def jdkc_daily_fact():
         ,click_or_order_caliber
         ,'' as put_type
         ,'' as campaign_put_type
+        ,targeting_type
         ,cost
         ,clicks as click
         ,impressions as impression
