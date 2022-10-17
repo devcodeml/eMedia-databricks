@@ -3,8 +3,8 @@
 import datetime
 
 from pyspark.sql.functions import current_date, lit
-
-from emedia import get_spark
+from pyspark.sql.types import *
+from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
@@ -334,5 +334,93 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
     spark.sql("optimize dwd.jdkc_keyword_daily_mapping_success")
 
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
+
+    return 0
+
+
+
+
+
+def tmall_ztc_keyword_old_dwd_etl():
+    tmall_ztc_keyword_old_dwd = spark.sql("""
+        select left(ad_date,10) as ad_date
+            ,'直通车' as ad_format_lv2
+            ,adgroup_id
+            ,adgroup_name
+            ,campaign_id
+            ,campaign_name
+            ,sub_type as campaign_subtype
+            ,type as campaign_type
+            ,cast(total_cart_quantity as string) as total_cart_quantity
+            ,cast(clicks as string) as click
+            ,cast(cost as string) as cost
+            ,cast(direct_order_quantity as string) as direct_order_quantity
+            ,cast(direct_order_value as string) as direct_order_value
+            ,dw_batch_id as dw_batch_number
+            ,cast(dw_etl_date as string) as dw_create_time
+            ,data_source as dw_resource
+            ,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15  else 0 end as effect 
+            ,effect_days
+            ,cast(impressions as string) as impression
+            ,cast(indirect_order_value as string) as indirect_order_value
+            ,cast(indirect_order_quantity as string) as indirect_order_quantity
+            ,(indirect_order_value+direct_order_value) as order_amount
+            ,indirect_order_quantity+direct_order_quantity as order_quantity
+            ,cast(store_id as string) as store_id
+            ,source as pv_type_in
+            ,sku_id as item_id
+            ,'keyword' as report_level
+            ,keyword_id as report_level_id
+            ,keyword_name as report_level_name 
+            ,category_id
+            ,brand_id
+            ,b.localProductLineId as mdm_productline_id,c.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
+                ,'stg.ztc_keyword_daily_old' as etl_source_table
+                    ,niname
+            ,mapworks as keyword_type
+            from stg.ztc_keyword_daily_old a
+                        left join stg.media_mdl_douyin_cdl b on a.sku_id = b.numIid  
+                left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
+        """)
+
+    tmall_ztc_keyword_old_dwd = tmall_ztc_keyword_old_dwd.withColumn('effect', tmall_ztc_keyword_old_dwd.effect.cast(StringType()))\
+        .withColumn('order_amount', tmall_ztc_keyword_old_dwd.order_amount.cast(StringType()))\
+        .withColumn('order_quantity', tmall_ztc_keyword_old_dwd.order_quantity.cast(StringType()))
+# 新ztc表 ad_date >= '2022-02-01'
+    #
+    # 旧ztc表 ad_date < '2022-02-01'
+    tmall_ztc_keyword_old_dwd.filter("ad_date < '2022-02-01'").distinct().write.mode(
+        "overwrite").option("mergeSchema", "true").insertInto("dwd.ztc_keyword_daily_old")
+
+    return 0
+
+
+def jd_sem_keyword_old_stg_etl():
+    log.info("jd_sem_keyword_old_stg_etl is processing")
+    spark = get_spark()
+
+    # emedia_conf_dict = get_emedia_conf_dict()
+    # server_name = emedia_conf_dict.get('server_name')
+    # database_name = emedia_conf_dict.get('database_name')
+    # username = emedia_conf_dict.get('username')
+    # password = emedia_conf_dict.get('password')
+
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'etl_user_read'
+    password = '1qaZcde3'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                "select * from dbo.tb_emedia_jd_sem_keyword_new_fact") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").option("mergeSchema", "true").saveAsTable("stg.jdkc_keyword_daily_old")
 
     return 0

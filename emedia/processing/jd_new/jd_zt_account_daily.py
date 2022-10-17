@@ -3,7 +3,7 @@
 import datetime
 
 from pyspark.sql.functions import current_date, current_timestamp, lit
-
+from pyspark.sql.types import *
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 

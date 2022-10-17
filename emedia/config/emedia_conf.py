@@ -44,6 +44,11 @@ def get_emedia_conf_dict():
         , 'cumul_blob_container': dbutils.secrets.get(scope_name, "target-blob-container")
         , 'cumul_blob_sas': dbutils.secrets.get(scope_name, "target-blob-sas")
 
+        , 'server_name': 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+        , 'database_name': 'B2B-prd-MPT-DW-01'
+        , 'username': 'etl_user_read'
+        , 'password': '1qaZcde3'
+
         , 'mysql_user': 'datalake@consumer-qa-emedia-db-0'
         , 'mysql_pwd': 'b2062ff9122811e99ce54f08370059c1'
         ,'mysql_url': 'jdbc:mysql://consumer-qa-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'

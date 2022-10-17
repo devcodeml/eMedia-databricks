@@ -4,7 +4,7 @@ import datetime
 
 from pyspark.sql.functions import current_date, json_tuple, lit, udf
 from pyspark.sql.types import StringType
-
+from pyspark.sql.types import *
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.jd_new.push_to_dw import push_to_dw

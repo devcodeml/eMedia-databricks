@@ -33,6 +33,10 @@ def get_emedia_conf_dict():
         , 'synapseaccountname': dbutils.secrets.get("databrick-secret-scope", "synapseaccountname")
         , 'synapsedirpath': dbutils.secrets.get("databrick-secret-scope", "synapsedirpath")
         , 'synapsekey': dbutils.secrets.get("databrick-secret-scope", "synapsekey")
+        , 'server_name': 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+        , 'database_name': 'B2B-prd-MPT-DW-01'
+        , 'username': 'etl_user_read'
+        , 'password': '1qaZcde3'
 
         }
     if env != 'qa':
@@ -43,6 +47,10 @@ def get_emedia_conf_dict():
             , 'synapseaccountname': dbutils.secrets.get("prd-media-scope", "synapseaccountname")
             , 'synapsedirpath': dbutils.secrets.get("prd-media-scope", "synapsedirpath")
             , 'synapsekey': dbutils.secrets.get("prd-media-scope", "synapsekey")
+            , 'server_name': 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+            , 'database_name': 'B2B-prd-MPT-DW-01'
+            , 'username': 'etl_user_read'
+            , 'password': '1qaZcde3'
 
         }
     return scope_conf_dict

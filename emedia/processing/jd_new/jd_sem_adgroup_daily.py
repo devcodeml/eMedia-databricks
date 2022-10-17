@@ -3,8 +3,8 @@
 import datetime
 
 from pyspark.sql.functions import current_date, json_tuple, lit
-
-from emedia import get_spark
+from pyspark.sql.types import *
+from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
@@ -443,6 +443,66 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
     push_status(airflow_execution_date, file_name, job_name)
 
     spark.sql("optimize dwd.jdkc_adgroup_daily_mapping_success")
+
+    return 0
+
+
+
+def jd_sem_daily_adgroup_report_fact_old_stg_etl():
+    log.info("jd_sem_daily_adgroup_report_fact_old_stg_etl is processing")
+    spark = get_spark()
+
+    emedia_conf_dict = get_emedia_conf_dict()
+    # server_name = emedia_conf_dict.get('server_name')
+    # database_name = emedia_conf_dict.get('database_name')
+    # username = emedia_conf_dict.get('username')
+    # password = emedia_conf_dict.get('password')
+
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'etl_user_read'
+    password = '1qaZcde3'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                "select * from dbo.emedia_jd_sem_daily_adgroup_report_fact") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").option("mergeSchema", "true").saveAsTable("stg.jdkc_adgroup_daily_old")
+
+    return 0
+
+def jd_sem_adgroup_old_stg_etl():
+    log.info("jd_sem_adgroup_old_stg_etl is processing")
+    spark = get_spark()
+
+    # emedia_conf_dict = get_emedia_conf_dict()
+    # server_name = emedia_conf_dict.get('server_name')
+    # database_name = emedia_conf_dict.get('database_name')
+    # username = emedia_conf_dict.get('username')
+    # password = emedia_conf_dict.get('password')
+
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'etl_user_read'
+    password = '1qaZcde3'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                "select * from dbo.tb_emedia_jd_sem_adgroup_fact") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").option("mergeSchema", "true").saveAsTable("stg.jdkc_adgroup_daily_old_v2")
 
     return 0
 

@@ -3,7 +3,7 @@
 import datetime
 
 from pyspark.sql.functions import current_date, json_tuple, lit
-
+from pyspark.sql.types import *
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
