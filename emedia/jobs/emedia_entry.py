@@ -30,6 +30,7 @@ from emedia.processing.jd_new.jd_zw_campaign import jd_zw_campaign_etl
 from emedia.processing.jd_new.jd_zw_creative import jd_zw_creative_etl
 from emedia.processing.jd_new.mapping import emedia_sem_audience_mapping
 from emedia.processing.jd_new.push_to_dw import push_table_to_dw
+from emedia.processing.jd_new.tb_media_emedia_jdkc_daily import jdkc_daily_fact
 from emedia.processing.tmall.tmail_wxt_day_campaign import tamll_wxt_day_campaign_etl
 from emedia.processing.tmall.tmall_mxdp import tmall_mxdp_etl
 from emedia.processing.tmall.tmall_pptx import tmall_pptx_etl
@@ -144,6 +145,8 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "jd_sem_target_etl":
         jd_sem_target_etl(airflow_execution_date, run_id)
 
+    elif etl_action == "jdkc_daily_fact":
+        jdkc_daily_fact()
     # elif etl_action == "jd_zt_campaign_etl":
     #     jd_zt_campaign_etl(airflow_execution_date)
     #

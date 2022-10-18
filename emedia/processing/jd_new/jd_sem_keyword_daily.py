@@ -176,7 +176,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
             '' as mdm_productline_id,
             a.category_id as emedia_category_id,
             a.brand_id as emedia_brand_id,
-            b.category2_code as mdm_category_id,
+            e.category2_code as mdm_category_id,
             b.brand_code as mdm_brand_id,
             case
                 when a.campaign_name like '%智能%' then '智能推广'
@@ -193,7 +193,8 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         from jdkc_keyword_daily a
         left join ods.media_category_brand_mapping b
             on a.brand_id = b.emedia_brand_code
-            and a.category_id = b.emedia_category_code
+        left join ods.media_category_brand_mapping e
+            on a.category_id = e.emedia_category_code
         left join (
                 select emedia_category_code, emedia_brand_code, sem_keyword
                 from stg.hc_media_emedia_category_brand_ni_keyword_mapping
@@ -253,7 +254,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "start_day",
         "end_day",
         "is_daily",
-        "data_source as dw_source",
+        "data_source",
         "'ods.jdkc_keyword_daily' as etl_source_table",
         "dw_batch_id",
         "campaign_subtype",
@@ -341,8 +342,8 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
 
 
 
-def tmall_ztc_keyword_old_dwd_etl():
-    tmall_ztc_keyword_old_dwd = spark.sql("""
+def jd_ztc_keyword_old_dwd_etl():
+    jd_ztc_keyword_old_dwd = spark.sql("""
         select left(ad_date,10) as ad_date
             ,'直通车' as ad_format_lv2
             ,adgroup_id
@@ -378,7 +379,7 @@ def tmall_ztc_keyword_old_dwd_etl():
                 ,'stg.ztc_keyword_daily_old' as etl_source_table
                     ,niname
             ,mapworks as keyword_type
-            from stg.ztc_keyword_daily_old a
+            from stg.jdkc_keyword_daily_old a
                         left join stg.media_mdl_douyin_cdl b on a.sku_id = b.numIid  
                 left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
         """)
@@ -422,5 +423,47 @@ def jd_sem_keyword_old_stg_etl():
 
     emedia_overview_source_df.distinct().write.mode(
         "overwrite").option("mergeSchema", "true").saveAsTable("stg.jdkc_keyword_daily_old")
+
+    return 0
+
+
+def jd_sem_keyword_old_dwd_etl():
+    keyword_old_dwd_df = spark.sql("""
+    select
+            a.*,
+            '' as mdm_productline_id,
+            a.category_id as emedia_category_id,
+            a.brand_id as emedia_brand_id,
+            e.category2_code as mdm_category_id,
+            b.brand_code as mdm_brand_id,
+            case
+                when a.campaign_name like '%智能%' then '智能推广'
+                else '标准推广'
+            end as campaign_subtype,
+            case
+                when c.sem_keyword is not null then 'brand'
+                else 'category'
+            end as keyword_type
+        from stg.jdkc_keyword_daily_old a
+        left join ods.media_category_brand_mapping b
+            on a.brand_id = b.emedia_brand_code
+        left join ods.media_category_brand_mapping e
+            on a.category_id = e.emedia_category_code
+        left join (
+                select emedia_category_code, emedia_brand_code, sem_keyword
+                from stg.hc_media_emedia_category_brand_ni_keyword_mapping
+                where platform = 'jd') c
+            on a.category_id = c.emedia_category_code
+            and a.brand_id = c.emedia_brand_code
+            and instr(a.keyword_name, c.sem_keyword) > 0
+    """).distinct()
+    keyword_old_dwd_df = keyword_old_dwd_df.withColumn('effect_days',
+                                                       keyword_old_dwd_df.effect_days.cast(IntegerType())).withColumn(
+        'effect', keyword_old_dwd_df.effect.cast(IntegerType()))
+    keyword_old_dwd_df = keyword_old_dwd_df.withColumn('effect_days',
+                                                       keyword_old_dwd_df.effect_days.cast(StringType())).withColumn(
+        'effect', keyword_old_dwd_df.effect.cast(StringType()))
+    keyword_old_dwd_df.fillna("").write.mode(
+        "overwrite").saveAsTable("dwd.jdkc_keyword_daily_old")
 
     return 0

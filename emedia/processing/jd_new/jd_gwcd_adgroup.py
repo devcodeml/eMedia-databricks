@@ -372,12 +372,12 @@ def jd_gwcd_adgroup_etl(airflow_execution_date, run_id):
           '' as mdm_productline_id,
           a.category_id as emedia_category_id,
           a.brand_id as emedia_brand_id,
-          c.category2_code as mdm_category_id,
+          d.category2_code as mdm_category_id,
           c.brand_code as mdm_brand_id
         from gwcd_adgroup_daily a
         left join ods.media_category_brand_mapping c
-          on a.brand_id = c.emedia_brand_code and
-          a.category_id = c.emedia_category_code
+          on a.brand_id = c.emedia_brand_code 
+        left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
         """
     )
 

@@ -173,13 +173,13 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
           '' as mdm_productline_id,
           a.category_id as emedia_category_id,
           a.brand_id as emedia_brand_id,
-          c.category2_code as mdm_category_id,
+          d.category2_code as mdm_category_id,
           c.brand_code as mdm_brand_id,
           case when e.sem_keyword is not null then 'brand' else 'category' end as keyword_type
         from jst_search_daily a
         left join ods.media_category_brand_mapping c
-          on a.brand_id = c.emedia_brand_code and
-          a.category_id = c.emedia_category_code
+          on a.brand_id = c.emedia_brand_code 
+        left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
         left join (select * from stg.hc_media_emedia_category_brand_ni_keyword_mapping where platform = 'jd') e
          on a.category_id=e.emedia_category_code and 
          a.brand_id=e.emedia_brand_code and  
