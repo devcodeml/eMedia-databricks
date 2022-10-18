@@ -56,7 +56,7 @@ def jdkc_daily_fact():
         ,data_source as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_adgroup_daily' as etl_source_table from dwd.jdkc_adgroup_daily where ad_date >= '2022-10-13' and effect in ('0','15')
+        ,'dwd.jdkc_adgroup_daily' as etl_source_table from dwd.jdkc_adgroup_daily where ad_date >= '2022-10-13' and effect in ('0','15') and source = '0'
     """).withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct()\
         .write.mode("append").insertInto("dwd.tb_media_emedia_jdkc_daily_fact")
