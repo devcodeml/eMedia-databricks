@@ -153,7 +153,7 @@ def jdkc_daily_fact():
         ,'' as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_adgroup_daily_old_v2' as etl_source_table from dwd.jdkc_adgroup_daily_old_v2 where to_date(ad_date) <='2022-02-01' and (mobiletype = '全部' or mobiletype = '1')
+        ,'dwd.jdkc_adgroup_daily_old_v2' as etl_source_table from dwd.jdkc_adgroup_daily_old_v2 where to_date(ad_date) <'2022-02-01' and (mobiletype = '全部' or mobiletype = '1')
     """).withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct()\
         .write.mode("append").insertInto("dwd.tb_media_emedia_jdkc_daily_fact")

@@ -509,7 +509,16 @@ def jd_sem_adgroup_old_stg_etl():
 
 
 def jd_sem_adgroup_old_dwd_etl():
-    sem_adgroup_old_dwd_df = spark.table("stg.jdkc_adgroup_daily_old").distinct()
+    spark.table("stg.jdkc_adgroup_daily_old").drop('mdm_category_id').drop('mdm_brand_id').createOrReplaceTempView("jdkc_adgroup_daily_old_tmp")
+    sem_adgroup_old_dwd_df = spark.sql("""
+    select
+            a.*,c.brand_code as mdm_brand_id,
+            d.category2_code as mdm_category_id
+        from jdkc_adgroup_daily_old_tmp  a 
+        left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code 
+        left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
+    """).distinct()
+
     sem_adgroup_old_dwd_df = sem_adgroup_old_dwd_df.withColumn('effect_days',sem_adgroup_old_dwd_df.effect_days.cast(IntegerType()))\
         .withColumn('effect', sem_adgroup_old_dwd_df.effect.cast(IntegerType()))
     sem_adgroup_old_dwd_df = sem_adgroup_old_dwd_df.withColumn('effect_days',sem_adgroup_old_dwd_df.effect_days.cast(StringType()))\
