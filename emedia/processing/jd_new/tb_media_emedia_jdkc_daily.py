@@ -272,7 +272,7 @@ def jdkc_daily_fact():
         .filter("pin_name not in('PgBraun-pop','Fem自动化测试投放')")\
         .filter("effect ='0' or effect = '15' ").filter("ad_date >= '2021-07-01' ").drop('emedia_category_id') \
         .drop('emedia_brand_id').drop('etl_create_time').drop('etl_update_time').withColumnRenamed("mdm_category_id","emedia_category_id").withColumnRenamed(
-        "mdm_brand_id", "emedia_brand_id").withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).distinct()\
+        "mdm_brand_id", "emedia_brand_id").withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
         .write.mode("overwrite").insertInto("ds.hc_emedia_jdkc_deep_dive_download_adgroup_keyword_daily_fact")
 
 
