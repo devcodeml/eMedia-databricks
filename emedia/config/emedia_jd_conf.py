@@ -39,6 +39,9 @@ def get_emedia_conf_dict():
         , 'database_name': 'B2B-qa-MPT-DW-01'
         , 'username': 'pgadmin'
         , 'password': '93xx5Px1bkVuHgOo'
+        , 'host': 'b2bqacne2cdlsynapse01.database.chinacloudapi.cn'
+        , 'db': 'bimart'
+        , 'url': "jdbc:sqlserver://b2bqacne2cdlsynapse01.database.chinacloudapi.cn:1433;database=bimart;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
 
         }
     if env != 'qa':
@@ -55,6 +58,9 @@ def get_emedia_conf_dict():
             , 'password': 'C4AfoNNqxHAJvfzK'
             , 'synapsedwuser': dbutils.secrets.get("prd-media-scope", "synapsedwuser")
             , 'synapsedwpw': dbutils.secrets.get("prd-media-scope", "synapsedwpw")
+            , 'host': 'b2bprdcne2cdlsynapse01.database.chinacloudapi.cn'
+            , 'db': 'bimart'
+            , 'url': "jdbc:sqlserver://b2bprdcne2cdlsynapse01.database.chinacloudapi.cn:1433;database=bimart;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
 
         }
     return scope_conf_dict
