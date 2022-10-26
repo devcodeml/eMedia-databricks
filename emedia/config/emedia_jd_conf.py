@@ -42,6 +42,12 @@ def get_emedia_conf_dict():
         , 'host': 'b2bqacne2cdlsynapse01.database.chinacloudapi.cn'
         , 'db': 'bimart'
         , 'url': "jdbc:sqlserver://b2bqacne2cdlsynapse01.database.chinacloudapi.cn:1433;database=bimart;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
+        , 'input_account': 'b2bcdlrawblobqa01'
+        , 'input_container': 'media'
+        , 'input_sas': "sv=2020-10-02&si=media-r-17F91D7D403&sr=c&sig=ZwCXa1st56FQdQaT8p8qD5LvInococGEHFWH0v77oRw%3D"
+        , 'mapping_account': 'b2bmptbiprd01'
+        , 'mapping_container': 'emedia-resource'
+        , 'mapping_sas': 'st=2020-07-14T09%3A08%3A06Z&se=2030-12-31T09%3A08%3A00Z&sp=racwl&sv=2018-03-28&sr=c&sig=0YVHwfcoCDh53MESP2JzAD7stj5RFmFEmJbi5KGjB2c%3D'
 
         }
     if env != 'qa':
@@ -61,6 +67,12 @@ def get_emedia_conf_dict():
             , 'host': 'b2bprdcne2cdlsynapse01.database.chinacloudapi.cn'
             , 'db': 'bimart'
             , 'url': "jdbc:sqlserver://b2bprdcne2cdlsynapse01.database.chinacloudapi.cn:1433;database=bimart;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.chinacloudapi.cn;loginTimeout=30;"
+            , 'input_account': 'b2bcdlrawblobprd01'
+            , 'input_container': 'media'
+            , 'input_sas': "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
+            , 'mapping_account': 'b2bmptbiprd01'
+            , 'mapping_container': 'emedia-resource'
+            , 'mapping_sas': 'st=2020-07-14T09%3A08%3A06Z&se=2030-12-31T09%3A08%3A00Z&sp=racwl&sv=2018-03-28&sr=c&sig=0YVHwfcoCDh53MESP2JzAD7stj5RFmFEmJbi5KGjB2c%3D'
 
         }
     return scope_conf_dict
