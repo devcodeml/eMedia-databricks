@@ -149,15 +149,16 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "jdkc_daily_fact":
         jdkc_daily_fact()
     elif etl_action == "push_data_synapse":
-        day_date = airflow_execution_date[0:10]
-        time_flag = datetime.datetime.strptime(
-            day_date + ' 14:30:00', "%Y-%m-%d %H:%M:%S"
-        )
-        time_airflow = datetime.datetime.strptime(
-            day_date + ' ' + airflow_execution_date[11:19], "%Y-%m-%d %H:%M:%S"
-        )
-        if time_airflow >= time_flag:
-            push_data_synapse()
+        push_data_synapse()
+        # day_date = airflow_execution_date[0:10]
+        # time_flag = datetime.datetime.strptime(
+        #     day_date + ' 14:30:00', "%Y-%m-%d %H:%M:%S"
+        # )
+        # time_airflow = datetime.datetime.strptime(
+        #     day_date + ' ' + airflow_execution_date[11:19], "%Y-%m-%d %H:%M:%S"
+        # )
+        # if time_airflow >= time_flag:
+        #     push_data_synapse()
     # elif etl_action == "jd_zt_campaign_etl":
     #     jd_zt_campaign_etl(airflow_execution_date)
     #
