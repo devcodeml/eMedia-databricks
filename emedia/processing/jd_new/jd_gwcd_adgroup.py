@@ -2,7 +2,7 @@
 
 import datetime
 
-from pyspark.sql.functions import current_date, json_tuple, lit, udf
+from pyspark.sql.functions import current_date, json_tuple, lit, udf, current_timestamp
 from pyspark.sql.types import StringType
 from pyspark.sql.types import *
 from emedia import get_spark, log
@@ -472,7 +472,61 @@ def jd_gwcd_adgroup_etl(airflow_execution_date, run_id):
 
 
     spark.sql("optimize dwd.gwcd_adgroup_daily_mapping_success")
-
+    # 将数据推送到 tb_emedia_jd_gwcd_daily_campaign_report_fact
+    tb_media_emedia_gwcd_daily_fact()
     # create_blob_by_text(f"{output_date}/flag.txt", output_date_time)
 
     return 0
+
+
+def tb_media_emedia_gwcd_daily_fact():
+    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'adgroup' and etl_source_table='dwd.gwcd_adgroup_daily' ")
+
+    spark.sql(""" select 
+            ad_date,
+            '购物触点' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            campaign_id,
+            campaign_name,
+            adgroup_id,
+            adgroup_name,
+            'adgroup' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
+            '' as mdm_productline_id,
+            campaign_type,
+            '' as delivery_version,
+            delivery_type,
+            '' as mobile_type,
+            source,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            '' as put_type,
+            '' as campaign_put_type,
+            cost,
+            clicks,
+            impressions,
+            order_quantity,
+            order_value,
+            total_cart_quantity,
+            new_customer_quantity,
+            data_source as dw_source,
+            dw_etl_date as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            'dwd.gwcd_adgroup_daily' as etl_source_table from dwd.gwcd_adgroup_daily"""
+              ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
+                                                                                         current_timestamp()).write.mode(
+        "append"
+    ).option(
+        "mergeSchema", "true"
+    ).insertInto(
+        "dwd.tb_media_emedia_gwcd_daily_fact"
+    )
