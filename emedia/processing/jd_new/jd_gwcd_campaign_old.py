@@ -156,7 +156,7 @@ def jd_gwcd_campaign_etl_old():
             total_cart_quantity,
             new_customer_quantity,
             data_source as dw_source,
-            dw_etl_date as dw_create_time,
+            cast(dw_etl_date as string) as dw_create_time,
             dw_batch_id as dw_batch_number,
             'dwd.gwcd_campaign_daily_old_v2' as etl_source_table from dwd.gwcd_campaign_daily_old_v2 where ad_date<'2022-02-01'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
@@ -187,6 +187,11 @@ def jd_gwcd_campaign_etl_old():
         """
     ).createOrReplaceTempView("gwcd_campaign_daily_old")
 
+    gwcd_campaign_daily_res_old = gwcd_campaign_daily_res_old.drop(*["mdm_category_id", "mdm_brand_id"])
+    gwcd_campaign_daily_res_old = gwcd_campaign_daily_res_old.withColumnRenamed("mdm_category_id_new", "mdm_category_id")
+    gwcd_campaign_daily_res_old = gwcd_campaign_daily_res_old.withColumnRenamed("mdm_brand_id_new", "mdm_brand_id")
+    gwcd_campaign_daily_res_old.createOrReplaceTempView("gwcd_campaign_daily_old")
+
     spark.sql(
         """
         select
@@ -203,12 +208,12 @@ def jd_gwcd_campaign_etl_old():
           cast(emedia_category_id as string) as emedia_category_id,
           cast(emedia_brand_id as string) as emedia_brand_id,
           case
-              when mdm_category_id_new is null then ''
-              else cast(mdm_category_id_new as string)
+              when mdm_category_id is null then ''
+              else cast(mdm_category_id as string)
           end as mdm_category_id,
           case
-              when mdm_brand_id_new is null then ''
-              else cast(mdm_brand_id_new as string)
+              when mdm_brand_id is null then ''
+              else cast(mdm_brand_id as string)
           end as mdm_brand_id,
           cast(campaign_id as string) as campaign_id,
           cast(campaign_name as string) as campaign_name,
@@ -310,7 +315,7 @@ def jd_gwcd_campaign_etl_old():
             total_cart_quantity,
             new_customer_quantity,
             data_source as dw_source,
-            dw_etl_date as dw_create_time,
+            cast(dw_etl_date as string) as dw_create_time,
             dw_batch_id as dw_batch_number,
             'dwd.gwcd_campaign_daily_old' as etl_source_table from dwd.gwcd_campaign_daily_old where ad_date>='2022-02-01' and ad_date<='2022-10-12'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",

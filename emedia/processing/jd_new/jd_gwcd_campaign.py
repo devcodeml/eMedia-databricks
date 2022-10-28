@@ -349,7 +349,7 @@ def gwcd_deep_dive_download_campaign_adgroup_daily_fact():
 
 
 def tb_media_emedia_gwcd_daily_fact():
-    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' and etl_source_table='dwd.gwcd_campaign_daily_old_v2' ")
+    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' and etl_source_table='dwd.gwcd_campaign_daily' ")
     spark.sql(""" select 
             ad_date,
             '购物触点' as ad_format_lv2,
@@ -387,9 +387,9 @@ def tb_media_emedia_gwcd_daily_fact():
             total_cart_quantity,
             new_customer_quantity,
             data_source as dw_source,
-            dw_etl_date as dw_create_time,
+            cast(dw_etl_date as string) as dw_create_time,
             dw_batch_id as dw_batch_number,
-            'dwd.gwcd_campaign_daily_old_v2' as etl_source_table from dwd.gwcd_campaign_daily_old_v2 where ad_date>'2022-10-12'"""
+            'dwd.gwcd_campaign_daily' as etl_source_table from dwd.gwcd_campaign_daily where ad_date>'2022-10-12'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"

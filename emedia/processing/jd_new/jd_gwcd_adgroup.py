@@ -519,7 +519,7 @@ def tb_media_emedia_gwcd_daily_fact():
             total_cart_quantity,
             new_customer_quantity,
             data_source as dw_source,
-            dw_etl_date as dw_create_time,
+            cast(dw_etl_date as string) as dw_create_time,
             dw_batch_id as dw_batch_number,
             'dwd.gwcd_adgroup_daily' as etl_source_table from dwd.gwcd_adgroup_daily"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
