@@ -37,7 +37,13 @@ def jd_gwcd_campaign_etl_old():
           cast(`ad_date` as date) as ad_date,
           cast(pin_name as string) as pin_name,
           cast(effect as string) as effect,
-          cast('' as string) as effect_days,
+          case
+              when effect = '0' then '0'
+              when effect = '7' then '1'
+              when effect = '7' then '8'
+              when effect = '15' then '24'
+              else cast(effect as string)
+          end as effect_days,
           cast(emedia_category_id as string) as emedia_category_id,
           cast(emedia_brand_id as string) as emedia_brand_id,
           case

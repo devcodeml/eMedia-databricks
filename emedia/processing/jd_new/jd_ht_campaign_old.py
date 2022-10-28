@@ -38,7 +38,13 @@ def jd_ht_campaign_etl_old():
             to_date(cast(`ad_date` as string), 'yyyyMMdd') as ad_date,
             '海投' as ad_format_lv2,
             pin_name,
-            '' as effect,
+            case
+              when effect_days = '0' then '0'
+              when effect_days = '1' then '1'
+              when effect_days = '8' then '7'
+              when effect_days = '24' then '15'
+              else cast(effect_days as string)
+            end as effect,
             effect_days,
             campaign_id,
             campaign_name,
@@ -104,7 +110,13 @@ def jd_ht_campaign_etl_old():
             '海投' as ad_format_lv2,
             pin_name,
             effect,
-            '' as effect_days,
+            case
+              when effect = '0' then '0'
+              when effect = '7' then '1'
+              when effect = '7' then '8'
+              when effect = '15' then '24'
+              else cast(effect as string)
+            end as effect_days,
             campaign_id,
             campaign_name,
             'campaign' as report_level,
