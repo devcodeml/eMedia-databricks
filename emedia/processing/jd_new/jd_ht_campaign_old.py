@@ -170,7 +170,7 @@ def jd_ht_campaign_etl_old():
             order_value as order_amount,
             total_cart_quantity as cart_quantity,
             new_customer_quantity,
-            etl_create_time from dwd.tb_media_emedia_jdht_daily_fact where emedia_category_id='214000006' """
+            etl_create_time from dwd.tb_media_emedia_jdht_daily_fact """
               ).distinct().withColumn("etl_update_time", current_timestamp()).write.mode(
         "append"
     ).option(
