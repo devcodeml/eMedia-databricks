@@ -96,7 +96,7 @@ def jdkc_daily_fact():
             dw_source,
             dw_create_time,
             dw_batch_number,
-            'dwd.tb_media_emedia_gwcd_daily_fact' as etl_source_table from dwd.tb_media_emedia_gwcd_daily_fact"""
+            'dwd.tb_media_emedia_gwcd_daily_fact' as etl_source_table from dwd.tb_media_emedia_gwcd_daily_fact where (effect_days='0' or effect_days='24') and  emedia_category_id='214000006'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "overwrite"
