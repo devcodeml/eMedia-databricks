@@ -324,6 +324,7 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
         "campaign_name",
         "adgroup_id",
         "adgroup_name",
+        "case when campaign_name like '%tcpa%' then '智能推广' else '标准推广' end as campaign_subtype",
         "cost",
         "clicks",
         "impressions",

@@ -277,6 +277,9 @@ CREATE TABLE IF NOT EXISTS `dwd`.`jdkc_adgroup_daily` (
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/jdkc_adgroup_daily';
 
+alter table dwd.jdkc_adgroup_daily add columns(campaign_subtype string) ;
+alter table dwd.jdkc_adgroup_daily change campaign_subtype campaign_subtype string after adgroup_name;
+
 DROP TABLE IF EXISTS `stg`.`jdkc_campaign_daily`;
 CREATE TABLE IF NOT EXISTS `stg`.`jdkc_campaign_daily` (
   `CTR` DOUBLE,

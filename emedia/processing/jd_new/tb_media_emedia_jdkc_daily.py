@@ -56,7 +56,7 @@ def jdkc_daily_fact():
         ,data_source as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_adgroup_daily' as etl_source_table from dwd.jdkc_adgroup_daily where ad_date >= '2022-10-13' and effect in ('0','15') and source = '0'
+        ,'dwd.jdkc_adgroup_daily' as etl_source_table from dwd.jdkc_adgroup_daily where ad_date >= '2022-09-26' and effect in ('0','15') and source = '0'
     """).withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct()\
         .write.mode("append").insertInto("dwd.tb_media_emedia_jdkc_daily_fact")
@@ -104,7 +104,7 @@ def jdkc_daily_fact():
         ,'' as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_adgroup_daily_old' as etl_source_table from dwd.jdkc_adgroup_daily_old where to_date(ad_date) <='2022-10-12' and to_date(ad_date) >='2022-02-01' and effect in ('0','15')
+        ,'dwd.jdkc_adgroup_daily_old' as etl_source_table from dwd.jdkc_adgroup_daily_old where to_date(ad_date) <'2022-09-26' and to_date(ad_date) >='2022-02-01' and effect in ('0','15')
     """).withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct()\
         .write.mode("append").insertInto("dwd.tb_media_emedia_jdkc_daily_fact")
@@ -203,7 +203,7 @@ def jdkc_daily_fact():
         ,data_source as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_keyword_daily' as etl_source_table from dwd.jdkc_keyword_daily where ad_date >= '2022-10-13'
+        ,'dwd.jdkc_keyword_daily' as etl_source_table from dwd.jdkc_keyword_daily where ad_date >= '2022-09-26'
     """)
     keyword_df = keyword_df.withColumn('new_customer_quantity', keyword_df.new_customer_quantity.cast(IntegerType()))
 
@@ -254,7 +254,7 @@ def jdkc_daily_fact():
         ,'' as dw_source
         ,'' as dw_create_time
         ,dw_batch_id as dw_batch_number
-        ,'dwd.jdkc_keyword_daily_old' as etl_source_table from dwd.jdkc_keyword_daily_old where to_date(ad_date) < '2022-10-13'
+        ,'dwd.jdkc_keyword_daily_old' as etl_source_table from dwd.jdkc_keyword_daily_old where to_date(ad_date) < '2022-09-26'
     """)
     keyword_old_df = keyword_old_df.withColumn('new_customer_quantity', keyword_old_df.new_customer_quantity.cast(IntegerType()))
 
