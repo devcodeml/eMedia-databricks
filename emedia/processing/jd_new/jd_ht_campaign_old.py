@@ -162,16 +162,16 @@ def jd_ht_campaign_etl_old():
             emedia_brand_id,
             mdm_category_id,
             mdm_brand_id,
-            cost,
-            clicks,
-            impressions,
+            sum(cost) as cost,
+            sum(clicks) as clicks,
+            sum(impressions) as impressions,
             cast(null as decimal(20, 4)) as uv_impression,
-            order_quantity,
-            order_value as order_amount,
-            total_cart_quantity as cart_quantity,
-            new_customer_quantity,
-            etl_create_time from dwd.tb_media_emedia_jdht_daily_fact """
-              ).distinct().withColumn("etl_update_time", current_timestamp()).write.mode(
+            sum(order_quantity) as order_quantity,
+            sum(order_value) as order_amount,
+            sum(total_cart_quantity) as cart_quantity,
+            sum(new_customer_quantity) as new_customer_quantity 
+            from dwd.tb_media_emedia_jdht_daily_fact group by ad_date, ad_format_lv2, effect, effect_days, emedia_category_id, emedia_brand_id, mdm_brand_id, mdm_category_id"""
+          ).distinct().withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time",                                                                                current_timestamp()).write.mode(
         "append"
     ).option(
         "mergeSchema", "true"
