@@ -2,7 +2,7 @@
 
 import datetime
 
-from pyspark.sql.functions import current_date, lit
+from pyspark.sql.functions import current_date, lit, current_timestamp
 from pyspark.sql.types import *
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
@@ -306,3 +306,54 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
     # )
 
     return 0
+
+
+def tb_media_emedia_jst_daily_fact():
+    spark.sql("delete from dwd.tb_media_emedia_jst_daily_fact where report_level = 'keyword' and etl_source_table='dwd.jst_search_daily' ")
+
+    spark.sql(""" select 
+            ad_date,
+            '京速推' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            campaign_id,
+            campaign_name,
+            'keyword' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
+            '' as mdm_productline_id,
+            '' as delivery_version,
+            '' as mobile_type,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            impression_or_click_effect,
+            '' as put_type,
+            '' as campaign_type,
+            '' as campaign_put_type,
+            keyword_type,
+            cost,
+            clicks,
+            impressions,
+            order_quantity,
+            order_value,
+            total_cart_quantity,
+            cast(null as bigint) as new_customer_quantity,
+            data_source as dw_source,
+            cast(dw_etl_date as string) as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            'dwd.jst_search_daily' as etl_source_table from dwd.jst_search_daily where ad_date>'2022-10-12'"""
+              ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
+                                                                                         current_timestamp()).write.mode(
+        "append"
+    ).option(
+        "mergeSchema", "true"
+    ).insertInto(
+        "dwd.tb_media_emedia_jst_daily_fact"
+    )
