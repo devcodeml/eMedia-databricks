@@ -225,8 +225,11 @@ def jd_gwcd_campaign_etl_old():
           cast(campaign_name as string) as campaign_name,
           cast(cost as decimal(20, 4)) as cost,
           cast(clicks as bigint) as clicks,
-          cast(impressions as bigint) as impressions,
-          cast(CPA as string) as cpa,
+          cast(impressions as bigint) as impressions,          
+          case
+            when CPA = '0E-8' then '0'
+          else cast(CPA as string)
+          end as cpa,
           cast(CPC as decimal(20, 4)) as cpc,
           cast(CPM as decimal(20, 4)) as cpm,
           cast(CTR as decimal(9, 4)) as ctr,
