@@ -185,7 +185,7 @@ def jd_gwcd_campaign_etl_old():
           on a.brand_id = c.emedia_brand_code 
         left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
         """
-    ).createOrReplaceTempView("gwcd_campaign_daily_old")
+    )
 
     gwcd_campaign_daily_res_old = gwcd_campaign_daily_res_old.drop(*["mdm_category_id", "mdm_brand_id"])
     gwcd_campaign_daily_res_old = gwcd_campaign_daily_res_old.withColumnRenamed("mdm_category_id_new", "mdm_category_id")
@@ -197,7 +197,13 @@ def jd_gwcd_campaign_etl_old():
         select
           cast(`ad_date` as date) as ad_date,
           cast(pin_name as string) as pin_name,
-          cast(req_clickOrOrderDay as string) as effect,
+   
+          case
+            when req_clickOrOrderDay = '0E-8' then '0'
+            when cast(req_clickOrOrderDay as bigint) = req_clickOrOrderDay then cast(cast(req_clickOrOrderDay as bigint) as string) 
+          else cast(req_clickOrOrderDay as string)
+          end as effect,
+          
           case
               when req_clickOrOrderDay = 0 then '0'
               when req_clickOrOrderDay = 1 then '1'
@@ -250,16 +256,35 @@ def jd_gwcd_campaign_etl_old():
           cast(presaleDirectOrderSum as decimal(20, 4)) as presale_direct_order_sum,
           cast(presaleIndirectOrderSum as decimal(20, 4)) as presale_indirect_order_sum,
           cast(totalPresaleOrderSum as decimal(20, 4)) as total_presale_order_sum,
-          cast(deliveryVersion as string) as deliveryVersion,
+          case
+              when deliveryVersion = '0E-8' then '0'
+              else cast(deliveryVersion as string)
+          end as deliveryVersion,
           cast(putType as string) as put_type,
-          cast('' as string) as mobile_type,
-          cast(campaign_type as string) as campaign_type,
-          cast(campaign_put_type as string) as campaign_put_type,
+          cast('' as string) as mobile_type,          
+          case
+            when campaign_type = '0E-8' then '0'
+            when cast(campaign_type as bigint) = campaign_type then cast(cast(campaign_type as bigint) as string) 
+          else cast(campaign_type as string)
+          end as campaign_type,
+          
+          case
+            when campaign_put_type = '0E-8' then '0'
+            when cast(campaign_put_type as bigint) = campaign_put_type then cast(cast(campaign_put_type as bigint) as string) 
+          else cast(campaign_put_type as string)
+          end as campaign_put_type,
+          
           to_date(cast(clickDate as string), 'yyyyMMdd') as click_date,
           cast('' as string) as business_type,
           cast('' as string) as gift_flag,
           cast('' as string) as order_status_category,
-          cast(req_clickOrOrderCaliber as string) as click_or_order_caliber,
+
+          case
+            when req_clickOrOrderCaliber = '0E-8' then '0'
+            when cast(req_clickOrOrderCaliber as bigint) = req_clickOrOrderCaliber then cast(cast(req_clickOrOrderCaliber as bigint) as string) 
+          else cast(req_clickOrOrderCaliber as string)
+          end as click_or_order_caliber,
+    
           cast('' as string) as impression_or_click_effect,
           cast(req_startDay as date) as start_day,
           cast(req_endDay as date) as end_day,
