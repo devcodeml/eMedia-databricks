@@ -4,7 +4,7 @@ from functools import reduce
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import current_date, current_timestamp, json_tuple, lit
 
-from emedia import get_spark
+from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
@@ -476,6 +476,7 @@ def tmall_ylmf_crowd_daily_etl(airflow_execution_date, run_id):
         "dwd.ylmf_crowd_daily",
         "dwd.feedflow_crowd_daily",
         "dwd.super_zz_crowd_daily",
+        "dwd.zz_target_daily",
     ]
 
     reduce(
@@ -513,9 +514,9 @@ def tmall_ylmf_crowd_daily_etl(airflow_execution_date, run_id):
             t1.mdm_category_id as mdm_category_id,
             t1.mdm_brand_id as mdm_brand_id,
             case
-              when t2.localProductLineId is null then ''
-              when t2.localProductLineId = 'N/A' then ''
-              else t2.localProductLineId
+                when t2.localProductLineId is null then ''
+                when t2.localProductLineId = 'N/A' then ''
+                else t2.localProductLineId
             end as mdm_productline_id,
             round(nvl(t1.charge, 0), 4) as cost,
             nvl(t1.click, 0) as click,
@@ -542,7 +543,8 @@ def tmall_ylmf_crowd_daily_etl(airflow_execution_date, run_id):
     )
 
 
-def tmall_feedflow_crowd_fact_old_stg_etl():
+def tmall_feedflow_crowd_daily_stg_etl():
+    log.info("tmall_feedflow_crowd_daily_stg_etl is processing")
     emedia_conf_dict = get_emedia_conf_dict()
     server_name = emedia_conf_dict.get("server_name")
     database_name = emedia_conf_dict.get("database_name")
@@ -568,7 +570,8 @@ def tmall_feedflow_crowd_fact_old_stg_etl():
     ).saveAsTable("stg.feedflow_crowd_daily")
 
 
-def tmall_feedflow_crowd_fact_old_dwd_etl():
+def tmall_feedflow_crowd_daily_dwd_etl():
+    log.info("tmall_feedflow_crowd_daily_dwd_etl is processing")
     tmall_ylmf_crowd_daily_pks = [
         "ad_date",
         "campaign_group_id",
@@ -671,7 +674,8 @@ def tmall_feedflow_crowd_fact_old_dwd_etl():
     )
 
 
-def tmall_zz_super_crowd_fact_old_stg_etl():
+def tmall_super_zz_crowd_daily_stg_etl():
+    log.info("tmall_super_zz_crowd_daily_stg_etl is processing")
     emedia_conf_dict = get_emedia_conf_dict()
     server_name = emedia_conf_dict.get("server_name")
     database_name = emedia_conf_dict.get("database_name")
@@ -696,7 +700,8 @@ def tmall_zz_super_crowd_fact_old_stg_etl():
     ).saveAsTable("stg.super_zz_crowd_daily")
 
 
-def tmall_zz_super_crowd_fact_old_dwd_etl():
+def tmall_super_zz_crowd_daily_dwd_etl():
+    log.info("tmall_super_zz_crowd_daily_dwd_etl is processing")
     tmall_ylmf_crowd_daily_pks = [
         "ad_date",
         "campaign_group_id",
@@ -799,4 +804,133 @@ def tmall_zz_super_crowd_fact_old_dwd_etl():
         .write.mode("overwrite")
         .option("mergeSchema", "true")
         .saveAsTable("dwd.super_zz_crowd_daily")
+    )
+
+
+def tmall_zz_target_daily_stg_etl():
+    log.info("tmall_zz_target_daily_stg_etl is processing")
+    emedia_conf_dict = get_emedia_conf_dict()
+    server_name = emedia_conf_dict.get("server_name")
+    database_name = emedia_conf_dict.get("database_name")
+    username = emedia_conf_dict.get("username")
+    password = emedia_conf_dict.get("password")
+
+    # server_name = "jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn"
+    # database_name = "B2B-prd-MPT-DW-01"
+    # username = "etl_user_read"
+    # password = "1qaZcde3"
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+    (
+        spark.read.format("com.microsoft.sqlserver.jdbc.spark")
+        .option("url", url)
+        .option("query", "select * from dbo.tb_emedia_tmall_zz_target_fact")
+        .option("user", username)
+        .option("password", password)
+        .load()
+        .distinct()
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        .saveAsTable("stg.zz_target_daily")
+    )
+
+
+def tmall_zz_target_daily_dwd_etl():
+    log.info("tmall_zz_target_daily_dwd_etl is processing")
+    tmall_ylmf_crowd_daily_pks = [
+        "ad_date",
+        "campaign_group_id",
+        "campaign_id",
+        "promotion_entity_id",
+        "sub_crowd_value",
+        "target_type",
+        "effect_type",
+        "effect",
+        "effect_days",
+        "req_storeId",
+    ]
+    (
+        spark.sql(
+            """
+            select
+                cast(ad_date as date) as ad_date,
+                '引力魔方' as ad_format_lv2,
+                cast(a.store_id as string) as req_storeId,
+                cast(a.req_effect_type as string) as effect_type,
+                case
+                    when a.effect = 3 and a.effect_days = 1 then '1'
+                    else cast(a.effect as string)
+                end as effect,
+                cast(a.effect_days as string) as effect_days,
+                cast(a.campaign_id as string) as campaign_group_id,
+                cast(a.campaign_name as string) as campaign_group_name,
+                cast(a.adgroup_id as string) as campaign_id,
+                cast(a.adgroup_name as string) as campaign_name,
+                '' as promotion_entity_id,
+                '' as promotion_entity_name,
+                '' as sub_crowd_value,
+                cast(a.target_audience_name as string) as target_name,
+                cast(a.target_audience_id as string) as target_type,
+                '' as add_new_charge,
+                cast(a.uv as string) as add_new_uv,
+                '' as add_new_uv_cost,
+                '' as add_new_uv_rate,
+                cast(a.order_value as decimal(20, 4)) as alipay_inshop_amt,
+                cast(a.order_quantity as bigint) as alipay_inshop_num,
+                cast(a.avg_access_page_quantity as string) as avg_access_page_num,
+                cast(a.avg_access_time_length as string) as avg_deep_access_times,
+                cast(a.total_cart_quantity as bigint) as cart_num,
+                cast(a.cost as decimal(20, 4)) as charge,
+                cast(a.clicks as bigint) as click,
+                '' as cpc,
+                '' as cpm,
+                '' as ctr,
+                '' as cvr,
+                cast(a.deep_inshop_uv as string) as deep_inshop_pv,
+                '' as dir_shop_col_num,
+                cast(a.gmv_value as string) as gmv_inshop_amt,
+                cast(a.gmv_quantity as bigint) as gmv_inshop_num,
+                '' as icvr,
+                cast(a.impressions as bigint) as impression,
+                '' as inshop_item_col_num,
+                '' as inshop_potential_uv,
+                '' as inshop_potential_uv_rate,
+                '' as inshop_pv,
+                '' as inshop_pv_rate,
+                '' as inshop_uv,
+                '' as prepay_inshop_amt,
+                '' as prepay_inshop_num,
+                '' as return_pv,
+                '' as return_pv_cost,
+                '' as roi, 
+                '' as search_click_cnt,
+                '' as search_click_cost,
+                '' as biz_code,
+                '' as offset,
+                '' as page_size,
+                '' as query_time_dim,
+                '' as query_domain,
+                '' as group_by_campaign_id,
+                '' as group_by_promotion_entity_id,
+                '' as start_time,
+                '' as end_time,
+                cast(a.data_source as string) as dw_resource,
+                '' as dw_create_time,
+                cast(a.dw_batch_id as string) as dw_batch_number,
+                cast(a.category_id as string) as emedia_category_id,
+                cast(a.brand_id as string) as emedia_brand_id,
+                cast(c.category2_code as string) as mdm_category_id,
+                cast(c.brand_code as string) as mdm_brand_id,
+                'stg.zz_target_daily' as etl_source_table,
+                current_date() as etl_date,
+                current_timestamp() as etl_create_time
+            from stg.zz_target_daily a
+            left join ods.media_category_brand_mapping c
+                on a.brand_id = c.emedia_brand_code and
+                a.category_id = c.emedia_category_code
+            """
+        )
+        .dropDuplicates(tmall_ylmf_crowd_daily_pks)
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        .saveAsTable("dwd.zz_target_daily")
     )
