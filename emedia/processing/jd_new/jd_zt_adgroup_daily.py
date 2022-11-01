@@ -1,12 +1,14 @@
 # coding: utf-8
 
 import datetime
+from functools import reduce
 
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import current_date, lit
-from pyspark.sql.types import *
+
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
+from emedia.processing.jd_new.push_to_dw import push_status, push_to_dw
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 spark = get_spark()
@@ -30,7 +32,11 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
     ) - datetime.timedelta(days=1)
 
     # daily report
-    jd_jdzt_adgroup_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/zt_daily_Report/jd_zt_adgroup_{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    jd_jdzt_adgroup_path = (
+        f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/'
+        f"zt_daily_Report/jd_zt_adgroup_"
+        f'{file_date.strftime("%Y-%m-%d")}.csv.gz'
+    )
 
     origin_jd_zt_adgroup_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_jdzt_adgroup_path}",
@@ -274,16 +280,221 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "dwd.jdzt_adgroup_daily"
     )
 
-    push_to_dw(spark.table("dwd.jdzt_adgroup_daily"), 'dbo.tb_emedia_jd_zt_adgroup_daily_v202209_fact', 'overwrite',
-               'jdzt_adgroup_daily')
+    push_to_dw(
+        spark.table("dwd.jdzt_adgroup_daily"),
+        "dbo.tb_emedia_jd_zt_adgroup_daily_v202209_fact",
+        "overwrite",
+        "jdzt_adgroup_daily",
+    )
 
-    file_name = 'jdzt/TB_EMEDIA_JD_ZT_FACT.CSV'
-    job_name = 'tb_emedia_jd_zt_new_fact'
+    file_name = "jdzt/TB_EMEDIA_JD_ZT_FACT.CSV"
+    job_name = "tb_emedia_jd_zt_new_fact"
     push_status(airflow_execution_date, file_name, job_name)
 
-
-
     # dwd.tb_media_emedia_jdzt_daily_fact
-    # dbo.tb_emedia_jd_zt_adgroup_daily_v202209_fact
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_jdzt_daily_fact
+        where `report_level` = 'adgroup' 
+        """
+    )
 
-    return 0
+    tables = [
+        "dwd.jdzt_adgroup_daily",
+        "dwd.jdzt_adgroup_daily_old",
+    ]
+
+    reduce(
+        DataFrame.union,
+        map(
+            lambda table: spark.table(table)
+            .drop("etl_source_table")
+            .withColumn("etl_source_table", lit(table)),
+            tables,
+        ),
+    ).createOrReplaceTempView("jdzt_adgroup_daily")
+
+    jd_zt_daily_fact_pks = [
+        "ad_date",
+        "pin_name",
+        "effect",
+        "effect_days",
+        "campaign_id",
+        "mobile_type",
+        "media_type",
+        "business_type",
+        "gift_flag",
+        "order_status_category",
+        "click_or_order_caliber",
+        "impression_or_click_effect",
+    ]
+    spark.sql(
+        """
+        SELECT
+            ad_date,
+            '京东直投' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            campaign_id,
+            campaign_name,
+            adgroup_id,
+            adgroup_name,
+            'adgroup' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            emedia_category_id as emedia_category_id,
+            emedia_brand_id as emedia_brand_id,
+            mdm_category_id as mdm_category_id,
+            mdm_brand_id as mdm_brand_id,
+            '' as mobile_type,
+            media_type,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            impression_or_click_effect,
+            round(nvl(cost, 0), 4) as cost,
+            nvl(clicks, 0) as click,
+            nvl(impressions, 0) as impression,
+            nvl(order_quantity, 0) as order_quantity,
+            round(nvl(order_value, 0), 4) as order_value,
+            nvl(total_cart_quantity, 0) as total_cart_quantity,
+            nvl(new_customer_quantity, 0) as new_customer_quantity,
+            data_source as dw_source,
+            dw_etl_date as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            etl_source_table,
+            current_timestamp() as etl_create_time,
+            current_timestamp() as etl_update_time
+        FROM 
+            jdzt_adgroup_daily
+        """
+    ).dropDuplicates(jd_zt_daily_fact_pks).write.mode("append").inserInto(
+        "dwd.tb_media_emedia_jdzt_daily_fact"
+    )
+
+
+def jd_zt_adgroup_daily_old_stg_etl():
+    emedia_conf_dict = get_emedia_conf_dict()
+    server_name = emedia_conf_dict.get("server_name")
+    database_name = emedia_conf_dict.get("database_name")
+    username = emedia_conf_dict.get("username")
+    password = emedia_conf_dict.get("password")
+
+    # server_name = "jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn"
+    # database_name = "B2B-prd-MPT-DW-01"
+    # username = "etl_user_read"
+    # password = "1qaZcde3"
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+    (
+        spark.read.format("com.microsoft.sqlserver.jdbc.spark")
+        .option("url", url)
+        .option("query", "select * from dbo.tb_emedia_jd_zt_daily_adgroup_report_fact")
+        .option("user", username)
+        .option("password", password)
+        .load()
+        .distinct()
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        .saveAsTable("stg.jdzt_adgroup_daily_old")
+    )
+
+
+def jd_zt_adgroup_daily_old_dwd_etl():
+    jd_zt_adgroup_daily_pks = [
+        "ad_date",
+        "pin_name",
+        "effect_days",
+        "campaign_id",
+        "adgroup_id",
+        "media_type",
+        "business_type",
+        "gift_flag",
+        "order_status_category",
+        "click_or_order_caliber",
+        "impression_or_click_effect",
+    ]
+    (
+        spark.sql(
+            """
+            select
+                cast(a.ad_date as date) as ad_date,
+                cast(a.pin_name as string) as pin_name,
+                case
+                    when a.effect_days = 8 then '7'
+                    when a.effect_days = 24 then '15'
+                    else cast(a.effect_days as string)
+                end as effect,
+                cast(a.effect_days as string) as effect_days,
+                cast(a.category_id as string) as emedia_category_id,
+                cast(a.brand_id as string) as emedia_brand_id,
+                cast(c.category2_code as string) as mdm_category_id,
+                cast(c.brand_code as string) as mdm_brand_id,
+                cast(a.campaign_id as string) as campaign_id,
+                cast(a.campaign_name as string) as campaign_name,
+                cast(a.adgroup_id as string) as adgroup_id,
+                cast(a.adgroup_name as string) as adgroup_name,
+                cast(a.cost as decimal(20, 4)) as cost,
+                cast(a.clicks as bigint) as clicks,
+                cast(a.impressions as bigint) as impressions,
+                cast(a.order_cpa as string) as order_cpa,
+                cast(a.cpc as decimal(20, 4)) as cpc,
+                cast(a.cpm as decimal(20, 4)) as cpm,
+                cast(a.ctr as decimal(9, 4)) as ctr,
+                cast(a.total_order_roi as decimal(9, 4)) as total_order_roi,
+                cast(a.total_order_cvs as decimal(9, 4)) as total_order_cvs,
+                cast(a.total_cart_cnt as bigint) as total_cart_quantity,
+                cast(a.direct_order_sum as decimal(20, 4)) as direct_order_value,
+                cast(a.order_sum as decimal(20, 4)) as order_value,
+                cast(a.direct_order_cnt as bigint) as direct_order_quantity,
+                cast(a.order_cnt as bigint) as order_quantity,
+                cast(null as bigint) as favorite_item_quantity,
+                cast(null as bigint) as favorite_shop_quantity,
+                cast(a.coupon_cnt as bigint) as coupon_quantity,
+                cast(a.preorder_cnt as bigint) as preorder_quantity,
+                cast(a.new_customers_cnt as bigint) as new_customer_quantity,
+                cast(a.visitor_cnt as bigint) as visitor_quantity,
+                cast(a.total_presale_order_cnt as bigint) as total_presale_order_cnt,
+                cast(a.total_presale_order_sum as decimal(20, 4)) as total_presale_order_sum,
+                cast(a.ir as decimal(20, 4)) as ir,
+                cast(a.like_cnt as bigint) as like_cnt,
+                cast(a.comment_cnt as bigint) as comment_cnt,
+                cast(a.follow_cnt as bigint) as follow_cnt,
+                cast(a.share_cnt as bigint) as share_cnt,
+                cast(a.tencent_picture_click_cnt as bigint) as tencent_picture_click_cnt,
+                cast(a.tencent_comment_cnt as bigint) as tencent_comment_cnt,
+                cast(a.tencent_read_cnt as bigint) as tencent_read_cnt,
+                cast(a.tencent_like_cnt as bigint) as tencent_like_cnt,
+                cast(a.tencent_read_ratio as bigint) as tencent_read_ratio,
+                cast(a.tencent_share_cnt as bigint) as tencent_share_cnt,
+                cast(a.tencent_follow_cnt as bigint) as tencent_follow_cnt,
+                cast(a.inter_act_cnt as bigint) as interact_cnt,
+                cast(a.live_cost as decimal(20, 4)) as live_cost,
+                cast(a.form_commit_cnt as bigint) as form_commit_cnt,
+                cast(a.form_commit_cost as decimal(20, 4)) as form_commit_cost,
+                to_date(cast(a.click_date as string), 'yyyyMMdd') as click_date,
+                '' as media_type,
+                '' as business_type,
+                cast(a.req_giftFlag as string) as gift_flag,
+                cast(a.req_orderStatusCategory as string) as order_status_category,
+                cast(a.req_clickOrOrderCaliber as string) as click_or_order_caliber,
+                '' as impression_or_click_effect,
+                cast(a.req_startDay as date) as start_day,
+                cast(a.req_endDay as date) as end_day,
+                cast(a.req_isDaily as string) as is_daily,
+                'stg.jdzt_adgroup_daily_old' as data_source,
+                cast(a.dw_batch_number as string) as dw_batch_id,
+                current_date() as dw_etl_date
+            from stg.jdzt_adgroup_daily_old a
+            left join ods.media_category_brand_mapping c
+                on a.brand_id = c.emedia_brand_code and
+                a.category_id = c.emedia_category_code
+            """
+        )
+        .dropDuplicates(jd_zt_adgroup_daily_pks)
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        # .insertInto("dwd.jdzt_adgroup_daily_old")
+        .saveAsTable("dwd.jdzt_adgroup_daily_old")
+    )
