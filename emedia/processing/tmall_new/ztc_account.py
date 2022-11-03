@@ -151,5 +151,6 @@ def tmall_ztc_account_etl(airflow_execution_date):
             THEN INSERT *
     """)
 
+
     return 0
 

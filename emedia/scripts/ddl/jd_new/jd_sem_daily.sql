@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS `dwd`.`jdkc_adgroup_daily` (
   `campaign_name` STRING,
   `adgroup_id` STRING,
   `adgroup_name` STRING,
+  `campaign_subtype` STRING,
   `cost` DECIMAL(20,4),
   `clicks` BIGINT,
   `impressions` BIGINT,

@@ -143,12 +143,13 @@ def tmall_ztc_keyword_etl(airflow_execution_date):
             ,a.campaign_type,a.total_cart_quantity,a.click,a.cost,a.direct_order_quantity,a.direct_order_value,a.dw_batch_number
             ,a.dw_create_time,a.dw_resource,a.effect,a.effect_days,a.impression,a.indirect_order_value,a.indirect_order_quantity
             ,a.order_amount,a.order_quantity,a.req_storeId,a.pv_type_in,item.item_id,a.report_level,a.report_level_id,a.report_level_name
-            ,a.category_id,a.brand_id,ad.mdm_productline_id,c.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
+            ,a.category_id,a.brand_id,ad.mdm_productline_id,cc.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
             ,'ods.ztc_keyword_daily' as etl_source_table, case when d.ni_keyword is not null then 'ni' else 'base' end as niname, case when e.sem_keyword is not null then 'brand' else 'category' end as keyword_type
             from tmall_ztc_keyword_daily a 
             left join (select distinct adgroup_id,mdm_productline_id from dwd.ztc_adgroup_daily) ad on a.adgroup_id = ad.adgroup_id
             left join (select distinct adgroup_id,item_id from dwd.ztc_adgroup_daily where item_id != '' ) item on a.adgroup_id = item.adgroup_id
-            left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code and a.category_id = c.emedia_category_code
+            left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code  
+            left join ods.media_category_brand_mapping cc on  a.category_id = cc.emedia_category_code
             left join (select * from stg.hc_media_emedia_category_brand_ni_keyword_mapping where platform = 'tmall') d on a.category_id=d.emedia_category_code and a.brand_id=d.emedia_brand_code and  instr(a.report_level_name,d.ni_keyword) >0 
             left join (select * from stg.hc_media_emedia_category_brand_ni_keyword_mapping where platform = 'tmall') e on a.category_id=e.emedia_category_code and a.brand_id=e.emedia_brand_code and  instr(a.report_level_name,e.sem_keyword) >0 
             """)
@@ -161,6 +162,8 @@ def tmall_ztc_keyword_etl(airflow_execution_date):
         .mode("overwrite") \
         .option("mergeSchema", "true") \
         .insertInto("dwd.ztc_keyword_daily")
+
+
     spark.sql("delete from dwd.tb_media_emedia_ztc_daily_fact where report_level = 'keyword' ")
     spark.table("dwd.ztc_keyword_daily").union(spark.table("dwd.ztc_keyword_daily_old")).selectExpr('ad_date','pv_type_in','ad_format_lv2','store_id','effect','effect_days'
                                         ,'campaign_id','campaign_name','campaign_type','campaign_subtype','adgroup_id'

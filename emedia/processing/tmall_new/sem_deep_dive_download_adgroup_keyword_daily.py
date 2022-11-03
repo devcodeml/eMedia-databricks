@@ -1,7 +1,7 @@
 
 import pyspark.sql.functions as F
 from pyspark.sql.types import *
-
+from pyspark.sql.functions import current_timestamp
 from emedia import get_spark
 
 
@@ -67,3 +67,9 @@ def sem_daily_etl():
     """).filter("emedia_category_id = '214000006'").filter("effect_days = 1 or effect_days = 4 or effect_days = 24").withColumn("etl_create_time", F.current_timestamp()).withColumn("etl_update_time",
                                                                                            F.current_timestamp()).distinct().write.mode(
         "overwrite").insertInto("ds.hc_media_emedia_sem_deep_dive_download_adgroup_keyword_daily_fact")
+
+
+
+    spark.table("dwd.tb_media_emedia_ztc_daily_fact").drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
+        .write.mode("overwrite").insertInto("ds.gg_media_emedia_sem_deep_dive_download_adgroup_keyword_daily_fact")
+
