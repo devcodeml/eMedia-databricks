@@ -274,6 +274,8 @@ def jd_gwcd_campaign_etl_new(airflow_execution_date, run_id):
     job_name = 'tb_emedia_jd_gwcd_daily_campaign_report_fact'
     push_status(airflow_execution_date, file_name, job_name)
 
+    # 将数据推送到 tb_emedia_jd_gwcd_daily_campaign_report_fact
+    tb_media_emedia_gwcd_daily_fact()
 
     #
     # # 推送数据到dw
@@ -345,6 +347,57 @@ def gwcd_deep_dive_download_campaign_adgroup_daily_fact():
         "ds.hc_emedia_gwcd_deep_dive_download_campaign_adgroup_daily_fact"
     )
 
+
+def tb_media_emedia_gwcd_daily_fact():
+    spark.sql("delete from dwd.tb_media_emedia_gwcd_daily_fact where report_level = 'campaign' and etl_source_table='dwd.gwcd_campaign_daily' ")
+    spark.sql(""" select 
+            ad_date,
+            '购物触点' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            campaign_id,
+            campaign_name,
+            '' as adgroup_id,
+            '' as adgroup_name,
+            'campaign' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
+            '' as mdm_productline_id,
+            campaign_type,
+            deliveryVersion as delivery_version,
+            '' as delivery_type,
+            mobile_type,
+            '' as source,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            put_type,
+            campaign_put_type,
+            cost,
+            clicks,
+            impressions,
+            order_quantity,
+            order_value,
+            total_cart_quantity,
+            new_customer_quantity,
+            data_source as dw_source,
+            cast(dw_etl_date as string) as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            'dwd.gwcd_campaign_daily' as etl_source_table from dwd.gwcd_campaign_daily where ad_date>'2022-10-12'"""
+              ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
+                                                                                         current_timestamp()).write.mode(
+        "append"
+    ).option(
+        "mergeSchema", "true"
+    ).insertInto(
+        "dwd.tb_media_emedia_gwcd_daily_fact"
+    )
 
 #
 #
