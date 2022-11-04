@@ -38,6 +38,8 @@ def jd_jst_search_etl_new(airflow_execution_date, run_id):
         header=True,
         multiLine=True,
         sep="|",
+        quote="\"",
+        escape='"',
     )
 
     # stg.jst_search_daily
@@ -339,8 +341,8 @@ def tb_media_emedia_jst_daily_fact():
             '' as campaign_put_type,
             keyword_type,
             cost,
-            clicks,
-            impressions,
+            clicks as click,
+            impressions as impression,
             order_quantity,
             order_value,
             total_cart_quantity,
