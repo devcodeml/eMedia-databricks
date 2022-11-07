@@ -2,7 +2,7 @@
 
 import datetime
 
-from pyspark.sql.functions import current_date, current_timestamp, lit
+from pyspark.sql.functions import current_date, current_timestamp, lit, col, udf
 from pyspark.sql.types import *
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
@@ -15,8 +15,6 @@ spark = get_spark()
 
 def jd_ht_campaign_etl_old():
     # dwd.jdht_campaign_daily
-
-    spark.sql("delete from dwd.tb_media_emedia_jst_daily_fact where report_level = 'campaign' and etl_source_table='dwd.jst_campaign_daily_old' ")
 
     jd_jst_campaign_daily_old = spark.sql(
         """
@@ -33,7 +31,20 @@ def jd_ht_campaign_etl_old():
         left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
         """
     )
-
+    def f_mau_vec(effect_days):
+        if effect_days == "0":
+            return "0"
+        elif effect_days == "1":
+            return "1"
+        elif effect_days == "8":
+            return "7"
+        elif effect_days == "24":
+            return "15"
+        else:
+            return effect_days
+    udf_mau_vec = udf(f_mau_vec, StringType())
+    jd_jst_campaign_daily_old = jd_jst_campaign_daily_old.withColumn('effect', udf_mau_vec(col('effect_days')))
+    jd_jst_campaign_daily_old = jd_jst_campaign_daily_old.withColumn("ad_date", jd_jst_campaign_daily_old['ad_date'].cast(DateType()))
     jd_jst_campaign_daily_old = jd_jst_campaign_daily_old.drop(*["mdm_category_id", "mdm_brand_id"])
     jd_jst_campaign_daily_old = jd_jst_campaign_daily_old.withColumnRenamed("mdm_category_id_new", "mdm_category_id")
     jd_jst_campaign_daily_old = jd_jst_campaign_daily_old.withColumnRenamed("mdm_brand_id_new", "mdm_brand_id")
@@ -44,18 +55,13 @@ def jd_ht_campaign_etl_old():
     ).saveAsTable(
         "dwd.jst_campaign_daily_old"
     )
+    spark.sql("delete from dwd.tb_media_emedia_jst_daily_fact where report_level = 'campaign' and etl_source_table='dwd.jst_campaign_daily_old' ")
 
     spark.sql(""" select 
-            cast(ad_date as date) as ad_date,
+            ad_date,
             '京速推' as ad_format_lv2,
             pin_name,
-            case
-              when effect_days = '0' then '0'
-              when effect_days = '1' then '1'
-              when effect_days = '8' then '7'
-              when effect_days = '24' then '15'
-              else cast(effect_days as string)
-            end as effect,
+            effect,
             effect_days,
             campaign_id,
             campaign_name,
