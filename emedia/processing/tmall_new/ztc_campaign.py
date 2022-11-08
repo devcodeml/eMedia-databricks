@@ -153,7 +153,7 @@ def tmall_ztc_campaign_etl(airflow_execution_date, run_id):
                         pv_type_in as source,
                         fav_item_total as favorite_item_quantity,
                         '' as nick,
-                        campaign_title as campaign_name,
+                        campaign_name as campaign_name,
                         '' as category_id,
                         direct_transaction as direct_order_value,
                         direct_transaction_shipping as direct_order_quantity,
@@ -279,11 +279,11 @@ def tmall_ztc_campaign_etl(airflow_execution_date, run_id):
 
 
     dwd_tmall_ztc_campaign_daily_df = spark.sql("""
-        select a.*,'直通车' as ad_format_lv2,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15  else 0 end as effect 
+        select a.*,'直通车' as ad_format_lv2,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15 when effect_days = 8 then 7 when effect_days = 30 then 30 else 0 end as effect 
         ,case when campaign_name like '%智能%' then '智能推广' else '标准推广' end as campaign_subtype
         ,case when campaign_name like '%定向%' then '定向词' when campaign_name like '%智能%' then '智能词' when campaign_name like '%销量明星%' then '销量明星' else '关键词' end as campaign_type
         ,'campaign' as report_level, '' as report_level_id , '' as report_level_name,'' as adgroup_name,'' as adgroup_id
-        ,'' as mdm_productline_id,d.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
+        ,'' as mdm_productline_id,d.category2_code as mdm_category_id,c.brand_code as mdm_brand_id
         ,'ods.ztc_campaign_daily' as etl_source_table 
         from tmall_ztc_campaign_daily a 
         left join ods.media_category_brand_mapping c on a.brand_id = c.emedia_brand_code 
@@ -291,10 +291,14 @@ def tmall_ztc_campaign_etl(airflow_execution_date, run_id):
     """)
     update = F.udf(lambda x: x.replace("N/A", ""), StringType())
     dwd_tmall_ztc_campaign_daily_df = dwd_tmall_ztc_campaign_daily_df.fillna('', subset=['mdm_productline_id'])
+    dwd_tmall_ztc_campaign_daily_df = dwd_tmall_ztc_campaign_daily_df.withColumnRenamed("category_id", "emedia_category_id")
+    dwd_tmall_ztc_campaign_daily_df = dwd_tmall_ztc_campaign_daily_df.withColumnRenamed("brand_id", "emedia_brand_id")
     dwd_tmall_ztc_campaign_daily_df = dwd_tmall_ztc_campaign_daily_df.withColumn('mdm_productline_id', update(dwd_tmall_ztc_campaign_daily_df.mdm_productline_id))
     dwd_tmall_ztc_campaign_daily_df.fillna('').distinct().write \
         .mode("overwrite") \
         .insertInto("dwd.ztc_campaign_daily")
+
+
 
     spark.sql("delete from dwd.tb_media_emedia_ztc_daily_fact where report_level = 'campaign' ")
     spark.table("dwd.ztc_campaign_daily").selectExpr('ad_date', 'pv_type_in', 'ad_format_lv2', 'store_id', 'effect',
@@ -303,8 +307,7 @@ def tmall_ztc_campaign_etl(airflow_execution_date, run_id):
                                                    'campaign_subtype', 'adgroup_id'
                                                    , 'adgroup_name', 'report_level', 'report_level_id',
                                                    'report_level_name', "'' as item_id", "'' as keyword_type"
-                                                   , "'' as niname", 'emedia_category_id', 'emedia_brand_id',
-                                                   'category_id', 'brand_id'
+                                                   , "'' as niname",'emedia_category_id','emedia_brand_id','mdm_category_id','mdm_brand_id'
                                                    , 'mdm_productline_id', 'cost', 'click', 'impression',
                                                    'indirect_transaction_shipping as indirect_order_quantity'
                                                    , 'direct_transaction_shipping as direct_order_quantity',

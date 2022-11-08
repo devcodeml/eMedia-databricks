@@ -277,3 +277,48 @@ CREATE TABLE `dwd`.`ztc_account_daily` (
   `etl_create_time` TIMESTAMP,
   `etl_update_time` TIMESTAMP)
 USING delta
+
+
+
+
+
+
+CREATE TABLE `dwd`.`tb_media_emedia_ztc_daily_fact` (
+  `ad_date` STRING,
+  `pv_type_in` STRING,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `effect` INT,
+  `effect_days` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `campaign_type` STRING,
+  `campaign_subtype` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `item_id` STRING,
+  `keyword_type` STRING,
+  `niname` STRING,
+  `emedia_category_id` STRING,
+  `emedia_brand_id` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `cost` DOUBLE,
+  `click` Integer,
+  `impression` Integer,
+  `indirect_order_quantity` Integer,
+  `direct_order_quantity` Integer,
+  `indirect_order_value` DOUBLE,
+  `direct_order_value` DOUBLE,
+  `total_cart_quantity` Integer,
+  `dw_resource` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
