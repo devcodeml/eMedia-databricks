@@ -5,7 +5,7 @@ from pyspark.sql.functions import current_timestamp
 from emedia import get_spark
 
 
-def jdkc_daily_fact():
+def jd_jst_daily_fact():
 
     spark = get_spark()
     spark.sql(""" select * from dwd.tb_media_emedia_jst_daily_fact where effect_days='0' or effect_days='24'"""

@@ -13,7 +13,7 @@ from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 spark = get_spark()
 
 
-def jd_ht_campaign_etl_old():
+def jd_jst_campaign_etl_old():
     # dwd.jdht_campaign_daily
 
     jd_jst_campaign_daily_old = spark.sql(
