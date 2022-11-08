@@ -729,7 +729,7 @@ def tmall_feedflow_adgroup_daily_dwd_etl():
         spark.sql(
             """
             select
-                to_date(cast(a.`ad_date` as string), 'yyyyMMdd') as ad_date,
+                cast(a.ad_date as date) as ad_date,
                 '引力魔方' as ad_format_lv2,
                 cast(a.store_id as string) as req_storeId,
                 '' as effect_type,
