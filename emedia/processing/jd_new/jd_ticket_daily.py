@@ -53,56 +53,48 @@ def jd_ticket_daily_etl(airflow_execution_date, run_id):
         """
         select
             cast(`dateTime` as date) as date_time,
-            cast(groupId as string) as group_id,
-            cast(groupName as string) as group_name,
-            cast(activityName as string) as activity_name,
-            cast(activityLink as string) as activity_link,
-            cast(eposActivityId as string) as epos_activity_id,
-            cast(eposActivityCd as string) as epos_activity_cd,
-            cast(eposActivityName as string) as epos_activity_name,
-            cast(eposActivityLink as string) as epos_activity_link,
-            cast(clickNum as bigint) as click_num,
-            cast(clickPeople as bigint) as click_people,
-            cast(leadRule as string) as lead_rule,
-            cast(ledDealAmt as decimal(19,4)) as led_deal_amt,
-            cast(led15DayDealAmt as decimal(19,4)) as led15_day_deal_amt,
-            cast(ledCartNum as bigint) as led_cart_num,
-            cast(led15DayCartNum as bigint) as led15_day_cart_num,
+            cast(batchId as string) as batch_id,
+            cast(cpsName as string) as cps_name,
+            cast(`cpsValidBeginTm` as date) as cps_valid_begin_tm,
+            cast(`cpsValidEndTm` as date) as cps_valid_end_tm,
+            cast(batchCpsPutoutQtty as bigint) as batch_cps_putout_qtty,
+            cast(cpsQty as bigint) as cps_qty,
+            cast(dealAmt as decimal(19,4)) as deal_amt,
             cast(dw_batch_num as string) as dw_batch_number,
             cast(dw_create_time as string) as dw_create_time,
             cast(dw_source_name as string) as dw_source_name,
             cast(data_source as string) as data_source,
-            cast(dw_etl_date as string) as dw_etl_date,
-            cast(dw_batch_id as string) as dw_batch_id
-         from stg.jd_pit_data_daily_df
+            cast(dw_batch_id as string) as dw_batch_id,
+            cast(dw_etl_date as string) as dw_etl_date
+         from stg.jd_ticket_daily
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
-    ).insertInto(
-        "ods.jd_pit_data_daily_df"
+    ).saveAsTable(
+        "ods.jd_ticket_daily"
     )
 
-    jd_pit_data_daily_pks = [
+    jd_ticket_daily_pks = [
         "date_time",
-        "group_id",
-        "epos_activity_id",
-        "epos_activity_cd",
+        "batch_id",
+        "batch_cps_putout_qtty",
+        "cps_qty",
     ]
-    data = spark.table("ods.jd_pit_data_daily_df")
+    data = spark.table("ods.jd_ticket_daily")
     data = data.drop(*["dw_etl_date", "dw_batch_id", "dw_source_name"])
-    data = data.fillna(value='', subset=['group_id', 'epos_activity_id', 'epos_activity_cd'])
+    data = data.fillna(value='', subset=['batch_id', 'batch_cps_putout_qtty', 'cps_qty'])
     data = data.withColumnRenamed("data_source", "dw_source")
-    data = data.dropDuplicates(jd_pit_data_daily_pks)
-    data.distinct().withColumn("etl_source_table", lit("ods.jd_pit_data_daily_df")) \
+    data = data.dropDuplicates(jd_ticket_daily_pks)
+    data.distinct().withColumn("etl_source_table", lit("ods.jd_ticket_daily")) \
         .withColumn("etl_create_time", current_timestamp()) \
         .withColumn("etl_update_time", current_timestamp()) \
         .write.mode("overwrite"
                     ).option(
         "mergeSchema", "true"
-    ).insertInto(
-        "dwd.tb_media_emedia_jd_pit_data_daily_fact"
+    ).saveAsTable(
+        "dwd.tb_media_emedia_jd_ticket_daily_fact"
     )
 
     return 0
