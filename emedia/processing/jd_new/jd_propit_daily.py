@@ -38,7 +38,7 @@ def jd_propit_daily_etl(airflow_execution_date, run_id):
                 'ledCartNum', 'led15DayCartNum', 'dw_batch_num', 'dw_create_time', 'dw_source_name']
     cols_schema = StructType([StructField(field_name, StringType(), True) for field_name in str_cols])
 
-    spark.read.csv(
+    jd_propit_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_propit_daily_path}",
         header=True,
         multiLine=True,
@@ -46,14 +46,15 @@ def jd_propit_daily_etl(airflow_execution_date, run_id):
         escape='"',
         sep="",
         schema=cols_schema
-    ).withColumn(
-        "data_source", lit('')
+    )
+    jd_propit_daily_df.withColumn(
+        "data_source", jd_propit_daily_df["dw_source_name"]
     ).withColumn("dw_batch_id", lit(run_id)).withColumn(
         "dw_etl_date", current_date()
     ).distinct().write.mode(
         "overwrite"
-    ).option("overwriteSchema", "true").insertInto(
-        "stg.jd_ticket_daily"
+    ).option("mergeSchema", "true").insertInto(
+        "stg.jd_propit_daily"
     )
 
     jd_propit_daily = spark.table("stg.jd_propit_daily")

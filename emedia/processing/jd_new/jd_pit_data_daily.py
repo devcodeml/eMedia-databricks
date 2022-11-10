@@ -32,15 +32,16 @@ def jd_pit_data_daily_etl(airflow_execution_date, run_id):
 
     log.info("jd_act_flow_source_daily_path: " + jd_pit_data_daily_path)
 
-    spark.read.csv(
+    jd_pit_data_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_pit_data_daily_path}",
         header=True,
         multiLine=True,
         quote="\"",
         escape='"',
         sep="|",
-    ).withColumn(
-        "data_source", lit('')
+    )
+    jd_pit_data_daily_df.withColumn(
+        "data_source", jd_pit_data_daily_df["dw_source_name"]
     ).withColumn("dw_batch_id", lit(run_id)).withColumn(
         "dw_etl_date", current_date()
     ).distinct().write.mode(

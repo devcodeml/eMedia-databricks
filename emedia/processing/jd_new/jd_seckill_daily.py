@@ -33,15 +33,16 @@ def jd_seckill_daily_etl(airflow_execution_date, run_id):
     log.info("jd_seckill_daily_path: " + jd_seckill_daily_path)
 
 
-    spark.read.csv(
+    jd_seckill_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_seckill_daily_path}",
         header=True,
         multiLine=True,
         quote="\"",
         escape='"',
         sep="|",
-        ).withColumn(
-          "data_source", lit("")
+        )
+    jd_seckill_daily_df.withColumn(
+          "data_source", jd_seckill_daily_df["~dw_source_name"]
         ).withColumn("dw_batch_id", lit(run_id)).withColumn(
           "dw_etl_date", current_date()
         ).distinct().write.mode(
