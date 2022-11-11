@@ -53,23 +53,18 @@ def sem_daily_etl():
         .withColumn('order_quantity', ds_tmall_ztc_daily_df.order_quantity.cast(IntegerType()))\
         .withColumn('click', ds_tmall_ztc_daily_df.click.cast(IntegerType()))\
         .withColumn('impression', ds_tmall_ztc_daily_df.impression.cast(IntegerType()))
-    ds_tmall_ztc_daily_df.createOrReplaceTempView("ds_tmall_ztc_adgroup_daily")
-
-    spark.sql("""
-    select a.ad_date,a.ad_format_lv2,a.store_id,a.effect,a.effect_days,a.campaign_id,a.campaign_name,a.campaign_type,a.campaign_subtype
-    ,a.adgroup_id,a.adgroup_name,a.report_level,a.report_level_id,a.report_level_name,a.item_id,a.keyword_type,a.niname,a.emedia_category_id
-    ,a.emedia_brand_id,a.mdm_productline_id,a.cost,a.click,a.impression,a.order_quantity,a.order_amount,a.cart_quantity,a.uv
-    ,b.cost as cost_YA,b.click as click_YA,b.impression as impression_YA,b.order_quantity as order_quantity_YA
-    ,b.order_amount as order_amount_YA,b.cart_quantity as cart_quantity_YA,b.uv as uv_YA
-    ,a.dw_resource,a.dw_create_time,a.dw_batch_number,a.etl_source_table from ds_tmall_ztc_adgroup_daily a
-    left join ds_tmall_ztc_adgroup_daily b on a.ad_date = add_months(b.ad_date,12) and a.store_id = b.store_id
-    and a.effect = b.effect and a.campaign_id = b.campaign_id and a.adgroup_id = b.adgroup_id and a.report_level_name = b.report_level_name
-    """).filter("emedia_category_id = '214000006'").filter("effect_days = 1 or effect_days = 4 or effect_days = 24").withColumn("etl_create_time", F.current_timestamp()).withColumn("etl_update_time",
+    ds_tmall_ztc_daily_df.filter("emedia_category_id = '214000006'").filter("effect_days = 1 or effect_days = 4 or effect_days = 24").withColumn("etl_create_time", F.current_timestamp()).withColumn("etl_update_time",
                                                                                            F.current_timestamp()).distinct().write.mode(
         "overwrite").insertInto("ds.hc_media_emedia_sem_deep_dive_download_adgroup_keyword_daily_fact")
 
 
 
-    spark.table("dwd.tb_media_emedia_ztc_daily_fact").drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
-        .write.mode("overwrite").insertInto("ds.gg_media_emedia_sem_deep_dive_download_adgroup_keyword_daily_fact")
+    spark.sql("""
+    select a.*,b.brand_rate,b.category_rate from dwd.tb_media_emedia_ztc_daily_fact a 
+    left join stg.emedia_incremental_rol_mapping b 
+    on a.emedia_category_id = b.category_id 
+    and a.emedia_brand_id = b.brand_id 
+    and a.ad_date >=b.start_date and a.ad_date <=b.end_date
+    """).drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
+        .write.mode("overwrite").insertInto("ds.gm_emedia_sem_deep_dive_download_daily_fact")
 

@@ -1,58 +1,61 @@
-# coding: utf-8
-
 import datetime
-
-from pyspark.sql import functions as F
-from pyspark.sql import DataFrame
 from functools import reduce
-from emedia import spark
+
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import current_date, current_timestamp, json_tuple, lit
+
+from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
-from pyspark.sql.types import StringType
-from emedia.utils.output_df import output_to_emedia
+from emedia.utils.cdl_code_mapping import emedia_brand_mapping
+
+spark = get_spark()
 
 
-def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
-    etl_year = int(airflow_execution_date[0:4])
-    etl_month = int(airflow_execution_date[5:7])
-    etl_day = int(airflow_execution_date[8:10])
-    date = airflow_execution_date[0:10]
-    etl_date = datetime.datetime(etl_year, etl_month, etl_day)
-    date_time = date + "T" + airflow_execution_date[11:19]
+def tmall_ylmf_campaign_daily_etl(airflow_execution_date, run_id):
 
-    # 输入输出mapping blob信息，自行确认
+    file_date = datetime.datetime.strptime(
+        airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
+    ) - datetime.timedelta(days=1)
+
     emedia_conf_dict = get_emedia_conf_dict()
-    input_blob_account = emedia_conf_dict.get('input_blob_account')
-    input_blob_container = emedia_conf_dict.get('input_blob_container')
-    input_blob_sas = emedia_conf_dict.get('input_blob_sas')
-    spark.conf.set(f"fs.azure.sas.{input_blob_container}.{input_blob_account}.blob.core.chinacloudapi.cn"
-                   , input_blob_sas)
-
-    mapping_blob_account = emedia_conf_dict.get('mapping_blob_account')
-    mapping_blob_container = emedia_conf_dict.get('mapping_blob_container')
-    mapping_blob_sas = emedia_conf_dict.get('mapping_blob_sas')
-    spark.conf.set(f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn"
-                   , mapping_blob_sas)
-    file_date = etl_date - datetime.timedelta(days=1)
-    ## 路径
-    input_path = f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall/ylmf_cumul_daily_displayreport/aliylmf_day_displayReport_cumul_{file_date.strftime("%Y-%m-%d")}.csv.gz'
-
-    tmall_ylmf_cumul_adgroupreport_df = spark.read.csv(
-        f"wasbs://{input_blob_container}@{input_blob_account}.blob.core.chinacloudapi.cn/{input_path}"
-        , header=True
-        , multiLine=True
-        , sep="|"
-        , quote="\""
-        , escape="\""
-        , inferSchema=True
+    input_account = emedia_conf_dict.get("input_blob_account")
+    input_container = emedia_conf_dict.get("input_blob_container")
+    input_sas = emedia_conf_dict.get("input_blob_sas")
+    spark.conf.set(
+        f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
+        input_sas,
     )
-    update_negative = F.udf(lambda x: x.replace('-', ''), StringType())
-    tmall_ylmf_cumul_adgroupreport_df.withColumn('req_effect_type',
-                                                 update_negative(tmall_ylmf_cumul_adgroupreport_df.req_effect_type))
+    # input_account = "b2bcdlrawblobprd01"
+    # input_container = "media"
+    # input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
+    #
+    # spark.conf.set(
+    #    f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
+    #    input_sas,
+    # )
 
-    extend_json_content_df = tmall_ylmf_cumul_adgroupreport_df.select(
+    # daily report
+    tmall_ylmf_campaign_daily_path = (
+        f"fetchResultFiles/{file_date.strftime('%Y-%m-%d')}/tmall"
+        "/ylmf_daily_displayreport/tmall_ylmf_displayReport_"
+        f"{file_date.strftime('%Y-%m-%d')}.csv.gz"
+    )
+
+    origin_ylmf_campaign_daily_df = spark.read.csv(
+        f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/"
+        f"{tmall_ylmf_campaign_daily_path}",
+        header=True,
+        multiLine=True,
+        sep="|",
+        quote='"',
+        escape='"',
+        inferSchema=True,
+    )
+
+    # extend json content
+    extend_json_content_df = origin_ylmf_campaign_daily_df.select(
         "*",
-        F.json_tuple(
+        json_tuple(
             "rpt_info",
             "add_new_charge",
             "add_new_uv",
@@ -126,6 +129,7 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
         ),
     ).drop("rpt_info")
 
+    # stg.ylmf_campaign_daily
     (
         extend_json_content_df.selectExpr(
             "cast(log_data as string) as ad_date",
@@ -182,13 +186,17 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
             "cast(dw_create_time as string) as dw_create_time",
             "cast(dw_batch_number as string) as dw_batch_number",
         )
-        .withColumn("etl_date", F.current_date())
-        .withColumn("etl_create_time", F.current_timestamp())
+        .withColumn("etl_date", current_date())
+        .withColumn("etl_create_time", current_timestamp())
         .distinct()
         .write.mode("overwrite")
-        .insertInto("stg.ylmf_campaign_cumul_daily")
+        # .saveAsTable("stg.ylmf_campaign_daily")
+        .insertInto("stg.ylmf_campaign_daily")
     )
 
+    # ods.ylmf_crowd_daily
+    # 1. 数据清洗（去重，空值处理）
+    # 2. 数据标准化（日期，枚举格式的标准化）
     (
         spark.sql(
             """
@@ -246,24 +254,17 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
                 dw_resource,
                 dw_create_time,
                 dw_batch_number
-            from stg.ylmf_campaign_cumul_daily
+            from stg.ylmf_campaign_daily
             """
         )
-        .withColumn("etl_source_table", F.lit("stg.ylmf_campaign_cumul_daily"))
-        .withColumn("etl_date", F.current_date())
-        .withColumn("etl_create_time", F.current_timestamp())
+        .withColumn("etl_source_table", lit("stg.ylmf_campaign_daily"))
+        .withColumn("etl_date", current_date())
+        .withColumn("etl_create_time", current_timestamp())
         .distinct()
         .write.mode("overwrite")
-        .insertInto("ods.ylmf_campaign_cumul_daily")
+        # .saveAsTable("ods.ylmf_campaign_daily")
+        .insertInto("ods.ylmf_campaign_daily")
     )
-
-
-
-
-
-
-
-
 
     tmall_ylmf_campaign_daily_pks = [
         "ad_date",
@@ -276,11 +277,10 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
     ]
 
     tmall_ylmf_campaign_daily_df = (
-        spark.table("ods.ylmf_campaign_cumul_daily").drop("etl_date")
-        .drop("etl_create_time")
+        spark.table("ods.ylmf_campaign_daily").drop("dw_etl_date").drop("data_source")
     )
     tmall_ylmf_campaign_daily_fail_df = (
-        spark.table("dwd.ylmf_campaign_cumul_daily_mapping_fail")
+        spark.table("dwd.ylmf_campaign_daily_mapping_fail")
         .drop("category_id")
         .drop("brand_id")
         .drop("etl_date")
@@ -291,18 +291,26 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
         ylmf_campaign_daily_mapping_success,
         ylmf_campaign_daily_mapping_fail,
     ) = emedia_brand_mapping(
+        #    spark, tmall_ylmf_campaign_daily_df, "ylmf"
         spark,
         tmall_ylmf_campaign_daily_df.union(tmall_ylmf_campaign_daily_fail_df),
         "ylmf",
     )
 
+    # ylmf_campaign_daily_mapping_success.dropDuplicates(
+    #  tmall_ylmf_campaign_daily_pks
+    # ).write.mode(
+    #    "overwrite"
+    # ).saveAsTable(
+    #    "dwd.ylmf_campaign_daily_mapping_success"
+    # )
 
     ylmf_campaign_daily_mapping_success.dropDuplicates(
         tmall_ylmf_campaign_daily_pks
     ).createOrReplaceTempView("all_mapping_success")
 
     # UPSERT DBR TABLE USING success mapping
-    dwd_table = "dwd.ylmf_campaign_cumul_daily_mapping_success"
+    dwd_table = "dwd.ylmf_campaign_daily_mapping_success"
     tmp_table = "all_mapping_success"
     and_str = " AND ".join(
         [
@@ -312,24 +320,26 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
     )
     spark.sql(
         f"""
-                MERGE INTO {dwd_table}
-                USING {tmp_table}
-                ON {and_str}
-                WHEN MATCHED THEN
-                    UPDATE SET *
-                WHEN NOT MATCHED
-                    THEN INSERT *
-                """
+            MERGE INTO {dwd_table}
+            USING {tmp_table}
+            ON {and_str}
+            WHEN MATCHED THEN
+                UPDATE SET *
+            WHEN NOT MATCHED
+                THEN INSERT *
+            """
     )
 
     (
         ylmf_campaign_daily_mapping_fail.dropDuplicates(tmall_ylmf_campaign_daily_pks)
         .write.mode("overwrite")
-        .insertInto("dwd.ylmf_campaign_cumul_daily_mapping_fail")
+        .option("mergeSchema", "true")
+        .insertInto("dwd.ylmf_campaign_daily_mapping_fail")
+        # .saveAsTable("dwd.ylmf_campaign_daily_mapping_fail")
     )
 
-    spark.table("dwd.ylmf_campaign_cumul_daily_mapping_success").union(
-        spark.table("dwd.ylmf_campaign_cumul_daily_mapping_fail")
+    spark.table("dwd.ylmf_campaign_daily_mapping_success").union(
+        spark.table("dwd.ylmf_campaign_daily_mapping_fail")
     ).createOrReplaceTempView("ylmf_campaign_daily")
 
     ylmf_campaign_daily_res = spark.sql(
@@ -338,13 +348,12 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
             a.*,
             a.category_id as emedia_category_id,
             a.brand_id as emedia_brand_id,
-            d.category2_code as mdm_category_id,
+            c.category2_code as mdm_category_id,
             c.brand_code as mdm_brand_id
         from ylmf_campaign_daily a
         left join ods.media_category_brand_mapping c
-            on a.brand_id = c.emedia_brand_code
-        left join ods.media_category_brand_mapping d
-            on a.category_id = d.emedia_category_code
+            on a.brand_id = c.emedia_brand_code and
+            a.category_id = c.emedia_category_code
         """
     )
 
@@ -354,7 +363,7 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
             "'引力魔方' as ad_format_lv2",
             "req_storeId",
             "effect_type",
-            "effect_days as effect",
+            "effect",
             "effect_days",
             "campaign_group_id",
             "campaign_group_name",
@@ -410,11 +419,13 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
             "mdm_brand_id",
         )
         .distinct()
-        .withColumn("etl_source_table", F.lit("ods.ylmf_campaign_cumul_daily"))
-        .withColumn("etl_date", F.current_date())
-        .withColumn("etl_create_time", F.current_timestamp())
+        .withColumn("etl_source_table", lit("ods.ylmf_campaign_daily"))
+        .withColumn("etl_date", current_date())
+        .withColumn("etl_create_time", current_timestamp())
         .write.mode("overwrite")
-        .insertInto("dwd.ylmf_campaign_cumul_daily")
+        .option("mergeSchema", "true")
+        # .saveAsTable("dwd.ylmf_campaign_daily")
+        .insertInto("dwd.ylmf_campaign_daily")
     )
 
     tmall_ylmf_daily_fact_pks = [
@@ -432,54 +443,63 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
     # dwd.tb_media_emedia_ylmf_daily_fact
     spark.sql(
         """
-        delete from dwd.tb_media_emedia_ylmf_cumul_daily_fact
+        delete from dwd.tb_media_emedia_ylmf_daily_fact
         where `report_level` = 'campaign' 
         """
     )
+    tables = ["dwd.ylmf_campaign_daily"]
+
+    reduce(
+        DataFrame.union,
+        map(
+            lambda table: spark.table(table)
+            .drop("etl_source_table")
+            .withColumn("etl_source_table", lit(table)),
+            tables,
+        ),
+    ).createOrReplaceTempView("ylmf_campaign_daily")
 
     spark.sql(
         f"""
-          SELECT
-              ad_date,
-              ad_format_lv2,
-              req_storeId as store_id,
-              effect_type,
-              effect,
-              effect_days,
-              campaign_group_id,
-              campaign_group_name,
-              campaign_id,
-              campaign_name,
-              '' as promotion_entity_id,
-              '' as promotion_entity_name,
-              'campaign' as report_level,
-              '' as report_level_id,
-              '' as report_level_name,
-              '' as sub_crowd_name,
-              '' as audience_name,
-              emedia_category_id as emedia_category_id,
-              emedia_brand_id as emedia_brand_id,
-              mdm_category_id as mdm_category_id,
-              mdm_brand_id as mdm_brand_id,
-              '' as mdm_productline_id,
-              round(nvl(charge, 0), 4) as cost,
-              nvl(click, 0) as click,
-              nvl(impression, 0) as impression,
-              nvl(alipay_inshop_num, 0) as order_quantity,
-              round(nvl(alipay_inshop_amt, 0), 4) as order_amount,
-              nvl(cart_num, 0) as cart_quantity,
-              nvl(gmv_inshop_num, 0) as gmv_order_quantity,
-              dw_resource,
-              dw_create_time,
-              dw_batch_number,
-              'dwd.ylmf_campaign_cumul_daily' as etl_source_table,
-              current_timestamp() as etl_create_time,
-              current_timestamp() as etl_update_time
-          FROM 
-              dwd.ylmf_campaign_cumul_daily
-          """
+      SELECT
+          ad_date,
+          ad_format_lv2,
+          req_storeId as store_id,
+          effect_type,
+          effect,
+          effect_days,
+          campaign_group_id,
+          campaign_group_name,
+          campaign_id,
+          campaign_name,
+          '' as promotion_entity_id,
+          '' as promotion_entity_name,
+          'campaign' as report_level,
+          '' as report_level_id,
+          '' as report_level_name,
+          '' as sub_crowd_name,
+          '' as audience_name,
+          emedia_category_id as emedia_category_id,
+          emedia_brand_id as emedia_brand_id,
+          mdm_category_id as mdm_category_id,
+          mdm_brand_id as mdm_brand_id,
+          '' as mdm_productline_id,
+          round(nvl(charge, 0), 4) as cost,
+          nvl(click, 0) as click,
+          nvl(impression, 0) as impression,
+          nvl(alipay_inshop_num, 0) as order_quantity,
+          round(nvl(alipay_inshop_amt, 0), 4) as order_amount,
+          nvl(cart_num, 0) as cart_quantity,
+          nvl(gmv_inshop_num, 0) as gmv_order_quantity,
+          dw_resource,
+          dw_create_time,
+          dw_batch_number,
+          etl_source_table,
+          current_timestamp() as etl_create_time,
+          current_timestamp() as etl_update_time
+      FROM 
+          ylmf_campaign_daily
+      """
     ).dropDuplicates(tmall_ylmf_daily_fact_pks).write.mode("append").insertInto(
-        "dwd.tb_media_emedia_ylmf_cumul_daily_fact"
+        "dwd.tb_media_emedia_ylmf_daily_fact"
     )
-
-    return 0

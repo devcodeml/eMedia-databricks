@@ -143,7 +143,7 @@ def tmall_ztc_keyword_etl(airflow_execution_date):
             ,a.campaign_type,a.total_cart_quantity,a.click,a.cost,a.direct_order_quantity,a.direct_order_value,a.dw_batch_number
             ,a.dw_create_time,a.dw_resource,a.effect,a.effect_days,a.impression,a.indirect_order_value,a.indirect_order_quantity
             ,a.order_amount,a.order_quantity,a.req_storeId,a.pv_type_in,item.item_id,a.report_level,a.report_level_id,a.report_level_name
-            ,a.category_id,a.brand_id,ad.mdm_productline_id,cc.category2_code as emedia_category_id,c.brand_code as emedia_brand_id
+            ,a.category_id,a.brand_id,ad.mdm_productline_id,cc.category2_code as mdm_category_id,c.brand_code as mdm_brand_id
             ,'ods.ztc_keyword_daily' as etl_source_table, case when d.ni_keyword is not null then 'ni' else 'base' end as niname, case when e.sem_keyword is not null then 'brand' else 'category' end as keyword_type
             from tmall_ztc_keyword_daily a 
             left join (select distinct adgroup_id,mdm_productline_id from dwd.ztc_adgroup_daily) ad on a.adgroup_id = ad.adgroup_id
@@ -156,23 +156,36 @@ def tmall_ztc_keyword_etl(airflow_execution_date):
     update = F.udf(lambda x: x.replace("N/A", ""), StringType())
     dwd_tmall_ztc_keyword_daily_df = dwd_tmall_ztc_keyword_daily_df.fillna('', subset=['mdm_productline_id'])
     dwd_tmall_ztc_keyword_daily_df = dwd_tmall_ztc_keyword_daily_df.withColumnRenamed('req_storeId', 'store_id')
+    dwd_tmall_ztc_keyword_daily_df = dwd_tmall_ztc_keyword_daily_df.withColumnRenamed("category_id", "emedia_category_id")
+    dwd_tmall_ztc_keyword_daily_df = dwd_tmall_ztc_keyword_daily_df.withColumnRenamed("brand_id", "emedia_brand_id")
     dwd_tmall_ztc_keyword_df = dwd_tmall_ztc_keyword_daily_df.withColumn('mdm_productline_id', update(
         dwd_tmall_ztc_keyword_daily_df.mdm_productline_id))
+
     dwd_tmall_ztc_keyword_df.filter("ad_date >= '2022-02-01'").fillna('').distinct().write \
         .mode("overwrite") \
-        .option("mergeSchema", "true") \
         .insertInto("dwd.ztc_keyword_daily")
 
 
+
     spark.sql("delete from dwd.tb_media_emedia_ztc_daily_fact where report_level = 'keyword' ")
-    spark.table("dwd.ztc_keyword_daily").union(spark.table("dwd.ztc_keyword_daily_old")).selectExpr('ad_date','pv_type_in','ad_format_lv2','store_id','effect','effect_days'
-                                        ,'campaign_id','campaign_name','campaign_type','campaign_subtype','adgroup_id'
-                                        ,'adgroup_name','report_level','report_level_id','report_level_name','item_id','keyword_type'
-                                        ,'niname','emedia_category_id','emedia_brand_id','category_id','brand_id'
-                                        ,'mdm_productline_id','cost','click','impression','indirect_order_quantity'
-                                        ,'direct_order_quantity','indirect_order_value','direct_order_value'
-                                        ,'total_cart_quantity','dw_resource','dw_create_time','dw_batch_number'
-                                        ,'etl_source_table')\
+    spark.table("dwd.ztc_keyword_daily").selectExpr('ad_date', 'pv_type_in', 'ad_format_lv2', 'store_id', 'effect',
+                                                    'effect_days'
+                                                    , 'campaign_id', 'campaign_name', 'campaign_type',
+                                                    'campaign_subtype', 'adgroup_id'
+                                                    , 'adgroup_name', 'report_level', 'report_level_id',
+                                                    'report_level_name', 'item_id', 'keyword_type'
+                                                    , 'niname', 'emedia_category_id', 'emedia_brand_id',
+                                                    'mdm_category_id', 'mdm_brand_id'
+                                                    , 'mdm_productline_id', 'cast(cost as double) as cost',
+                                                    'cast(click as int) as click',
+                                                    'cast(impression as int) as impression '
+                                                    , 'cast(indirect_order_quantity as int) as indirect_order_quantity'
+                                                    , 'cast(direct_order_quantity as int) as direct_order_quantity',
+                                                    'cast(indirect_order_value as double) as indirect_order_value'
+                                                    , 'cast(direct_order_value as double) as direct_order_value'
+                                                    , 'cast(total_cart_quantity as int) as total_cart_quantity',
+                                                    'dw_resource', 'dw_create_time', 'dw_batch_number'
+                                                    , 'etl_source_table')\
         .withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct().write.mode(
         "append").insertInto("dwd.tb_media_emedia_ztc_daily_fact")
