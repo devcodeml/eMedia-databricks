@@ -282,7 +282,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date, run_id):
         'etl_date').drop('etl_create_time').drop("etl_source_table").createOrReplaceTempView("tmall_ztc_adgroup_cumul_daily")
 
     dwd_tmall_ztc_adgroup_cumul_daily_df = spark.sql("""
-           select a.*,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15 when effect_days = 8 then 7 when effect_days = 30 then 30 else 0 end as effect
+           select a.*, req_effect as effect
            ,'直通车' as ad_format_lv2,'adgroup' as report_level, '' as report_level_id , '' as report_level_name
         ,case when campaign_name like '%智能%' then '智能推广' else '标准推广' end as campaign_subtype
         ,case when campaign_name like '%定向%' then '定向词' when campaign_name like '%智能%' then '智能词' when campaign_name like '%销量明星%' then '销量明星' else '关键词' end as campaign_type
@@ -311,7 +311,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date, run_id):
                                                     'campaign_subtype', 'adgroup_id'
                                                     , 'adgroup_name', 'report_level', 'report_level_id',
                                                     'report_level_name', 'item_id'
-                                                    , 'keyword_type', 'niname', 'emedia_category_id', 'emedia_brand_id',
+                                                    ,"'' as keyword_type", "'' as niname", 'emedia_category_id', 'emedia_brand_id',
                                                     'mdm_category_id', 'mdm_brand_id'
                                                     , 'mdm_productline_id', 'cast(cost as double) as cost',
                                                     'cast(click as int) as click',
@@ -322,7 +322,7 @@ def tmall_ztc_cumul_adgroup_etl(airflow_execution_date, run_id):
                                                     , 'cast(direct_order_value as double) as direct_order_value'
                                                     , 'cast(total_cart_quantity as int) as total_cart_quantity',
                                                     'dw_resource', 'dw_create_time', 'dw_batch_number',
-                                                    'etl_source_table') \
+                                                    "'dwd.ztc_adgroup_cumul_daily' as etl_source_table ") \
         .withColumn("etl_create_time", F.current_timestamp()) \
         .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
         "append").insertInto("dwd.tb_media_emedia_ztc_cumul_daily_fact")

@@ -59,6 +59,12 @@ def sem_daily_etl():
 
 
 
-    spark.table("dwd.tb_media_emedia_ztc_daily_fact").drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
+    spark.sql("""
+    select a.*,b.brand_rate,b.category_rate from dwd.tb_media_emedia_ztc_daily_fact a 
+    left join stg.emedia_incremental_rol_mapping b 
+    on a.emedia_category_id = b.category_id 
+    and a.emedia_brand_id = b.brand_id 
+    and a.ad_date >=b.start_date and a.ad_date <=b.end_date
+    """).drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time", current_timestamp()).fillna("").distinct()\
         .write.mode("overwrite").insertInto("ds.gm_emedia_sem_deep_dive_download_daily_fact")
 

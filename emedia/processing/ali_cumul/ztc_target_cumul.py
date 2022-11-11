@@ -297,7 +297,7 @@ def tmall_ztc_cumul_target_etl(airflow_execution_date, run_id):
 
 
     dwd_tmall_ztc_target_daily_df = spark.sql("""
-        select a.*,'直通车' as ad_format_lv2,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15 when effect_days = 8 then 7 when effect_days = 30 then 30 else 0 end as effect 
+        select a.*,'直通车' as ad_format_lv2,req_effect as effect 
         ,case when campaign_name like '%智能%' then '智能推广' else '标准推广' end as campaign_subtype
         ,case when campaign_name like '%定向%' then '定向词' when campaign_name like '%智能%' then '智能词' when campaign_name like '%销量明星%' then '销量明星' else '关键词' end as campaign_type
         ,'crowd' as report_level, crowd_id as report_level_id , crowd_name as report_level_name
@@ -318,15 +318,21 @@ def tmall_ztc_cumul_target_etl(airflow_execution_date, run_id):
         .insertInto("dwd.ztc_target_cumul_daily")
 
 
+
     spark.sql("delete from dwd.tb_media_emedia_ztc_cumul_daily_fact where report_level = 'crowd' ")
-    spark.table("dwd.ztc_target_daily").selectExpr('ad_date','pv_type_in','ad_format_lv2','store_id','effect','effect_days'
+    spark.table("dwd.ztc_target_cumul_daily").selectExpr('ad_date','pv_type_in','ad_format_lv2','store_id','effect','effect_days'
                                         ,'campaign_id','campaign_name','campaign_type','campaign_subtype','adgroup_id'
                                         ,'adgroup_name','report_level','report_level_id','report_level_name','item_id',"'' as keyword_type"
                                         ,"'' as niname",'emedia_category_id','emedia_brand_id','mdm_category_id','mdm_brand_id'
-                                        ,'mdm_productline_id','cost','click','impression','indirect_transaction_shipping as indirect_order_quantity'
-                                        ,'direct_transaction_shipping as direct_order_quantity','indirect_transaction as indirect_order_value','direct_transaction as direct_order_value'
-                                        ,'cart_total as total_cart_quantity','dw_resource','dw_create_time','dw_batch_number'
-                                        ,'etl_source_table')\
+                                        ,'mdm_productline_id','cast(cost as double) as cost',
+    'cast(click as int) as click',
+    'cast(impression as int) as impression '
+    , 'cast(indirect_transaction_shipping as int) as indirect_order_quantity'
+    , 'cast(direct_transaction_shipping as int) as direct_order_quantity',
+    'cast(indirect_transaction as double) as indirect_order_value'
+    , 'cast(direct_transaction as double) as direct_order_value'
+    , 'cast(cart_total as int) as total_cart_quantity','dw_resource','dw_create_time','dw_batch_number'
+                                        ,"'dwd.ztc_target_cumul_daily' as etl_source_table ")\
         .withColumn("etl_create_time", F.current_timestamp())\
         .withColumn("etl_update_time",F.current_timestamp()).distinct().write.mode(
         "append").insertInto("dwd.tb_media_emedia_ztc_cumul_daily_fact")

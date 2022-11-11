@@ -307,7 +307,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date, run_id):
         "tmall_ztc_keyword_cumul_daily")
 
     dwd_tmall_ztc_keyword_cumul_daily_df = spark.sql("""
-           select a.*,case when effect_days = 1 then 1 when effect_days = 4 then 3 when effect_days = 24 then 15 when effect_days = 8 then 7 when effect_days = 30 then 30 else 0 end as effect
+           select a.*,req_effect as effect
            ,'直通车' as ad_format_lv2,'keyword' as report_level, keyword_id as report_level_id , keyword_name as report_level_name
         ,case when campaign_name like '%智能%' then '智能推广' else '标准推广' end as campaign_subtype
         ,case when campaign_name like '%定向%' then '定向词' when campaign_name like '%智能%' then '智能词' when campaign_name like '%销量明星%' then '销量明星' else '关键词' end as campaign_type
@@ -354,7 +354,7 @@ def tmall_ztc_cumul_keyword_etl(airflow_execution_date, run_id):
                                                     , 'cast(direct_order_value as double) as direct_order_value'
                                                     , 'cast(total_cart_quantity as int) as total_cart_quantity',
                                                     'dw_resource', 'dw_create_time', 'dw_batch_number'
-                                                    , 'etl_source_table') \
+                                                    , "'dwd.ztc_keyword_cumul_daily' as etl_source_table") \
         .withColumn("etl_create_time", F.current_timestamp()) \
         .withColumn("etl_update_time", F.current_timestamp()).distinct().write.mode(
         "append").insertInto("dwd.tb_media_emedia_ztc_cumul_daily_fact")

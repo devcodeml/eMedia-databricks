@@ -34,6 +34,5 @@ def jdkc_daily_fact():
         .write.mode("overwrite").insertInto("ds.gm_emedia_jdkc_deep_dive_download_daily_fact")
 
 
-
     return 0
 

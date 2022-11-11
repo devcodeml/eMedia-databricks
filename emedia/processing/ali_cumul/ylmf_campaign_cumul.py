@@ -354,7 +354,7 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
             "'引力魔方' as ad_format_lv2",
             "req_storeId",
             "effect_type",
-            "effect",
+            "effect_days as effect",
             "effect_days",
             "campaign_group_id",
             "campaign_group_name",
@@ -472,7 +472,7 @@ def tmall_ylmf_campaign_cumul_etl(airflow_execution_date, run_id):
               dw_resource,
               dw_create_time,
               dw_batch_number,
-              etl_source_table,
+              'dwd.ylmf_campaign_cumul_daily' as etl_source_table,
               current_timestamp() as etl_create_time,
               current_timestamp() as etl_update_time
           FROM 

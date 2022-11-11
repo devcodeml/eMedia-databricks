@@ -364,7 +364,7 @@ def tmall_ylmf_daliy_promotion_cumul_etl(airflow_execution_date, run_id):
             "'引力魔方' as ad_format_lv2",
             "req_storeId",
             "effect_type",
-            "effect",
+            "effect_days as effect",
             "effect_days",
             "campaign_group_id",
             "campaign_group_name",
