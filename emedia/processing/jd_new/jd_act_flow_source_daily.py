@@ -86,9 +86,9 @@ def jd_act_flow_source_daily_etl(airflow_execution_date, run_id):
     ]
     data = spark.table("ods.jd_act_flow_source_daily")
     data = data.drop(*["dw_etl_date", "dw_batch_id","dw_source_name"])
-    data = data.fillna(value='', subset=['activity_cd', 'channel', 'refer_type', 'refer_page', 'refer_param'])
+    # data = data.fillna(value='', subset=['activity_cd', 'channel', 'refer_type', 'refer_page', 'refer_param'])
     data = data.withColumnRenamed("data_source", "dw_source")
-    data = data.dropDuplicates(jd_act_flow_source_daily_pks)
+    # data = data.dropDuplicates(jd_act_flow_source_daily_pks)
     data.distinct().withColumn("etl_source_table", lit("ods.jd_act_flow_source_daily"))\
         .withColumn("etl_create_time", current_timestamp())\
         .withColumn("etl_update_time", current_timestamp())\

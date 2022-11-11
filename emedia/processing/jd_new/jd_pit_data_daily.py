@@ -93,9 +93,9 @@ def jd_pit_data_daily_etl(airflow_execution_date, run_id):
     ]
     data = spark.table("ods.jd_pit_data_daily_df")
     data = data.drop(*["dw_etl_date", "dw_batch_id", "dw_source_name"])
-    data = data.fillna(value='', subset=['group_id', 'epos_activity_id', 'epos_activity_cd'])
+    # data = data.fillna(value='', subset=['group_id', 'epos_activity_id', 'epos_activity_cd'])
     data = data.withColumnRenamed("data_source", "dw_source")
-    data = data.dropDuplicates(jd_pit_data_daily_pks)
+    # data = data.dropDuplicates(jd_pit_data_daily_pks)
     data.distinct().withColumn("etl_source_table", lit("ods.jd_pit_data_daily_df")) \
         .withColumn("etl_create_time", current_timestamp()) \
         .withColumn("etl_update_time", current_timestamp()) \
