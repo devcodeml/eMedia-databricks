@@ -5,7 +5,7 @@ from pyspark.sql.functions import current_timestamp
 from emedia import get_spark
 
 
-def jdkc_daily_fact():
+def jd_jst_daily_fact():
 
     spark = get_spark()
     spark.sql(""" select * from dwd.tb_media_emedia_jst_daily_fact where effect_days='0' or effect_days='24'"""
@@ -34,8 +34,8 @@ def jdkc_daily_fact():
                 mdm_category_id,
                 mdm_brand_id,
                 sum(cost) as cost,
-                sum(clicks) as clicks,
-                sum(impressions) as impressions,
+                sum(click) as click,
+                sum(impression) as impression,
                 cast(null as decimal(20, 4)) as uv_impression,
                 sum(order_quantity) as order_quantity,
                 sum(order_value) as order_amount,

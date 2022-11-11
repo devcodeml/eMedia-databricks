@@ -5,7 +5,7 @@ from pyspark.sql.functions import current_timestamp
 from emedia import get_spark
 
 
-def jdkc_daily_fact():
+def jd_gwcd_daily_fact():
 
     spark = get_spark()
     spark.sql(""" select 
@@ -37,8 +37,8 @@ def jdkc_daily_fact():
             put_type,
             campaign_put_type,
             cost,
-            clicks,
-            impressions,
+            click,
+            impression,
             order_quantity,
             order_value,
             total_cart_quantity,
