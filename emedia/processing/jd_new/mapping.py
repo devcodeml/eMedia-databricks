@@ -157,3 +157,8 @@ def mapping_incremental_rol_etl():
         "overwrite").saveAsTable("stg.emedia_incremental_rol_mapping")
 
     return 0
+
+
+# mapping_period 处理逻辑 待完成，目前是从dw拉取的
+# INSERT INTO emedia.mapping_period(period,year,month, day) SELECT distinct dateadd(day,2,cast(ad_date as date)) ,year(dateadd(day,2,cast(ad_date as date))),month(dateadd(day,2,cast(ad_date as date))),day(dateadd(day,2,cast(ad_date as date)))
+# from dbo.emedia_jd_sem_daily_adgroup_report_fact WHERE dateadd(day,2,cast(ad_date as date)) not in (SELECT distinct cast(period as date) FROM emedia.mapping_period)
