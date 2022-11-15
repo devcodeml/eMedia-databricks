@@ -47,7 +47,7 @@ def jd_pit_data_daily_etl(airflow_execution_date, run_id):
     ).distinct().write.mode(
         "overwrite"
     ).insertInto(
-        "stg.jd_pit_data_daily_df"
+        "stg.jd_pit_data_daily"
     )
 
     spark.sql(
@@ -75,14 +75,14 @@ def jd_pit_data_daily_etl(airflow_execution_date, run_id):
             cast(data_source as string) as data_source,
             cast(dw_etl_date as string) as dw_etl_date,
             cast(dw_batch_id as string) as dw_batch_id
-         from stg.jd_pit_data_daily_df
+         from stg.jd_pit_data_daily
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
     ).option(
         "mergeSchema", "true"
     ).insertInto(
-        "ods.jd_pit_data_daily_df"
+        "ods.jd_pit_data_daily"
     )
 
     jd_pit_data_daily_pks = [
@@ -91,12 +91,12 @@ def jd_pit_data_daily_etl(airflow_execution_date, run_id):
         "epos_activity_id",
         "epos_activity_cd",
     ]
-    data = spark.table("ods.jd_pit_data_daily_df")
+    data = spark.table("ods.jd_pit_data_daily")
     data = data.drop(*["dw_etl_date", "dw_batch_id", "dw_source_name"])
     # data = data.fillna(value='', subset=['group_id', 'epos_activity_id', 'epos_activity_cd'])
     data = data.withColumnRenamed("data_source", "dw_source")
     # data = data.dropDuplicates(jd_pit_data_daily_pks)
-    data.distinct().withColumn("etl_source_table", lit("ods.jd_pit_data_daily_df")) \
+    data.distinct().withColumn("etl_source_table", lit("ods.jd_pit_data_daily")) \
         .withColumn("etl_create_time", current_timestamp()) \
         .withColumn("etl_update_time", current_timestamp()) \
         .write.mode("overwrite"
