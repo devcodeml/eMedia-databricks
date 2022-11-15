@@ -65,7 +65,7 @@ def mapping_store_etl():
 
     return 0
 
-
+# 会去掉
 def mapping_platform_etl():
     log.info("mapping_platform_etl is processing")
     spark = get_spark()
@@ -159,6 +159,83 @@ def mapping_incremental_rol_etl():
     return 0
 
 
+
+def dw_to_dbr(dw_table,dbr_table):
+    log.info("mapping_platform_etl is processing")
+    spark = get_spark()
+
+    # emedia_conf_dict = get_emedia_conf_dict()
+    # server_name = emedia_conf_dict.get('server_name')
+    # database_name = emedia_conf_dict.get('database_name')
+    # username = emedia_conf_dict.get('username')
+    # password = emedia_conf_dict.get('password')
+
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'pgadmin'
+    password = 'C4AfoNNqxHAJvfzK'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                f"select * from {dw_table}") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").saveAsTable(dbr_table)
+
+    return 0
+
+
+
+dw_table = 'emedia.jd_ppzq_cost'
+dbr_table = 'stg.emedia_jd_ppzq_cost_mapping'
+dw_to_dbr(dw_table,dbr_table)
+
+
+dw_table = 'emedia.mapping_ppzq_cost'
+dbr_table = 'stg.emedia_ppzq_cost_mapping'
+dw_to_dbr(dw_table,dbr_table)
+
+
+
 # mapping_period 处理逻辑 待完成，目前是从dw拉取的
 # INSERT INTO emedia.mapping_period(period,year,month, day) SELECT distinct dateadd(day,2,cast(ad_date as date)) ,year(dateadd(day,2,cast(ad_date as date))),month(dateadd(day,2,cast(ad_date as date))),day(dateadd(day,2,cast(ad_date as date)))
 # from dbo.emedia_jd_sem_daily_adgroup_report_fact WHERE dateadd(day,2,cast(ad_date as date)) not in (SELECT distinct cast(period as date) FROM emedia.mapping_period)
+
+
+
+def sn_cpc_daily():
+    log.info("mapping_platform_etl is processing")
+    spark = get_spark()
+
+    # emedia_conf_dict = get_emedia_conf_dict()
+    # server_name = emedia_conf_dict.get('server_name')
+    # database_name = emedia_conf_dict.get('database_name')
+    # username = emedia_conf_dict.get('username')
+    # password = emedia_conf_dict.get('password')
+
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'pgadmin'
+    password = 'C4AfoNNqxHAJvfzK'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                "select * from dbo.tb_emedia_sn_cpc_daily_fact") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").saveAsTable("stg.emedia_sn_cpc_daily")
+
+    return 0
+
