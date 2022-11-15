@@ -15,6 +15,7 @@ spark = get_spark()
 
 def jd_jst_campaign_etl_old():
     # dwd.jdht_campaign_daily
+    dw_to_dbr("dbo.tb_emedia_jd_jst_daily_campaign_report_fact", "stg.jst_campaign_daily_old")
 
     jd_jst_campaign_daily_old = spark.sql(
         """
@@ -52,7 +53,7 @@ def jd_jst_campaign_etl_old():
         "overwrite"
     ).option(
         "mergeSchema", "true"
-    ).saveAsTable(
+    ).insertInto(
         "dwd.jst_campaign_daily_old"
     )
     spark.sql("delete from dwd.tb_media_emedia_jst_daily_fact where report_level = 'campaign' and etl_source_table='dwd.jst_campaign_daily_old' ")
@@ -103,5 +104,26 @@ def jd_jst_campaign_etl_old():
     ).insertInto(
         "dwd.tb_media_emedia_jst_daily_fact"
     )
+
+    return 0
+
+def dw_to_dbr(dw_table, dbr_table):
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'pgadmin'
+    password = 'C4AfoNNqxHAJvfzK'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                f"select * from {dw_table}") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").insertInto(dbr_table)
 
     return 0

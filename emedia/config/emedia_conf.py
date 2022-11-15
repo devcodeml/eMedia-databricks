@@ -52,6 +52,10 @@ def get_emedia_conf_dict():
         , 'mysql_user': 'datalake@consumer-qa-emedia-db-0'
         , 'mysql_pwd': 'b2062ff9122811e99ce54f08370059c1'
         ,'mysql_url': 'jdbc:mysql://consumer-qa-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'
+
+        , 'jd_tier_pack_input_account' : "b2bmptbiprd01"
+        , 'jd_tier_pack_input_container' : "emedia-jd-tier-pack-prd"
+        , 'jd_tier_pack_input_sas' : "sv=2020-10-02&st=2022-11-04T09%3A04%3A09Z&se=2022-12-05T09%3A04%3A00Z&sr=c&sp=rl&sig=JlP958i6maWiVFlo7PYvYQdODqu1XTlVgbDABRem02Q%3D"
     }
     if env != 'qa':
         scope_conf_dict.update({'mysql_user': 'datalake@consumer-prd-emedia-db-0 '
@@ -64,6 +68,8 @@ def get_emedia_conf_dict():
                                 'cumul_blob_container': 'emedia-resource-cumul',
                                 'cumul_blob_sas': 'sv=2020-10-02&st=2022-03-16T07%3A42%3A31Z&se=2030-12-31T07%3A42%3A00Z&sr=c&sp=racwdxlt&sig=xYLVtiblre%2BoxxeB%2FljX5iejhDJac4Xj%2BPd6MD1gIVA%3D'})
 
-
+        scope_conf_dict.update({"jd_tier_pack_input_account" : "b2bmptbiprd01",
+                                "jd_tier_pack_input_container" : "emedia-jd-tier-pack-prd",
+                                "jd_tier_pack_input_sas" : "sv=2020-10-02&st=2022-11-04T09%3A04%3A09Z&se=2022-12-05T09%3A04%3A00Z&sr=c&sp=rl&sig=JlP958i6maWiVFlo7PYvYQdODqu1XTlVgbDABRem02Q%3D"})
 
     return scope_conf_dict
