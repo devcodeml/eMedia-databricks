@@ -33,8 +33,8 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
 
     # daily report
     jd_jdzt_adgroup_path = (
-        f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd/'
-        f"zt_daily_Report/jd_zt_adgroup_"
+        f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}'
+        "/jd/zt_daily_Report/jd_zt_adgroup_"
         f'{file_date.strftime("%Y-%m-%d")}.csv.gz'
     )
 
@@ -162,8 +162,18 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         jd_zt_adgroup_daily_mapping_success,
         jd_zt_adgroup_daily_mapping_fail,
     ) = emedia_brand_mapping(
-        spark, jd_zt_adgroup_df.union(jd_zt_adgroup_fail_df), "jdzt"
+        #    spark, jd_zt_adgroup_df, "jdzt"
+        spark,
+        jd_zt_adgroup_df.union(jd_zt_adgroup_fail_df),
+        "jdzt",
     )
+    # jd_zt_adgroup_daily_mapping_success.dropDuplicates(
+    #  jd_zt_adgroup_daily_pks
+    # ).write.mode(
+    #   "overwrite"
+    # ).saveAsTable(
+    #   "dwd.jdzt_adgroup_daily_mapping_success"
+    # )
 
     jd_zt_adgroup_daily_mapping_success.dropDuplicates(
         jd_zt_adgroup_daily_pks
@@ -202,12 +212,12 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             '' as mdm_productline_id,
             a.category_id as emedia_category_id,
             a.brand_id as emedia_brand_id,
-            d.category2_code as mdm_category_id,
+            c.category2_code as mdm_category_id,
             c.brand_code as mdm_brand_id
         from jdzt_adgroup_daily a 
         left join ods.media_category_brand_mapping c
-            on a.brand_id = c.emedia_brand_code 
-            left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
+            on a.brand_id = c.emedia_brand_code and
+            a.category_id = c.emedia_category_code
     """
     )
 
