@@ -15,6 +15,7 @@ spark = get_spark()
 
 def jd_gwcd_campaign_etl_old():
     # stg.gwcd_campaign_daily_old_v2 处理
+    dw_to_dbr("dbo.tb_emedia_jg_gwcd_tp_fact", "stg.gwcd_campaign_daily_old_v2")
     spark.sql(
         """
         select
@@ -170,7 +171,7 @@ def jd_gwcd_campaign_etl_old():
 
 
     # stg.gwcd_campaign_daily_old 处理
-
+    dw_to_dbr("dbo.tb_emedia_jd_gwcd_daily_campaign_report_fact", "stg.gwcd_campaign_daily_old")
     gwcd_campaign_daily_res_old = spark.sql(
         """
         select
@@ -356,3 +357,30 @@ def jd_gwcd_campaign_etl_old():
     )
 
     return 0
+
+
+def dw_to_dbr(dw_table, dbr_table):
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'pgadmin'
+    password = 'C4AfoNNqxHAJvfzK'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                f"select * from {dw_table}") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").insertInto(dbr_table)
+
+    return 0
+
+
+# dw_table = 'emedia.jd_ppzq_cost'
+# dbr_table = 'stg.emedia_jd_ppzq_cost_mapping'
+# dw_to_dbr(dw_table, dbr_table)

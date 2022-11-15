@@ -15,8 +15,8 @@ spark = get_spark()
 
 def jd_ht_campaign_etl_old():
     # dwd.jdht_campaign_daily
-
-    spark.sql("delete from dwd.tb_media_emedia_jdht_daily_fact where report_level = 'campaign' ")
+    get_history_data()
+    spark.sql("delete from dwd.tb_media_emedia_jdht_daily_fact where report_level = 'campaign' and etl_source_table='dwd.jdht_campaign_daily'")
 
     spark.sql(
         """
@@ -79,6 +79,7 @@ def jd_ht_campaign_etl_old():
     )
 
     # stg.jdht_campaign_daily_old
+    dw_to_dbr("dbo.tb_emedia_jg_ht_campaign_fact", "stg.jdht_campaign_daily_old")
     jdht_campaign_daily_old = spark.sql(
         """
         select
@@ -117,9 +118,10 @@ def jd_ht_campaign_etl_old():
         "overwrite"
     ).option(
         "mergeSchema", "true"
-    ).saveAsTable(
+    ).insertInto(
         "dwd.jdht_campaign_daily_old"
     )
+    spark.sql("delete from dwd.tb_media_emedia_jdht_daily_fact where report_level = 'campaign' and etl_source_table='dwd.jdht_campaign_daily_old'")
     spark.sql(""" select 
             cast(ad_date as date) as ad_date,
             '海投' as ad_format_lv2,
@@ -194,4 +196,118 @@ def jd_ht_campaign_etl_old():
     #     "dws.media_emedia_overview_daily_fact"
     # )
 
+    return 0
+
+def dw_to_dbr(dw_table, dbr_table):
+    server_name = 'jdbc:sqlserver://b2bmptbiprd0101.database.chinacloudapi.cn'
+    database_name = 'B2B-prd-MPT-DW-01'
+    username = 'pgadmin'
+    password = 'C4AfoNNqxHAJvfzK'
+
+    url = server_name + ";" + "databaseName=" + database_name + ";"
+
+    emedia_overview_source_df = spark.read \
+        .format("com.microsoft.sqlserver.jdbc.spark") \
+        .option("url", url) \
+        .option("query",
+                f"select * from {dw_table}") \
+        .option("user", username) \
+        .option("password", password).load()
+
+    emedia_overview_source_df.distinct().write.mode(
+        "overwrite").insertInto(dbr_table)
+
+    return 0
+
+
+def get_history_data():
+    output_jd_ht_campaign_pks = [
+        'ad_date'
+        , 'pin_name'
+        , 'campaign_id'
+        , 'effect_days'
+        , 'req_clickOrOrderDay'
+    ]
+    spark.sql(f'''
+        SELECT
+            date AS ad_date
+            , req_pin AS pin_name
+            , category_id
+            , brand_id
+            , campaignId AS campaign_id
+            , campaignName AS campaign_name
+            , CASE req_clickOrOrderDay WHEN '0' THEN '0'  WHEN '7' THEN '8' WHEN '1' THEN '1' WHEN '15' THEN '24' END AS effect_days
+            , impressions
+            , clicks
+            , cost
+            , directCartCnt
+            , directOrderCnt
+            , directOrderSum
+            , indirectCartCnt
+            , indirectOrderCnt
+            , indirectOrderSum
+            , totalCartCnt
+            , totalOrderCnt
+            , totalOrderSum
+            , activityType
+            , commentCnt
+            , couponCnt
+            , CPA
+            , CPC
+            , CPM
+            , CPR
+            , CTR
+            , depthPassengerCnt
+            , effectCartCnt
+            , effectOrderCnt
+            , effectOrderSum
+            , followCnt
+            , goodsAttentionCnt
+            , interActCnt
+            , IR
+            , likeCnt
+            , newCustomersCnt
+            , clickDate
+            , orderStatusCategory
+            , preorderCnt
+            , presaleDirectOrderCnt
+            , presaleDirectOrderSum
+            , presaleIndirectOrderCnt
+            , presaleIndirectOrderSum
+            , shareCnt
+            , shopAttentionCnt
+            , totalAuctionCnt
+            , totalAuctionMarginSum
+            , totalOrderCVS
+            , totalOrderROI
+            , totalPresaleOrderCnt
+            , totalPresaleOrderSum
+            , visitorCnt
+            , visitPageCnt
+            , visitTimeAverage
+            , watchCnt
+            , watchTimeAvg
+            , watchTimeSum
+            , req_startDay
+            , req_endDay
+            , req_productName
+            , req_page
+            , req_pageSize
+            , req_clickOrOrderDay
+            , req_clickOrOrderCaliber
+            , req_isDaily
+        FROM(
+            SELECT *
+            FROM dws.tb_emedia_jd_ht_campaign_mapping_success
+                UNION
+            SELECT *
+            FROM stg.tb_emedia_jd_ht_campaign_mapping_fail
+        )
+    ''').dropDuplicates(output_jd_ht_campaign_pks).distinct().write.mode(
+        "overwrite"
+    ).option(
+        "mergeSchema", "true"
+    ).insertInto(
+        "dwd.jdht_campaign_daily"
+    )
     return 0
