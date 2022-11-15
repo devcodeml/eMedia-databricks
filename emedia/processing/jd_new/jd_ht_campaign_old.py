@@ -2,14 +2,14 @@
 
 import datetime
 
-from pyspark.sql.functions import current_date, current_timestamp, lit
+from pyspark.sql.functions import current_date, current_timestamp, lit, col, udf
 from pyspark.sql.types import *
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.processing.jd_new.push_to_dw import push_to_dw, push_status
 from emedia.utils import output_df
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
-
+from pyspark.sql.types import DateType
 spark = get_spark()
 
 
@@ -59,8 +59,8 @@ def jd_ht_campaign_etl_old():
             orderStatusCategory as order_status_category,
             req_clickOrOrderCaliber as click_or_order_caliber,
             cast(cost as decimal(20, 4)) as cost,
-            cast(clicks as bigint) as clicks,
-            cast(impressions as bigint) as impressions,
+            cast(clicks as bigint) as click,
+            cast(impressions as bigint) as impression,
             cast(totalOrderCnt as bigint) as order_quantity,
             cast(totalOrderSum as decimal(20, 4)) as order_value,
             cast(totalCartCnt as bigint) as total_cart_quantity,
@@ -95,7 +95,22 @@ def jd_ht_campaign_etl_old():
         """
     )
 
+    def f_mau_vec(effect):
+        if effect == "0":
+            return "0"
+        elif effect == "1":
+            return "1"
+        elif effect == "7":
+            return "8"
+        elif effect == "15":
+            return "24"
+        else:
+            return effect
+    udf_mau_vec = udf(f_mau_vec, StringType())
+
+    jdht_campaign_daily_old = jdht_campaign_daily_old.withColumn('effect_days', udf_mau_vec(col('effect')))
     jdht_campaign_daily_old = jdht_campaign_daily_old.drop(*["mdm_category_id", "mdm_brand_id"])
+    jdht_campaign_daily_old = jdht_campaign_daily_old.withColumn("ad_date", jdht_campaign_daily_old['ad_date'].cast(DateType()))
     jdht_campaign_daily_old = jdht_campaign_daily_old.withColumnRenamed("mdm_category_id_new", "mdm_category_id")
     jdht_campaign_daily_old = jdht_campaign_daily_old.withColumnRenamed("mdm_brand_id_new", "mdm_brand_id")
     jdht_campaign_daily_old.write.mode(
@@ -130,11 +145,11 @@ def jd_ht_campaign_etl_old():
             '' as order_status_category,
             cast(click_or_order_caliber as string) as click_or_order_caliber,
             cast(cost as decimal(20, 4)) as cost,
-            cast(clicks as bigint) as clicks,
-            cast(impressions as bigint) as impressions,
+            cast(clicks as bigint) as click,
+            cast(impressions as bigint) as impression,
             cast(total_order_cnt as bigint) as order_quantity,
             cast(total_order_sum as decimal(20, 4)) as order_value,
-            cast(total_order_cnt as bigint) as total_cart_quantity,
+            cast(total_cart_cnt as bigint) as total_cart_quantity,
             cast(new_customers_cnt as bigint) as new_customer_quantity,
             data_source as dw_source,
             cast(dw_etl_date as string) as dw_create_time,
@@ -150,33 +165,33 @@ def jd_ht_campaign_etl_old():
     )
 
     # 推送到 dws.media_emedia_overview_daily_fact
-    spark.sql("delete from dws.media_emedia_overview_daily_fact where ad_format_lv2 = '海投' ")
-
-    spark.sql(""" select 
-            ad_date,
-            ad_format_lv2,
-            '' as store_id,
-            effect,
-            effect_days,
-            emedia_category_id,
-            emedia_brand_id,
-            mdm_category_id,
-            mdm_brand_id,
-            sum(cost) as cost,
-            sum(clicks) as clicks,
-            sum(impressions) as impressions,
-            cast(null as decimal(20, 4)) as uv_impression,
-            sum(order_quantity) as order_quantity,
-            sum(order_value) as order_amount,
-            sum(total_cart_quantity) as cart_quantity,
-            sum(new_customer_quantity) as new_customer_quantity 
-            from dwd.tb_media_emedia_jdht_daily_fact group by ad_date, ad_format_lv2, effect, effect_days, emedia_category_id, emedia_brand_id, mdm_brand_id, mdm_category_id"""
-          ).distinct().withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time",                                                                                current_timestamp()).write.mode(
-        "append"
-    ).option(
-        "mergeSchema", "true"
-    ).insertInto(
-        "dws.media_emedia_overview_daily_fact"
-    )
+    # spark.sql("delete from dws.media_emedia_overview_daily_fact where ad_format_lv2 = '海投' ")
+    #
+    # spark.sql(""" select
+    #         ad_date,
+    #         ad_format_lv2,
+    #         '' as store_id,
+    #         effect,
+    #         effect_days,
+    #         emedia_category_id,
+    #         emedia_brand_id,
+    #         mdm_category_id,
+    #         mdm_brand_id,
+    #         sum(cost) as cost,
+    #         sum(click) as click,
+    #         sum(impression) as impression,
+    #         cast(null as decimal(20, 4)) as uv_impression,
+    #         sum(order_quantity) as order_quantity,
+    #         sum(order_value) as order_amount,
+    #         sum(total_cart_quantity) as cart_quantity,
+    #         sum(new_customer_quantity) as new_customer_quantity
+    #         from dwd.tb_media_emedia_jdht_daily_fact group by ad_date, ad_format_lv2, effect, effect_days, emedia_category_id, emedia_brand_id, mdm_brand_id, mdm_category_id"""
+    #       ).distinct().withColumn("etl_create_time", current_timestamp()).withColumn("etl_update_time",                                                                                current_timestamp()).write.mode(
+    #     "append"
+    # ).option(
+    #     "mergeSchema", "true"
+    # ).insertInto(
+    #     "dws.media_emedia_overview_daily_fact"
+    # )
 
     return 0
