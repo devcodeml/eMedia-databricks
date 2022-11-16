@@ -112,8 +112,6 @@ def jd_seckill_daily_etl(airflow_execution_date, run_id):
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ods.jd_seckill_daily"
     )
@@ -138,7 +136,6 @@ def jd_seckill_daily_etl(airflow_execution_date, run_id):
         .withColumn("etl_create_time", current_timestamp())\
         .withColumn("etl_update_time", current_timestamp())\
         .write.mode("overwrite")\
-        .option("mergeSchema", "true")\
         .insertInto("dwd.tb_media_emedia_jd_seckill_daily_fact")
 
     return 0

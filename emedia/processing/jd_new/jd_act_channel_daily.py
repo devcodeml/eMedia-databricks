@@ -72,8 +72,6 @@ def jd_act_channel_daily_etl(airflow_execution_date, run_id):
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ods.jd_act_channel_daily"
     )
@@ -95,9 +93,7 @@ def jd_act_channel_daily_etl(airflow_execution_date, run_id):
     data.distinct().withColumn("etl_source_table", lit("ods.jd_act_channel_daily")) \
         .withColumn("etl_create_time", current_timestamp()) \
         .withColumn("etl_update_time", current_timestamp()) \
-        .write.mode("overwrite").option(
-        "mergeSchema", "true"
-    ).insertInto(
+        .write.mode("overwrite").insertInto(
         "dwd.tb_media_emedia_jd_act_channel_daily_fact"
     )
 

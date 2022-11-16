@@ -393,8 +393,6 @@ def tb_media_emedia_gwcd_daily_fact():
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.tb_media_emedia_gwcd_daily_fact"
     )

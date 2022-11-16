@@ -91,3 +91,33 @@ CREATE TABLE `dwd`.`tb_media_emedia_jd_seckill_daily_fact` (
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/tb_media_emedia_jd_seckill_daily_fact';
 
+DROP TABLE IF EXISTS `ds`.`gm_emedia_jd_seckill_download_daily_fact`;
+CREATE TABLE `ds`.`gm_emedia_jd_seckill_download_daily_fact` (
+  `date_time` DATE,
+  `sku_id` STRING,
+  `sku_name` STRING,
+  `first_cate_id` STRING,
+  `first_cate_name` STRING,
+  `second_cate_id` STRING,
+  `second_cate_name` STRING,
+  `third_cate_id` STRING,
+  `third_cate_name` STRING,
+  `brand_id` STRING,
+  `brand_name` STRING,
+  `type` STRING,
+  `pv` BIGINT,
+  `uv` BIGINT,
+  `deal_amt` DECIMAL(19,4),
+  `sale_ord` BIGINT,
+  `deal_num` BIGINT,
+  `sale_qtty` BIGINT,
+  `spu_id` STRING,
+  `spu_name` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `dw_source` STRING,
+  `etl_source_table` STRING,
+  `etl_update_time` TIMESTAMP,
+  `etl_create_time` TIMESTAMP)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_jd_seckill_download_daily_fact';
