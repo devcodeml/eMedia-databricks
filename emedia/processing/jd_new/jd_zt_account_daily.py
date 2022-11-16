@@ -1,9 +1,11 @@
 # coding: utf-8
 
 import datetime
+from functools import reduce
 
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import current_date, current_timestamp, lit
-from pyspark.sql.types import *
+
 from emedia import get_spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
 
@@ -24,6 +26,7 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
         input_sas,
     )
 
+    # jt zt daily adgroup report
     jdzt_account_daily_path = (
         f"fetchResultFiles/{file_date.strftime('%Y-%m-%d')}/jd/zt_daily_Report"
         f"/jd_zt_account_{file_date.strftime('%Y-%m-%d')}.csv.gz"
@@ -40,18 +43,21 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
         inferSchema=True,
     )
 
-    origin_jdzt_account_daily_df.withColumn(
-        "data_source", lit("jingdong.ads.ibg.UniversalJosService.account.query")
-    ).withColumn("dw_batch_id", lit(run_id)).withColumn(
-        "dw_etl_date", current_date()
-    ).distinct().write.mode(
-        "overwrite"
-    ).insertInto(
-        "stg.jdzt_account_daily"
+    (
+        origin_jdzt_account_daily_df.withColumn(
+            "data_source", lit("jingdong.ads.ibg.UniversalJosService.account.query")
+        )
+        .withColumn("dw_batch_id", lit(run_id))
+        .withColumn("dw_etl_date", current_date())
+        .distinct()
+        .write.mode("overwrite")
+        # .saveAsTable("stg.jdzt_account_daily")
+        .insertInto("stg.jdzt_account_daily")
     )
 
-    spark.sql(
-        """
+    (
+        spark.sql(
+            """
         select
             cast(`date` as date) as ad_date,
             cast(req_pin as string) as pin_name,
@@ -114,12 +120,13 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
             cast(dw_batch_id as string) as dw_batch_id
         from stg.jdzt_account_daily
         """
-    ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
-        "overwrite"
-    ).option(
-        "mergeSchema", "true"
-    ).insertInto(
-        "ods.jdzt_account_daily"
+        )
+        .withColumn("dw_etl_date", current_date())
+        .distinct()
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        # .saveAsTable("ods.jdzt_account_daily")
+        .insertInto("ods.jdzt_account_daily")
     )
 
     jd_zt_account_daily_pks = [
@@ -267,14 +274,17 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
         "category_id IS NOT null or brand_id IS NOT null"
     ).createOrReplaceTempView("mapping_success_3")
 
-    spark.table("mapping_success_1").union(spark.table("mapping_success_2")).union(
-        spark.table("mapping_success_3")
-    ).withColumn("etl_date", current_date()).withColumn(
-        "etl_create_time", current_timestamp()
-    ).distinct().dropDuplicates(
-        jd_zt_account_daily_pks
-    ).createOrReplaceTempView(
-        "all_mapping_success"
+    (
+        spark.table("mapping_success_1")
+        .union(spark.table("mapping_success_2"))
+        .union(spark.table("mapping_success_3"))
+        .withColumn("etl_date", current_date())
+        .withColumn("etl_create_time", current_timestamp())
+        .distinct()
+        .dropDuplicates(jd_zt_account_daily_pks)
+        # .write.mode("overwrite")
+        # .saveAsTable("dwd.jdzt_account_daily_mapping_success")
+        .createOrReplaceTempView("all_mapping_success")
     )
 
     # UPSERT DBR TABLE USING success mapping
@@ -285,22 +295,26 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
     )
     spark.sql(
         f"""
-            MERGE INTO {dwd_table}
-            USING {tmp_table}
-            ON {and_str}
-            WHEN MATCHED THEN
-                UPDATE SET *
-            WHEN NOT MATCHED
-                THEN INSERT *
-            """
+          MERGE INTO {dwd_table}
+          USING {tmp_table}
+          ON {and_str}
+          WHEN MATCHED THEN
+              UPDATE SET *
+          WHEN NOT MATCHED
+              THEN INSERT *
+          """
     )
 
-    spark.table("mapping_fail_3").withColumn("etl_date", current_date()).withColumn(
-        "etl_create_time", current_timestamp()
-    ).distinct().dropDuplicates(jd_zt_account_daily_pks).write.mode("overwrite").option(
-        "mergeSchema", "true"
-    ).insertInto(
-        "dwd.jdzt_account_daily_mapping_fail"
+    (
+        spark.table("mapping_fail_3")
+        .withColumn("etl_date", current_date())
+        .withColumn("etl_create_time", current_timestamp())
+        .distinct()
+        .dropDuplicates(jd_zt_account_daily_pks)
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        .insertInto("dwd.jdzt_account_daily_mapping_fail")
+        # .saveAsTable("dwd.jdzt_account_daily_mapping_fail")
     )
 
     spark.table("dwd.jdzt_account_daily_mapping_success").union(
@@ -311,15 +325,14 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
         """
         select
           a.*,
-          '' as mdm_productline_id,
           a.category_id as emedia_category_id,
           a.brand_id as emedia_brand_id,
-          d.category2_code as mdm_category_id,
+          c.category2_code as mdm_category_id,
           c.brand_code as mdm_brand_id
         from jdzt_account_daily a
         left join ods.media_category_brand_mapping c
-          on a.brand_id = c.emedia_brand_code 
-          left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
+          on a.brand_id = c.emedia_brand_code and
+          a.category_id = c.emedia_category_code
         """
     )
 
@@ -389,6 +402,90 @@ def jdzt_account_daily_etl(airflow_execution_date, run_id):
         "mergeSchema", "true"
     ).insertInto(
         "dwd.jdzt_account_daily"
+    )
+
+    # dwd.tb_media_emedia_jdzt_daily_fact
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_jdzt_daily_fact
+        where `report_level` = 'account' 
+        """
+    )
+
+    tables = [
+        "dwd.jdzt_account_daily",
+        "dwd.jdzt_account_daily_old_v2",
+        "dwd.jdzt_account_daily_old",
+    ]
+
+    reduce(
+        DataFrame.union,
+        map(
+            lambda table: spark.table(table)
+            .drop("etl_source_table")
+            .withColumn("etl_source_table", lit(table)),
+            tables,
+        ),
+    ).createOrReplaceTempView("jdzt_account_daily")
+
+    jd_zt_daily_fact_pks = [
+        "ad_date",
+        "pin_name",
+        "effect",
+        "effect_days",
+        "campaign_id",
+        "mobile_type",
+        "media_type",
+        "business_type",
+        "gift_flag",
+        "order_status_category",
+        "click_or_order_caliber",
+        "impression_or_click_effect",
+    ]
+    spark.sql(
+        """
+        SELECT
+            ad_date,
+            '京东直投' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            '' as campaign_id,
+            '' as campaign_name,
+            '' as adgroup_id,
+            '' as adgroup_name,
+            'account' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            emedia_category_id as emedia_category_id,
+            emedia_brand_id as emedia_brand_id,
+            mdm_category_id as mdm_category_id,
+            mdm_brand_id as mdm_brand_id,
+            mobile_type,
+            '' as media_type,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            impression_or_click_effect,
+            round(nvl(cost, 0), 4) as cost,
+            nvl(clicks, 0) as click,
+            nvl(impressions, 0) as impression,
+            nvl(order_quantity, 0) as order_quantity,
+            round(nvl(order_value, 0), 4) as order_value,
+            nvl(total_cart_quantity, 0) as total_cart_quantity,
+            nvl(new_customer_quantity, 0) as new_customer_quantity,
+            data_source as dw_source,
+            dw_etl_date as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            etl_source_table,
+            current_timestamp() as etl_create_time,
+            current_timestamp() as etl_update_time
+        FROM 
+            jdzt_account_daily
+        """
+    ).dropDuplicates(jd_zt_daily_fact_pks).write.mode("append").insertInto(
+        "dwd.tb_media_emedia_jdzt_daily_fact"
     )
 
     return 0

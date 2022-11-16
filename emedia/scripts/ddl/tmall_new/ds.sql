@@ -87,4 +87,52 @@ CREATE TABLE `ds`.`gm_emedia_ylmf_deep_dive_download_daily_fact` (
   `etl_create_time` TIMESTAMP,
   `etl_update_time` TIMESTAMP)
 USING delta
+PARTITIONED BY (report_level)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_ylmf_deep_dive_download_daily_fact';
+
+
+DROP TABLE IF EXISTS `ds`.`hc_media_emedia_ylmf_download_promotion_adzone_creative_daily_fact`;
+CREATE TABLE `ds`.`hc_media_emedia_ylmf_download_promotion_adzone_creative_daily_fact` (
+  `ad_date` DATE,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `effect` STRING,
+  `effect_days` STRING,
+  `campaign_group_id` STRING,
+  `campaign_group_name` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `promotion_entity_id` STRING,
+  `promotion_entity_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `emedia_category_id` STRING,
+  `emedia_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `creative_start_time` STRING,
+  `creative_end_time` STRING,
+  `creative_url` STRING,
+  `cost` DECIMAL(20,4),
+  `click` INT,
+  `impression` INT,
+  `order_quantity` INT,
+  `order_amount` DECIMAL(20,4),
+  `cart_quantity` INT,
+  `gmv_order_quantity` INT,
+  `cost_YA` DECIMAL(20,4),
+  `click_YA` INT,
+  `impression_YA` INT,
+  `order_quantity_YA` INT,
+  `order_amount_YA` DECIMAL(20,4),
+  `cart_quantity_YA` INT,
+  `gmv_order_quantity_YA` INT,
+  `dw_resource` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+PARTITIONED BY (report_level)
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/hc_media_emedia_ylmf_download_promotion_adzone_creative_daily_fact';

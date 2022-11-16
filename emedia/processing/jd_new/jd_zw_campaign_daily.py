@@ -1,9 +1,11 @@
 # coding: utf-8
 
 import datetime
+from functools import reduce
 
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import current_date, lit
-from pyspark.sql.types import *
+
 from emedia import get_spark, log
 from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
@@ -39,20 +41,22 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
         sep="|",
     )
 
-    # stg.jdzw_campaign_daily
-    jd_zw_campaign_daily_df.withColumn(
-        "data_source", lit("jingdong.ads.ibg.UniversalJosService.campaign.query")
-    ).withColumn("dw_batch_id", lit(run_id)).withColumn(
-        "dw_etl_date", current_date()
-    ).distinct().write.mode(
-        "overwrite"
-    ).insertInto(
-        "stg.jdzw_campaign_daily"
+    (
+        jd_zw_campaign_daily_df.withColumn(
+            "data_source", lit("jingdong.ads.ibg.UniversalJosService.campaign.query")
+        )
+        .withColumn("dw_batch_id", lit(run_id))
+        .withColumn("dw_etl_date", current_date())
+        .distinct()
+        .write.mode("overwrite")
+        # .saveAsTable("stg.jdzw_campaign_daily")
+        .insertInto("stg.jdzw_campaign_daily")
     )
 
     # ods.jdzw_campaign_daily
-    spark.sql(
-        """
+    (
+        spark.sql(
+            """
         select
           to_date(cast(`date` as string), 'yyyyMMdd') as ad_date,
           cast(pin as string) as pin_name,
@@ -115,12 +119,13 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
           cast(dw_batch_id as string) as dw_batch_id
         from stg.jdzw_campaign_daily
         """
-    ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
-        "overwrite"
-    ).option(
-        "mergeSchema", "true"
-    ).insertInto(
-        "ods.jdzw_campaign_daily"
+        )
+        .distinct()
+        .withColumn("dw_etl_date", current_date())
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        # .saveAsTable("ods.jdzw_campaign_daily")
+        .insertInto("ods.jdzw_campaign_daily")
     )
 
     # dwd.jdzw_campaign_daily
@@ -155,11 +160,17 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
         jdzw_campaign_daily_mapping_success,
         jdzw_campaign_daily_mapping_fail,
     ) = emedia_brand_mapping(
-        spark, jdzw_campaign_df.union(jdzw_campaign_fail_df), "dmp"
+        #    spark, jdzw_campaign_df, "dmp"
+        spark,
+        jdzw_campaign_df.union(jdzw_campaign_fail_df),
+        "dmp",
     )
-    jdzw_campaign_daily_mapping_success.dropDuplicates(
-        jdzw_campaign_pks
-    ).createOrReplaceTempView("all_mapping_success")
+    (
+        jdzw_campaign_daily_mapping_success.dropDuplicates(jdzw_campaign_pks)
+        # .write.mode("overwrite")
+        # .saveAsTable("dwd.jdzw_campaign_daily_mapping_success")
+        .createOrReplaceTempView("all_mapping_success")
+    )
 
     # UPSERT DBR TABLE USING success mapping
     dwd_table = "dwd.jdzw_campaign_daily_mapping_success"
@@ -179,9 +190,17 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
             """
     )
 
-    jdzw_campaign_daily_mapping_fail.dropDuplicates(jdzw_campaign_pks).write.mode(
-        "overwrite"
-    ).option("mergeSchema", "true").insertInto("dwd.jdzw_campaign_daily_mapping_fail")
+    (
+        jdzw_campaign_daily_mapping_fail.dropDuplicates(jdzw_campaign_pks)
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        .insertInto("dwd.jdzw_campaign_daily_mapping_fail")
+        # .saveAsTable("dwd.jdzw_campaign_daily_mapping_fail")
+    )
+
+    spark.table("dwd.jdzw_campaign_daily_mapping_success").union(
+        spark.table("dwd.jdzw_campaign_daily_mapping_fail")
+    ).createOrReplaceTempView("jdzw_campaign_daily")
 
     spark.table("dwd.jdzw_campaign_daily_mapping_success").union(
         spark.table("dwd.jdzw_campaign_daily_mapping_fail")
@@ -194,83 +213,172 @@ def jd_zw_campaign_etl(airflow_execution_date, run_id):
           '' as mdm_productline_id,
           a.category_id as emedia_category_id,
           a.brand_id as emedia_brand_id,
-          d.category2_code as mdm_category_id,
+          c.category2_code as mdm_category_id,
           c.brand_code as mdm_brand_id
         from jdzw_campaign_daily a
         left join ods.media_category_brand_mapping c
-          on a.brand_id = c.emedia_brand_code 
-          left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
+          on a.brand_id = c.emedia_brand_code and
+          a.category_id = c.emedia_category_code
         """
     )
 
-    jdzw_campaign_daily_res.selectExpr(
+    (
+        jdzw_campaign_daily_res.selectExpr(
+            "ad_date",
+            "pin_name",
+            "effect",
+            "effect_days",
+            "emedia_category_id",
+            "emedia_brand_id",
+            "mdm_category_id",
+            "mdm_brand_id",
+            "campaign_id",
+            "campaign_name",
+            "cost",
+            "clicks",
+            "impressions",
+            "cpa",
+            "cpc",
+            "cpm",
+            "ctr",
+            "total_order_roi",
+            "total_order_cvs",
+            "direct_cart_cnt",
+            "indirect_cart_cnt",
+            "total_cart_quantity",
+            "direct_order_value",
+            "indirect_order_value",
+            "order_value",
+            "direct_order_quantity",
+            "indirect_order_quantity",
+            "order_quantity",
+            "favorite_item_quantity",
+            "favorite_shop_quantity",
+            "coupon_quantity",
+            "preorder_quantity",
+            "depth_passenger_quantity",
+            "new_customer_quantity",
+            "visit_page_quantity",
+            "visit_time_length",
+            "visitor_quantity",
+            "presale_direct_order_cnt",
+            "presale_direct_order_sum",
+            "presale_indirect_order_cnt",
+            "presale_indirect_order_sum",
+            "total_presale_order_cnt",
+            "total_presale_order_sum",
+            "put_type",
+            "campaign_type",
+            "campaign_put_type",
+            "mobile_type",
+            "business_type",
+            "gift_flag",
+            "order_status_category",
+            "click_or_order_caliber",
+            "impression_or_click_effect",
+            "click_date",
+            "delivery_version",
+            "start_day",
+            "end_day",
+            "is_daily",
+            "'ods.jdzw_campaign_daily' as data_source",
+            "dw_batch_id",
+        )
+        .distinct()
+        .withColumn("dw_etl_date", current_date())
+        .write.mode("overwrite")
+        .option("mergeSchema", "true")
+        # .saveAsTable("dwd.jdzw_campaign_daily")
+        .insertInto("dwd.jdzw_campaign_daily")
+    )
+
+    # dwd.tb_media_emedia_jdzw_daily_fact
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_jdzw_daily_fact
+        where `report_level` = 'campaign' 
+        """
+    )
+
+    tables = [
+        "dwd.jdzw_campaign_daily",
+    ]
+
+    reduce(
+        DataFrame.union,
+        map(
+            lambda table: spark.table(table)
+            .drop("etl_source_table")
+            .withColumn("etl_source_table", lit(table)),
+            tables,
+        ),
+    ).createOrReplaceTempView("jdzw_campaign_daily")
+
+    jd_zw_daily_fact_pks = [
         "ad_date",
         "pin_name",
         "effect",
         "effect_days",
-        "emedia_category_id",
-        "emedia_brand_id",
-        "mdm_category_id",
-        "mdm_brand_id",
         "campaign_id",
-        "campaign_name",
-        "cost",
-        "clicks",
-        "impressions",
-        "cpa",
-        "cpc",
-        "cpm",
-        "ctr",
-        "total_order_roi",
-        "total_order_cvs",
-        "direct_cart_cnt",
-        "indirect_cart_cnt",
-        "total_cart_quantity",
-        "direct_order_value",
-        "indirect_order_value",
-        "order_value",
-        "direct_order_quantity",
-        "indirect_order_quantity",
-        "order_quantity",
-        "favorite_item_quantity",
-        "favorite_shop_quantity",
-        "coupon_quantity",
-        "preorder_quantity",
-        "depth_passenger_quantity",
-        "new_customer_quantity",
-        "visit_page_quantity",
-        "visit_time_length",
-        "visitor_quantity",
-        "presale_direct_order_cnt",
-        "presale_direct_order_sum",
-        "presale_indirect_order_cnt",
-        "presale_indirect_order_sum",
-        "total_presale_order_cnt",
-        "total_presale_order_sum",
-        "put_type",
-        "campaign_type",
-        "campaign_put_type",
+        "adgroup_id",
+        "report_level",
+        "report_level_id",
         "mobile_type",
         "business_type",
         "gift_flag",
         "order_status_category",
         "click_or_order_caliber",
         "impression_or_click_effect",
-        "click_date",
-        "delivery_version",
-        "start_day",
-        "end_day",
-        "is_daily",
-        "'ods.jdzw_campaign_daily' as data_source",
-        "dw_batch_id",
-    ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
-        "overwrite"
-    ).option(
-        "mergeSchema", "true"
-    ).insertInto(
-        "dwd.jdzw_campaign_daily"
+    ]
+    spark.sql(
+        """
+        SELECT
+            ad_date,
+            '品牌聚效' as ad_format_lv2,
+            pin_name,
+            effect,
+            effect_days,
+            campaign_id,
+            campaign_name,
+            '' as adgroup_id,
+            '' as adgroup_name,
+            'campaign' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            '' as audience_name,
+            '' as sku_id,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
+            '' as mdm_productline_id,
+            mobile_type,
+            business_type,
+            gift_flag,
+            order_status_category,
+            click_or_order_caliber,
+            impression_or_click_effect,
+            put_type,
+            campaign_type,
+            campaign_put_type,
+            round(nvl(cost, 0), 4) as cost,
+            nvl(clicks, 0) as click,
+            nvl(impressions, 0) as impression,
+            nvl(order_quantity, 0) as order_quantity,
+            round(nvl(order_value, 0), 4) as order_value,
+            nvl(total_cart_quantity, 0) as total_cart_quantity,
+            nvl(new_customer_quantity, 0) as new_customer_quantity,
+            data_source as dw_source,
+            dw_etl_date as dw_create_time,
+            dw_batch_id as dw_batch_number,
+            etl_source_table,
+            current_timestamp() as etl_create_time,
+            current_timestamp() as etl_update_time
+        FROM 
+            jdzw_campaign_daily
+        """
+    ).dropDuplicates(jd_zw_daily_fact_pks).write.mode("append").insertInto(
+        "dwd.tb_media_emedia_jdzw_daily_fact"
     )
 
     return 0
-
-    # dwd.tb_media_emedia_jdzw_daily_fact

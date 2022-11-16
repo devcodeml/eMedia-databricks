@@ -724,8 +724,8 @@ def tmall_feedflow_creative_daily_dwd_etl():
         .dropDuplicates(tmall_ylmf_creative_package_daily_stg_pks)
         .write.mode("overwrite")
         .option("mergeSchema", "true")
-        # .insertInto("dwd.feedflow_creative_daily")
-        .saveAsTable("dwd.feedflow_creative_daily")
+        .insertInto("dwd.feedflow_creative_daily")
+        # .saveAsTable("dwd.feedflow_creative_daily")
     )
 
 
@@ -833,8 +833,8 @@ def tmall_super_zz_creative_daily_dwd_etl():
         .dropDuplicates(tmall_ylmf_creative_package_daily_stg_pks)
         .write.mode("overwrite")
         .option("mergeSchema", "true")
-        # .insertInto("dwd.super_zz_creative_daily")
-        .saveAsTable("dwd.super_zz_creative_daily")
+        .insertInto("dwd.super_zz_creative_daily")
+        # .saveAsTable("dwd.super_zz_creative_daily")
     )
 
 
@@ -936,6 +936,6 @@ def tmall_zz_creative_daily_dwd_etl():
         .dropDuplicates(tmall_ylmf_creative_package_daily_stg_pks)
         .write.mode("overwrite")
         .option("mergeSchema", "true")
-        # .insertInto("dwd.zz_creative_daily")
-        .saveAsTable("dwd.zz_creative_daily")
+        .insertInto("dwd.zz_creative_daily")
+        # .saveAsTable("dwd.zz_creative_daily")
     )
