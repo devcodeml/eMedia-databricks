@@ -13,7 +13,7 @@ from emedia.utils.output_df import output_to_emedia
 spark = get_spark()
 
 
-def tmall_ztc_target_etl(airflow_execution_date, run_id):
+def tmall_ztc_target_etl_new(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''

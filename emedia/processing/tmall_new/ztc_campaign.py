@@ -14,7 +14,7 @@ spark = get_spark()
 
 
 
-def tmall_ztc_campaign_etl(airflow_execution_date, run_id):
+def tmall_ztc_campaign_etl_new(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''

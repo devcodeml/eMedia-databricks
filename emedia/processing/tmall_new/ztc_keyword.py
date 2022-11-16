@@ -12,7 +12,7 @@ from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 spark = get_spark()
 
 # airflow_execution_date="2022-08-09 17:30:00+00:00"
-def tmall_ztc_keyword_etl(airflow_execution_date):
+def tmall_ztc_keyword_etl_new(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''

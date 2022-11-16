@@ -11,7 +11,7 @@ from emedia.config.emedia_jd_conf import get_emedia_conf_dict
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 
-def tmall_ztc_adgroup_etl(airflow_execution_date):
+def tmall_ztc_adgroup_etl_new(airflow_execution_date):
     '''
     airflow_execution_date: to identify upstream file
     '''

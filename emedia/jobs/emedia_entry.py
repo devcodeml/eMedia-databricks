@@ -66,6 +66,7 @@ from emedia.processing.jd_new.jd_sem_adgroup_daily import jdkc_adgroup_daily_etl
 from emedia.processing.jd_new.jd_sem_campaign_daily import jdkc_campaign_daily_etl
 from emedia.processing.jd_new.jd_sem_creative_daily import jdkc_creative_daily_etl
 from emedia.processing.jd_new.jd_sem_keyword_daily import jdkc_keyword_daily_etl
+from emedia.processing.jd_new.jd_sem_target_daily import jdkc_target_daily_etl
 from emedia.processing.jd_new.jd_ticket_daily import jd_ticket_daily_etl
 from emedia.processing.jd_new.jd_zt_account_daily import jdzt_account_daily_etl
 from emedia.processing.jd_new.jd_zt_adgroup_daily import jdzt_adgroup_daily_etl
@@ -131,6 +132,11 @@ from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_crowd_cumul import (
 from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_promotion_cumul import (
     tmall_ylmf_daliy_promotion_cumul_etl,
 )
+from emedia.processing.tmall_new.ztc_adgroup import tmall_ztc_adgroup_etl_new
+from emedia.processing.tmall_new.ztc_campaign import tmall_ztc_campaign_etl_new
+from emedia.processing.tmall_new.ztc_creative import tmall_ztc_creative_etl_new
+from emedia.processing.tmall_new.ztc_keyword import tmall_ztc_keyword_etl_new
+from emedia.processing.tmall_new.ztc_target import tmall_ztc_target_etl_new
 from emedia.processing.vip.otd_vip_job import vip_etl
 from emedia.processing.vip.vip_finance import vip_finance_etl
 from emedia.utils import output_df
@@ -379,6 +385,14 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         tmall_ztc_cumul_keyword_etl_new(airflow_execution_date, run_id)
         tmall_ztc_cumul_target_etl_new(airflow_execution_date, run_id)
         ztc_cumul_daily_fact()
+        jdkc_target_daily_etl(airflow_execution_date, run_id)
+        tmall_ztc_account_etl(airflow_execution_date)
+        tmall_ztc_adgroup_etl_new(airflow_execution_date)
+        tmall_ztc_campaign_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_creative_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_keyword_etl_new(airflow_execution_date)
+        tmall_ztc_target_etl_new(airflow_execution_date, run_id)
+
 
     elif etl_action == "jd_tier_packet":
         jd_act_channel_daily_etl(airflow_execution_date, run_id)

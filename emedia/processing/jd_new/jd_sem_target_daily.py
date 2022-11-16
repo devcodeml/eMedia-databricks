@@ -107,8 +107,6 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
         """
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ods.jdkc_target_daily"
     )
@@ -167,7 +165,7 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
 
     jdkc_target_daily_mapping_fail.dropDuplicates(jd_kc_target_daily_pks).write.mode(
         "overwrite"
-    ).option("mergeSchema", "true").saveAsTable("dwd.jdkc_target_daily_mapping_fail")
+    ).insertInto("dwd.jdkc_target_daily_mapping_fail")
 
     spark.table("dwd.jdkc_target_daily_mapping_success").union(
         spark.table("dwd.jdkc_target_daily_mapping_fail")
@@ -332,9 +330,7 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
         "'ods.jdkc_target_daily' as data_source",
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
-    ).saveAsTable(
+    ).insertInto(
         "dwd.jdkc_target_daily"
     )
 
