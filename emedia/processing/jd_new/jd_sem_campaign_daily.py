@@ -370,6 +370,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         ,mdm_category_id
         ,mdm_brand_id
         ,mdm_productline_id
+        ,'' as audience_name
         ,delivery_version
         ,'' as delivery_type
         ,mobile_type
@@ -424,6 +425,7 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
             ,mdm_category_id
             ,mdm_brand_id
             ,mdm_productline_id
+            ,'' as audience_name
             ,'' as delivery_version
             ,'' as delivery_type
             ,'' as mobile_type

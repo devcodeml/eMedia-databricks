@@ -252,8 +252,6 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         """
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ods.jdkc_creative_daily"
     )
@@ -527,6 +525,7 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         ,mdm_category_id
         ,mdm_brand_id
         ,mdm_productline_id
+        ,'' as audience_name
         ,delivery_version
         ,'' as delivery_type
         ,mobile_type
