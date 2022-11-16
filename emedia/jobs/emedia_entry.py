@@ -334,6 +334,10 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "migration_etl_zf":
         jd_gwcd_daily_fact()
         jd_jst_daily_fact()
+        # 以下是运行一次的历史数据处理
+        # jd_gwcd_campaign_etl_old
+        # jd_ht_campaign_etl_old
+        # jd_jst_campaign_etl_old
 
     elif etl_action == "migration_etl_zw":
         print("---")
