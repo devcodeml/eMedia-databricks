@@ -71,7 +71,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(campaignName as string) as campaign_name,
             cast(adGroupId as string) as adgroup_id,
             cast(adGroupName as string) as adgroup_name,
-            cast(displayScope as string) as display_scope,
             cast(cost as decimal(20, 4)) as cost,
             cast(clicks as bigint) as clicks,
             cast(impressions as bigint) as impressions,
@@ -144,7 +143,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "order_status_category",
         "click_or_order_caliber",
         "impression_or_click_effect",
-        "display_scope",
     ]
 
     jd_zt_adgroup_df = (
@@ -234,7 +232,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "campaign_name",
         "adgroup_id",
         "adgroup_name",
-        "display_scope",
         "cost",
         "clicks",
         "impressions",

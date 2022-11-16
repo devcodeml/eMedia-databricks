@@ -242,7 +242,6 @@ CREATE TABLE `stg`.`jdzt_adgroup_daily` (
   `req_isDaily` STRING,
   `req_businessType` STRING,
   `req_pin` STRING,
-  `displayScope` STRING,
   `data_source` STRING,
   `dw_batch_id` STRING,
   `dw_etl_date` DATE)

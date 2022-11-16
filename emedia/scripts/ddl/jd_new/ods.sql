@@ -69,7 +69,6 @@ CREATE TABLE `ods`.`jdzt_adgroup_daily` (
   `campaign_name` STRING,
   `adgroup_id` STRING,
   `adgroup_name` STRING,
-  `display_scope` STRING,
   `cost` DECIMAL(20,4),
   `clicks` BIGINT,
   `impressions` BIGINT,
