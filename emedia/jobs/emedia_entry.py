@@ -83,6 +83,7 @@ from emedia.processing.jd_new.tb_media_emedia_jd_seckill_daily_fact import (
 )
 from emedia.processing.jd_new.tb_media_emedia_jdkc_daily import jdkc_daily_fact
 from emedia.processing.jd_new.tb_media_emedia_jst_daily_fact import jd_jst_daily_fact
+from emedia.processing.overview.emedia_overview_daily_fact import emedia_overview_etl
 from emedia.processing.tmall.tmail_wxt_day_campaign import tamll_wxt_day_campaign_etl
 from emedia.processing.tmall.tmall_mxdp import tmall_mxdp_etl
 from emedia.processing.tmall.tmall_pptx import tmall_pptx_etl
@@ -421,7 +422,7 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         tmsha_effect_daily_etl(airflow_execution_date)
         tmsha_report_daily_etl(airflow_execution_date)
 
-    elif etl_action == "migration_etl_yw":
+    elif etl_action == "migration_etl_yw_cumul":
         print("ali-cumul")
         tmall_ylmf_campaign_cumul_etl_new(airflow_execution_date)
         tmall_ylmf_daliy_adzone_cumul_etl_new(airflow_execution_date)
@@ -436,13 +437,16 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         tmall_ztc_cumul_keyword_etl_new(airflow_execution_date, run_id)
         tmall_ztc_cumul_target_etl_new(airflow_execution_date, run_id)
         ztc_cumul_daily_fact()
+    elif etl_action == "migration_etl_yw":
+        print("ali-cumul")
         jdkc_target_daily_etl(airflow_execution_date, run_id)
         tmall_ztc_account_etl(airflow_execution_date)
-        tmall_ztc_adgroup_etl_new(airflow_execution_date)
+        # tmall_ztc_adgroup_etl_new(airflow_execution_date)
         tmall_ztc_campaign_etl_new(airflow_execution_date, run_id)
         tmall_ztc_creative_etl_new(airflow_execution_date, run_id)
-        tmall_ztc_keyword_etl_new(airflow_execution_date)
+        # tmall_ztc_keyword_etl_new(airflow_execution_date)
         tmall_ztc_target_etl_new(airflow_execution_date, run_id)
+        emedia_overview_etl()
 
     elif etl_action == "jd_tier_packet":
         jd_act_channel_daily_etl(airflow_execution_date, run_id)

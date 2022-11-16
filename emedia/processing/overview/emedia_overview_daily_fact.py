@@ -9,10 +9,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(indirect_order_quantity + direct_order_quantity) as orders
-        , sum(indirect_order_value + direct_order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(indirect_order_quantity + direct_order_quantity) as order_quantity
+        , sum(indirect_order_value + direct_order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity 
@@ -23,10 +24,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(clicks) as clicks
-        , sum(impressions) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity 
@@ -37,10 +39,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity 
@@ -51,10 +54,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_amount) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_amount) as order_amount
         , sum(cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(gmv_order_quantity) as new_customer_quantity 
@@ -65,10 +69,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_amount) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_amount) as order_amount
         , sum(cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(gmv_order_quantity) as new_customer_quantity
@@ -79,10 +84,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_amount) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_amount) as order_amount
         , sum(cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(gmv_order_quantity) as new_customer_quantity
@@ -93,10 +99,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(clicks) as clicks
-        , sum(impressions) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity 
@@ -107,10 +114,11 @@ def emedia_overview_etl():
         ,case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform
         ,store_id,'' as effect,'' as effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , 0 as cost
-        , sum(clicks) as clicks
-        , sum(impressions) as impresstions
-        , 0 as orders
-        , 0 as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , 0 as order_quantity
+        , 0 as order_amount
         , 0 as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity 
@@ -123,10 +131,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
@@ -137,10 +146,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity 
@@ -151,10 +161,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
@@ -165,10 +176,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
@@ -179,10 +191,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
@@ -195,10 +208,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(click) as clicks
-        , sum(impression) as impresstions
-        , sum(order_quantity) as orders
-        , sum(order_value) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , 0 as uv_impression
+        , sum(order_quantity) as order_quantity
+        , sum(order_value) as order_amount
         , sum(total_cart_quantity) as cart_quantity
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity 
@@ -209,10 +223,11 @@ def emedia_overview_etl():
         ,'jd' as platform
         ,'' as store_id,'' as effect,'' as effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id
         , sum(cost) as cost
-        , sum(clicks) as clicks
-        , sum(impressions) as impresstions
-        , sum(total_deal_order_cnt) as orders
-        , sum(total_deal_order_sum) as sales_amount
+        , sum(click) as click
+        , sum(impression) as impression
+        , sum(uv_impressions) as uv_impression
+        , sum(total_deal_order_cnt) as order_quantity
+        , sum(total_deal_order_sum) as order_amount
         , sum(total_cart_cnt) as cart_quantity
         , 0 as gmv_quantity
         , 0 as new_customer_quantity
@@ -227,3 +242,7 @@ def emedia_overview_etl():
         .withColumn("etl_update_time",current_timestamp())\
         .write.mode("overwrite" ).insertInto(
         "dws.media_emedia_overview_daily_fact")
+
+    spark.table("dws.media_emedia_overview_daily_fact").drop('etl_create_time').drop('etl_update_time').withColumn("etl_create_time", current_timestamp()).withColumn(
+        "etl_update_time", current_timestamp()).fillna("").distinct() \
+        .write.mode("overwrite").insertInto("ds.gm_emedia_overview_daily_fact")

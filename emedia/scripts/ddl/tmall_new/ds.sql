@@ -136,3 +136,52 @@ CREATE TABLE `ds`.`hc_media_emedia_ylmf_download_promotion_adzone_creative_daily
 USING delta
 PARTITIONED BY (report_level)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/hc_media_emedia_ylmf_download_promotion_adzone_creative_daily_fact';
+
+
+
+
+
+DROP TABLE IF EXISTS `ds`.`gm_emedia_sem_deep_dive_download_daily_fact`;
+CREATE TABLE `ds`.`gm_emedia_sem_deep_dive_download_daily_fact` (
+  `ad_date` STRING,
+  `pv_type_in` STRING,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `effect` INT,
+  `effect_days` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `campaign_type` STRING,
+  `campaign_subtype` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `item_id` STRING,
+  `keyword_type` STRING,
+  `niname` STRING,
+  `emedia_category_id` STRING,
+  `emedia_brand_id` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `cost` DOUBLE,
+  `click` INT,
+  `impression` INT,
+  `indirect_order_quantity` INT,
+  `direct_order_quantity` INT,
+  `indirect_order_value` DOUBLE,
+  `direct_order_value` DOUBLE,
+  `total_cart_quantity` INT,
+  `dw_resource` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `brand_rate` DECIMAL(6,2),
+  `category_rate` DECIMAL(6,2),
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_sem_deep_dive_download_daily_fact';
+
