@@ -407,11 +407,11 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         tmall_ylmf_campaign_daily_etl(airflow_execution_date)
         tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date)
 
-        jdzt_account_daily_etl(airflow_execution_date, run_id)
-        jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
+        # jdzt_account_daily_etl(airflow_execution_date, run_id)
+        # jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
 
-        jd_zw_campaign_etl(airflow_execution_date, run_id)
-        jd_zw_creative_etl(airflow_execution_date, run_id)
+        # jd_zw_campaign_etl(airflow_execution_date, run_id)
+        # jd_zw_creative_etl(airflow_execution_date, run_id)
 
         jd_fa_order_daily_etl(airflow_execution_date)
         jd_ppzq_campaign_daily_etl(airflow_execution_date)
