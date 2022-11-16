@@ -9,7 +9,7 @@ from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
 
-def tmall_ylmf_daliy_creativepackage_cumul_etl(airflow_execution_date, run_id):
+def tmall_ylmf_daliy_creativepackage_cumul_etl_new(airflow_execution_date):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -305,13 +305,6 @@ def tmall_ylmf_daliy_creativepackage_cumul_etl(airflow_execution_date, run_id):
         "ylmf",
     )
 
-    # ylmf_creative_package_daily_mapping_success.dropDuplicates(
-    #  tmall_ylmf_creative_package_daily_stg_pks
-    # ).write.mode(
-    #    "overwrite"
-    # ).saveAsTable(
-    #    "dwd.ylmf_creative_package_cumul_daily_mapping_success"
-    # )
 
     ylmf_creative_package_daily_mapping_success.dropDuplicates(
         tmall_ylmf_creative_package_daily_stg_pks
@@ -345,7 +338,6 @@ def tmall_ylmf_daliy_creativepackage_cumul_etl(airflow_execution_date, run_id):
         .write.mode("overwrite")
         .option("mergeSchema", "true")
         .insertInto("dwd.ylmf_creative_package_cumul_daily_mapping_fail")
-        # .saveAsTable("dwd.ylmf_creative_package_daily_mapping_fail")
     )
 
     spark.table("dwd.ylmf_creative_package_cumul_daily_mapping_success").union(

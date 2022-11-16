@@ -12,7 +12,7 @@ from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
 
-def tmall_ylmf_daliy_promotion_cumul_etl(airflow_execution_date, run_id):
+def tmall_ylmf_daliy_promotion_cumul_etl_mew(airflow_execution_date):
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])

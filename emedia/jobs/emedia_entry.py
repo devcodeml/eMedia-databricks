@@ -2,6 +2,20 @@
 
 import sys
 import datetime
+
+from emedia.processing.ali_cumul.ylmf_adzone_cumul import tmall_ylmf_daliy_adzone_cumul_etl_new
+from emedia.processing.ali_cumul.ylmf_campaign_cumul import tmall_ylmf_campaign_cumul_etl_new
+from emedia.processing.ali_cumul.ylmf_campaign_group_cumul import tmall_ylmf_campaign_group_cumul_etl_new
+from emedia.processing.ali_cumul.ylmf_creativepackage_cumul import tmall_ylmf_daliy_creativepackage_cumul_etl_new
+from emedia.processing.ali_cumul.ylmf_crowd_cumul import tmall_ylmf_daliy_crowd_cumul_etl_new
+from emedia.processing.ali_cumul.ylmf_cumul_daily import ylmf_cumul_daily_fact
+from emedia.processing.ali_cumul.ylmf_promotion_cumul import tmall_ylmf_daliy_promotion_cumul_etl_mew
+from emedia.processing.ali_cumul.ztc_adgroup_cumul import tmall_ztc_cumul_adgroup_etl_new
+from emedia.processing.ali_cumul.ztc_campaign_cumul import tmall_ztc_cumul_campaign_etl_new
+from emedia.processing.ali_cumul.ztc_creative_cumul import tmall_ztc_cumul_creative_etl_new
+from emedia.processing.ali_cumul.ztc_cumul_daily import ztc_cumul_daily_fact
+from emedia.processing.ali_cumul.ztc_keyword_cumul import tmall_ztc_cumul_keyword_etl_new
+from emedia.processing.ali_cumul.ztc_target_cumul import tmall_ztc_cumul_target_etl_new
 from emedia.processing.jd.jd_dmp import jd_dmp_campaign_etl
 from emedia.processing.jd.jd_finance import jd_finance_campaign_etl
 from emedia.processing.jd.jd_gwcd import jd_gwcd_campaign_etl
@@ -314,7 +328,20 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         print("---")
 
     elif etl_action == "migration_etl_yw":
-        print("---")
+        print("ali-cumul")
+        tmall_ylmf_campaign_cumul_etl_new(airflow_execution_date)
+        tmall_ylmf_daliy_adzone_cumul_etl_new(airflow_execution_date)
+        tmall_ylmf_campaign_group_cumul_etl_new(airflow_execution_date)
+        tmall_ylmf_daliy_creativepackage_cumul_etl_new(airflow_execution_date)
+        tmall_ylmf_daliy_crowd_cumul_etl_new(airflow_execution_date)
+        tmall_ylmf_daliy_promotion_cumul_etl_mew(airflow_execution_date)
+        ylmf_cumul_daily_fact()
+        tmall_ztc_cumul_adgroup_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_cumul_campaign_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_cumul_creative_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_cumul_keyword_etl_new(airflow_execution_date, run_id)
+        tmall_ztc_cumul_target_etl_new(airflow_execution_date, run_id)
+        ztc_cumul_daily_fact()
 
     return 0
 
