@@ -32,6 +32,7 @@ from emedia.processing.jd.jd_zt import jd_zt_campaign_etl
 from emedia.processing.jd.jd_zt_adgroup import jd_zt_adgroup_campaign_etl
 from emedia.processing.jd_new.jd_gwcd_adgroup import jd_gwcd_adgroup_etl
 from emedia.processing.jd_new.jd_gwcd_campaign import jd_gwcd_campaign_etl_new
+from emedia.processing.jd_new.jd_gwcd_campaign_old import jd_gwcd_campaign_etl_old
 from emedia.processing.jd_new.jd_jst_campaign import jd_jst_campaign_etl_new
 from emedia.processing.jd_new.jd_jst_search import jd_jst_search_etl_new
 from emedia.processing.jd_new.jd_sem_adgroup_daily import jdkc_adgroup_daily_etl
