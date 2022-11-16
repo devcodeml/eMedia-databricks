@@ -72,8 +72,6 @@ def jd_ht_campaign_etl_old():
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.tb_media_emedia_jdht_daily_fact"
     )
@@ -116,8 +114,6 @@ def jd_ht_campaign_etl_old():
     jdht_campaign_daily_old = jdht_campaign_daily_old.withColumnRenamed("mdm_brand_id_new", "mdm_brand_id")
     jdht_campaign_daily_old.write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.jdht_campaign_daily_old"
     )
@@ -160,8 +156,6 @@ def jd_ht_campaign_etl_old():
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.tb_media_emedia_jdht_daily_fact"
     )
@@ -305,8 +299,6 @@ def get_history_data():
         )
     ''').dropDuplicates(output_jd_ht_campaign_pks).distinct().write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.jdht_campaign_daily"
     )

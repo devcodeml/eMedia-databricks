@@ -111,8 +111,6 @@ def jd_gwcd_campaign_etl_old():
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.gwcd_campaign_daily_old_v2"
     )
@@ -163,8 +161,6 @@ def jd_gwcd_campaign_etl_old():
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.tb_media_emedia_gwcd_daily_fact"
     )
@@ -299,8 +295,6 @@ def jd_gwcd_campaign_etl_old():
         """
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.gwcd_campaign_daily_old"
     )
@@ -350,8 +344,6 @@ def jd_gwcd_campaign_etl_old():
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.tb_media_emedia_gwcd_daily_fact"
     )

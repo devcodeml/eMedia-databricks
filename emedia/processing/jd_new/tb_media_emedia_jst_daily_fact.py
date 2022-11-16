@@ -14,8 +14,6 @@ def jd_jst_daily_fact():
         .withColumn("etl_update_time", current_timestamp())\
         .withColumn("etl_update_time", current_timestamp()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ds.gm_emedia_jst_download_daily_fact"
     )

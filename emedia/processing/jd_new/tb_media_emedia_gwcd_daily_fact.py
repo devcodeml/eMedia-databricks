@@ -64,8 +64,6 @@ def jd_gwcd_daily_fact():
         .withColumn("etl_update_time", current_timestamp())\
         .withColumn("etl_create_time", current_timestamp()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ds.gm_emedia_gwcd_deep_dive_download_daily_fact"
     )
