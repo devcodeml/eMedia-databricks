@@ -133,6 +133,6 @@ CREATE TABLE `ds`.`gm_emedia_jdzw_deep_dive_download_daily_fact` (
   `etl_source_table` STRING,
   `etl_create_time` TIMESTAMP,
   `etl_update_time` TIMESTAMP)
-USING delt
+USING delta
 PARTITIONED BY (report_level)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_jdzw_deep_dive_download_daily_fact';
