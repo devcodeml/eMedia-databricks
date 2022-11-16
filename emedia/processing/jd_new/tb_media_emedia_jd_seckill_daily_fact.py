@@ -15,8 +15,6 @@ def jd_seckill_daily_fact():
         .withColumn("etl_update_time", current_timestamp())\
         .withColumn("etl_create_time", current_timestamp()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ds.gm_emedia_jd_seckill_download_daily_fact"
     )
