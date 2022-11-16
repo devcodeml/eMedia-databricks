@@ -9,7 +9,7 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 
 
-def tmall_ylmf_daliy_creativepackage_etl(airflow_execution_date):
+def tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date):
     spark = get_spark()
     # date
     file_date = datetime.datetime.strptime(

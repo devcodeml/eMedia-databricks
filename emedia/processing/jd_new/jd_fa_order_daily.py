@@ -12,7 +12,7 @@ from emedia.config.emedia_conf import get_emedia_conf_dict
 spark = get_spark()
 
 
-def jd_fa_order_daily_etl(airflow_execution_date, run_id):
+def jd_fa_order_daily_etl(airflow_execution_date):
     """
     airflow_execution_date: to identify upstream file
     """

@@ -11,7 +11,7 @@ from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 spark = get_spark()
 
 
-def tmall_ylmf_daliy_promotion_etl(airflow_execution_date):
+def tmall_ylmf_promotion_daily_etl_new(airflow_execution_date):
     # date
     file_date = datetime.datetime.strptime(
         airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
