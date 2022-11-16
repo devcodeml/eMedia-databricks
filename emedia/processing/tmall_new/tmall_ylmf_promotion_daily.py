@@ -283,7 +283,7 @@ def tmall_ylmf_promotion_daily_etl_new(airflow_execution_date):
 
     # mapping to dwd
     tmall_ylmf_promotion_daily_df = (
-        spark.table("ods.ylmf_promotion_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.ylmf_promotion_daily").drop("etl_date").drop("etl_create_time")
     )
 
     # load unmapped records
