@@ -86,6 +86,15 @@ from emedia.processing.tmall.ylmf_cumul.tmall_ylmf_promotion_cumul import (
 from emedia.processing.vip.otd_vip_job import vip_etl
 from emedia.processing.vip.vip_finance import vip_finance_etl
 from emedia.utils import output_df
+from emedia.processing.jd_new.jd_act_channel_daily import jd_act_channel_daily_etl
+from emedia.processing.jd_new.jd_act_flow_source_daily import jd_act_flow_source_daily_etl
+from emedia.processing.jd_new.jd_pit_data_daily import jd_pit_data_daily_etl
+from emedia.processing.jd_new.jd_propit_daily import jd_propit_daily_etl
+from emedia.processing.jd_new.jd_seckill_daily import jd_seckill_daily_etl
+from emedia.processing.jd_new.jd_ticket_daily import jd_ticket_daily_etl
+from emedia.processing.jd_new.tb_media_emedia_jd_seckill_daily_fact import jd_seckill_daily_fact
+from emedia.processing.jd_new.tb_media_emedia_jst_daily_fact import jd_jst_daily_fact
+from emedia.processing.jd_new.tb_media_emedia_gwcd_daily_fact import jd_gwcd_daily_fact
 
 
 def emedia_etl(etl_action, airflow_execution_date, run_id):
@@ -308,7 +317,15 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         push_table_to_dw()
 
     elif etl_action == "migration_etl_zf":
-        print("---")
+        jd_gwcd_daily_fact()
+        jd_jst_daily_fact()
+        jd_act_channel_daily_etl(airflow_execution_date, run_id)
+        jd_act_flow_source_daily_etl(airflow_execution_date, run_id)
+        jd_pit_data_daily_etl(airflow_execution_date, run_id)
+        jd_propit_daily_etl(airflow_execution_date, run_id)
+        jd_seckill_daily_etl(airflow_execution_date, run_id)
+        jd_ticket_daily_etl(airflow_execution_date, run_id)
+        jd_seckill_daily_fact()
 
     elif etl_action == "migration_etl_zw":
         print("---")
