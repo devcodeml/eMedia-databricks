@@ -758,3 +758,54 @@ CREATE TABLE `stg`.`jd_ppzq_campaign_daily` (
   `etl_create_time` TIMESTAMP)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_stg.db/jd_ppzq_campaign_daily';
+
+
+
+
+
+
+
+
+DROP TABLE IF EXISTS `stg`.`jdkc_target_daily`;
+CREATE TABLE `stg`.`jdkc_target_daily` (
+  `dmpId` INT,
+  `CPM` DOUBLE,
+  `campaignId` INT,
+  `indirectCartCnt` INT,
+  `directOrderSum` DOUBLE,
+  `totalOrderSum` DOUBLE,
+  `directCartCnt` INT,
+  `indirectOrderCnt` INT,
+  `dmpName` STRING,
+  `totalOrderROI` DOUBLE,
+  `totalOrderCVS` DOUBLE,
+  `clicks` INT,
+  `dmpFactor` INT,
+  `impressions` INT,
+  `totalCartCnt` INT,
+  `indirectOrderSum` DOUBLE,
+  `cost` DOUBLE,
+  `dmpStatus` INT,
+  `groupId` INT,
+  `totalOrderCnt` INT,
+  `CPC` DOUBLE,
+  `directOrderCnt` INT,
+  `CTR` DOUBLE,
+  `req_startDay` STRING,
+  `req_endDay` STRING,
+  `req_clickOrOrderDay` INT,
+  `req_clickOrOrderCaliber` INT,
+  `req_orderStatusCategory` INT,
+  `req_giftFlag` INT,
+  `req_page` INT,
+  `req_pageSize` INT,
+  `req_pin` STRING,
+  `dw_resource` STRING,
+  `dw_create_time` BIGINT,
+  `dw_batch_number` BIGINT,
+  `dw_etl_date` DATE)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_stg.db/jdkc_target_daily';
+
+
+

@@ -301,3 +301,56 @@ CREATE TABLE `ods`.`jd_ppzq_campaign_daily` (
   `etl_create_time` TIMESTAMP)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ods.db/jd_ppzq_campaign_daily';
+
+
+
+
+
+
+
+
+
+DROP TABLE IF EXISTS `ods`.`jdkc_target_daily`;
+CREATE TABLE `ods`.`jdkc_target_daily` (
+  `ad_date` DATE,
+  `pin_name` STRING,
+  `effect` STRING,
+  `effect_days` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `target_audience_id` STRING,
+  `target_audience_name` STRING,
+  `dmpFactor` BIGINT,
+  `dmpStatus` BOOLEAN,
+  `cost` DECIMAL(20,4),
+  `clicks` BIGINT,
+  `impressions` BIGINT,
+  `cpc` DECIMAL(20,4),
+  `cpm` DECIMAL(20,4),
+  `ctr` DECIMAL(9,4),
+  `total_order_roi` DECIMAL(9,4),
+  `total_order_cvs` DECIMAL(9,4),
+  `direct_cart_cnt` BIGINT,
+  `indirect_cart_cnt` BIGINT,
+  `total_cart_quantity` BIGINT,
+  `direct_order_value` DECIMAL(20,4),
+  `indirect_order_value` DECIMAL(20,4),
+  `order_value` DECIMAL(20,4),
+  `direct_order_quantity` BIGINT,
+  `indirect_order_quantity` BIGINT,
+  `order_quantity` BIGINT,
+  `gift_flag` STRING,
+  `order_status_category` STRING,
+  `click_or_order_caliber` STRING,
+  `start_day` DATE,
+  `end_day` DATE,
+  `data_source` STRING,
+  `dw_batch_id` STRING,
+  `req_page` INT,
+  `req_pageSize` INT,
+  `dw_create_time` BIGINT,
+  `dw_etl_date` DATE)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ods.db/jdkc_target_daily';
