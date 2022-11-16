@@ -223,7 +223,7 @@ def tmall_ylmf_daliy_adzone_cumul_etl(airflow_execution_date, run_id):
     ).withColumn("etl_source_table", F.lit("stg.ylmf_adzone_cumul_daily"))\
         .withColumn("etl_date", F.current_date()).withColumn("etl_create_time", F.current_timestamp())\
         .distinct().write.mode("overwrite")\
-        .saveAsTable("ods.ylmf_adzone_cumul_daily")
+        .insertInto("ods.ylmf_adzone_cumul_daily")
 
 
 
@@ -256,19 +256,12 @@ def tmall_ylmf_daliy_adzone_cumul_etl(airflow_execution_date, run_id):
         ylmf_adzone_daily_mapping_success,
         ylmf_adzone_daily_mapping_fail,
     ) = emedia_brand_mapping(
-        #    spark, tmall_ylmf_adzone_daily_df, "ylmf"
         spark,
         tmall_ylmf_adzone_daily_df.union(tmall_ylmf_adzone_daily_fail_df),
         "ylmf",
     )
 
-    # ylmf_adzone_daily_mapping_success.dropDuplicates(
-    #  tmall_ylmf_adzone_daily_pks
-    # ).write.mode(
-    #    "overwrite"
-    # ).saveAsTable(
-    #    "dwd.ylmf_adzone_cumul_daily_mapping_success"
-    # )
+
 
     ylmf_adzone_daily_mapping_success.dropDuplicates(
         tmall_ylmf_adzone_daily_pks
@@ -299,7 +292,6 @@ def tmall_ylmf_daliy_adzone_cumul_etl(airflow_execution_date, run_id):
         ylmf_adzone_daily_mapping_fail.dropDuplicates(tmall_ylmf_adzone_daily_pks)
         .write.mode("overwrite")
         .insertInto("dwd.ylmf_adzone_cumul_daily_mapping_fail")
-        # .saveAsTable("dwd.ylmf_adzone_daily_mapping_fail")
     )
 
     spark.table("dwd.ylmf_adzone_cumul_daily_mapping_success").union(

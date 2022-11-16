@@ -307,6 +307,9 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "push_table_to_dw":
         push_table_to_dw()
 
+    elif etl_action == "migration_etl":
+        print("---")
+
     return 0
 
 
