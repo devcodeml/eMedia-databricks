@@ -60,8 +60,6 @@ def tmall_ztc_cumul_keyword_etl_new(airflow_execution_date, run_id):
     spark.sql(f'''
             SELECT
                 thedate as ad_date,
-                category_id,
-                brand_id,
                 campaign_id as campaign_id,
                 campaign_title as campaign_name,
                 campaign_type as campaign_type,
