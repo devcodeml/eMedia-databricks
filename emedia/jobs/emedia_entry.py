@@ -319,6 +319,14 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "migration_etl_zf":
         jd_gwcd_daily_fact()
         jd_jst_daily_fact()
+
+    elif etl_action == "migration_etl_zw":
+        print("---")
+
+    elif etl_action == "migration_etl_yw":
+        print("---")
+
+    elif etl_action == "jd_tier_packet":
         jd_act_channel_daily_etl(airflow_execution_date, run_id)
         jd_act_flow_source_daily_etl(airflow_execution_date, run_id)
         jd_pit_data_daily_etl(airflow_execution_date, run_id)
@@ -326,12 +334,6 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
         jd_seckill_daily_etl(airflow_execution_date, run_id)
         jd_ticket_daily_etl(airflow_execution_date, run_id)
         jd_seckill_daily_fact()
-
-    elif etl_action == "migration_etl_zw":
-        print("---")
-
-    elif etl_action == "migration_etl_yw":
-        print("---")
 
     return 0
 
