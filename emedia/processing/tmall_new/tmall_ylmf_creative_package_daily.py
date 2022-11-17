@@ -292,8 +292,8 @@ def tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date):
 
     tmall_ylmf_creative_package_daily_df = (
         spark.table("ods.ylmf_creative_package_daily")
-        .drop("dw_etl_date")
-        .drop("data_source")
+        .drop("etl_date")
+        .drop("etl_create_time")
     )
     tmall_ylmf_creative_package_daily_fail_df = (
         spark.table("dwd.ylmf_creative_package_daily_mapping_fail")
@@ -479,7 +479,6 @@ def tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date):
         "dwd.ylmf_creative_package_daily",
         "dwd.feedflow_creative_daily",
         "dwd.super_zz_creative_daily",
-        "dwd.zz_creative_daily",
     ]
 
     reduce(

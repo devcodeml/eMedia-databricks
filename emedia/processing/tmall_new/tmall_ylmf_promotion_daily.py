@@ -454,7 +454,6 @@ def tmall_ylmf_promotion_daily_etl_new(airflow_execution_date):
         "dwd.ylmf_promotion_daily",
         "dwd.feedflow_adgroup_daily",
         "dwd.super_zz_adgroup_daily",
-        "dwd.zz_adgroup_daily",
     ]
 
     reduce(
