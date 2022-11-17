@@ -164,6 +164,7 @@ from emedia.processing.tmall_new.tmall_ylmf_promotion_daily import (
 )
 from emedia.processing.tmall_new.tmsha_effect_daily import tmsha_effect_daily_etl
 from emedia.processing.tmall_new.tmsha_report_daily import tmsha_report_daily_etl
+from emedia.processing.tmall_new.ztc_account import tmall_ztc_account_etl_new
 from emedia.processing.tmall_new.ztc_adgroup import tmall_ztc_adgroup_etl_new
 from emedia.processing.tmall_new.ztc_campaign import tmall_ztc_campaign_etl_new
 from emedia.processing.tmall_new.ztc_creative import tmall_ztc_creative_etl_new
@@ -402,11 +403,11 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "migration_etl_zw":
         print("---")
         tmall_ylmf_adzone_daily_etl(airflow_execution_date)
-        tmall_ylmf_promotion_daily_etl_new(airflow_execution_date)
+        # tmall_ylmf_promotion_daily_etl_new(airflow_execution_date)
         tmall_ylmf_crowd_daily_etl(airflow_execution_date)
         tmall_ylmf_campaign_group_daily_etl(airflow_execution_date)
         tmall_ylmf_campaign_daily_etl(airflow_execution_date)
-        tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date)
+        # tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date)
 
         # jdzt_account_daily_etl(airflow_execution_date, run_id)
         # jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
@@ -440,7 +441,7 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "migration_etl_yw":
         print("ali-cumul")
         jdkc_target_daily_etl(airflow_execution_date, run_id)
-        tmall_ztc_account_etl(airflow_execution_date)
+        tmall_ztc_account_etl_new(airflow_execution_date)
         # tmall_ztc_adgroup_etl_new(airflow_execution_date)
         tmall_ztc_campaign_etl_new(airflow_execution_date, run_id)
         tmall_ztc_creative_etl_new(airflow_execution_date, run_id)
