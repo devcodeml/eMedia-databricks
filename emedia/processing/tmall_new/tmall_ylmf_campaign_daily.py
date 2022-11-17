@@ -277,7 +277,7 @@ def tmall_ylmf_campaign_daily_etl(airflow_execution_date):
     ]
 
     tmall_ylmf_campaign_daily_df = (
-        spark.table("ods.ylmf_campaign_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.ylmf_campaign_daily").drop("etl_date").drop("etl_create_time")
     )
     tmall_ylmf_campaign_daily_fail_df = (
         spark.table("dwd.ylmf_campaign_daily_mapping_fail")

@@ -564,10 +564,10 @@ def jd_zt_account_daily_old_dwd_etl():
                 '' as pin_id,
                 cast(effect as string) as effect,
                 case
-                  when a.effect = 3 then '4'
-                  when a.effect = 7 then '8'
-                  when a.effect = 15 then '24'
-                  else cast(cast(a.effect as int) as string)
+                  when effect = 3 then '4'
+                  when effect = 7 then '8'
+                  when effect = 15 then '24'
+                  else cast(cast(effect as int) as string)
                 end as effect_days,
                 cast(category_id as string) as emedia_category_id,
                 cast(brand_id as string) as emedia_brand_id,
@@ -622,7 +622,7 @@ def jd_zt_account_daily_old_dwd_etl():
                 cast(req_endDay as date) as end_day,
                 '' as is_daily,
                 'stg.jdzt_adgroup_daily_old' as data_source,
-                cast(dw_batch_id as string) as dw_batch_id,
+                '' as dw_batch_id,
                 current_date() as dw_etl_date
             from stg.jdzt_account_daily_old
             """
