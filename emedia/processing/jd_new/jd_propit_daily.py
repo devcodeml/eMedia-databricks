@@ -40,7 +40,7 @@ def jd_propit_daily_etl(airflow_execution_date, run_id):
 
     jd_propit_daily_df = spark.read.csv(
         f"wasbs://{input_container}@{input_account}.blob.core.chinacloudapi.cn/{jd_propit_daily_path}",
-        header=True,
+        header=False,
         multiLine=True,
         quote="\"",
         escape='"',
