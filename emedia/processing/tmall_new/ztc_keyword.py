@@ -27,21 +27,10 @@ def tmall_ztc_keyword_etl_new(airflow_execution_date):
     input_container = emedia_conf_dict.get('input_container')
     input_sas = emedia_conf_dict.get('input_sas')
 
-    # input_account = 'b2bcdlrawblobprd01'
-    # input_container = 'media'
-    # input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
 
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
 
-    mapping_account = emedia_conf_dict.get('mapping_account')
-    mapping_container = emedia_conf_dict.get('mapping_container')
-    mapping_sas = emedia_conf_dict.get('mapping_sas')
 
-    # mapping_account = 'b2bmptbiprd01'
-    # mapping_container = 'emedia-resource'
-    # mapping_sas = 'st=2020-07-14T09%3A08%3A06Z&se=2030-12-31T09%3A08%3A00Z&sp=racwl&sv=2018-03-28&sr=c&sig=0YVHwfcoCDh53MESP2JzAD7stj5RFmFEmJbi5KGjB2c%3D'
-
-    spark.conf.set(f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn", mapping_sas)
 
     file_date = etl_date - datetime.timedelta(days=1)
 

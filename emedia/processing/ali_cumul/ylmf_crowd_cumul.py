@@ -6,7 +6,7 @@ from pyspark.sql import DataFrame
 from functools import reduce
 from emedia import spark
 from emedia.config.emedia_conf import get_emedia_conf_dict
-from emedia.processing.common.emedia_brand_mapping import emedia_brand_mapping
+from emedia.utils.cdl_code_mapping import emedia_brand_mapping
 from emedia.utils.output_df import output_to_emedia
 
 
