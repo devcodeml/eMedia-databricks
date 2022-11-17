@@ -80,7 +80,53 @@ def emedia_d11_overview_etl():
         where effect_days = '15'  group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
     """)
 
-    overview_d11_df = condition_one.union(condition_two)
+    condition_three = spark.sql("""
+    select ad_date,
+        case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform,
+        emedia_category_id,
+        emedia_brand_id,
+        store_id,
+        ad_format_lv2 as type,
+        '' as sku_id,
+        '' as sku_name,
+        sum(cost) as cost,
+        sum(click) as click,
+        sum(impression) as impression,
+        sum(indirect_order_quantity+direct_order_quantity) as order_quantity,
+        sum(indirect_order_value+direct_order_value) as order_amount,
+        sum(0) as new_customer_quantity,
+        sum(total_cart_quantity) as cart_quantity
+        from dwd.tb_media_emedia_ztc_daily_fact
+        where report_level = 'adgroup' and ad_date < (select min(ad_date) from dwd.tb_media_emedia_ztc_cumul_daily_fact where report_level = 'adgroup' )
+        and store_id in (select store_id from  stg.emedia_store_mapping) 
+        and cast(effect_days as int) = 24 
+       group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
+    """)
+
+    condition_four = spark.sql("""
+    select 
+        ad_date,
+        case when store_id in ('2017011','201701101','201701102','201701103') then 'tms' else 'tmall' end as platform,
+        emedia_category_id,
+        emedia_brand_id,
+        store_id,
+        ad_format_lv2 as type,
+        '' as sku_id,
+        '' as sku_name,
+        sum(cost) as cost,
+        sum(click) as click,
+        sum(impression) as impression,
+        sum(order_quantity) as order_quantity,
+        sum(order_amount) as order_amount,
+        sum(gmv_order_quantity) as new_customer_quantity,
+        sum(cart_quantity) as cart_quantity
+        from  dwd.tb_media_emedia_ylmf_daily_fact
+        where report_level = 'promotion' and store_id in (select store_id from  stg.emedia_store_mapping)
+        and ad_date < (select min(ad_date) from dwd.tb_media_emedia_ylmf_cumul_daily_fact where report_level = 'promotion')
+        and effect = '15'  group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
+    """)
+
+    overview_d11_df = condition_one.union(condition_two).union(condition_three).union(condition_four)
     overview_d11_df = overview_d11_df \
         .withColumn('ad_date', overview_d11_df.ad_date.cast(DateType()))
     overview_d11_df.distinct().withColumn("etl_create_time", current_timestamp()) \
