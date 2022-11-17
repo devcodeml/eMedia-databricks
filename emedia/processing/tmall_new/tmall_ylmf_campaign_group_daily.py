@@ -423,7 +423,7 @@ def tmall_ylmf_campaign_group_daily_etl(airflow_execution_date):
         .withColumn("etl_create_time", current_timestamp())
         .write.mode("overwrite")
         .option("mergeSchema", "true")
-        .saveAsTable("dwd.ylmf_campaign_group_daily")
+        # .saveAsTable("dwd.ylmf_campaign_group_daily")
         .insertInto("dwd.ylmf_campaign_group_daily")
     )
 
