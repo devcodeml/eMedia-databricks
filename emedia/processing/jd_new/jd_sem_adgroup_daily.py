@@ -228,8 +228,6 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
         """
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ods.jdkc_adgroup_daily"
     )
@@ -446,16 +444,16 @@ def jdkc_adgroup_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_adgroup_daily"
     )
 
-    #
-    # push_to_dw(spark.table("dwd.jdkc_adgroup_daily"), 'dbo.tb_emedia_jd_kc_adgroup_daily_v202209_fact', 'overwrite',
-    #            'jdkc_adgroup_daily')
+
+    push_to_dw(spark.table("dwd.jdkc_adgroup_daily"), 'dbo.tb_emedia_jd_kc_adgroup_daily_v202209_fact', 'overwrite',
+               'jdkc_adgroup_daily')
 
 
 
-    #
-    # file_name = 'sem/EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV'
-    # job_name = 'tb_emedia_jd_sem_daily_adgroup_report_fact'
-    # push_status(airflow_execution_date, file_name, job_name)
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_ADGROUP_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_adgroup_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
     spark.sql("delete from dwd.tb_media_emedia_jdkc_daily_fact where report_level = 'adgroup' ")
     spark.sql("""

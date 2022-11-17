@@ -30,9 +30,9 @@ def tmall_ztc_campaign_etl_new(airflow_execution_date, run_id):
     days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
     emedia_conf_dict = get_emedia_conf_dict()
-    input_account = emedia_conf_dict.get('input_blob_account')
-    input_container = emedia_conf_dict.get('input_blob_container')
-    input_sas = emedia_conf_dict.get('input_blob_sas')
+    input_account = emedia_conf_dict.get('input_account')
+    input_container = emedia_conf_dict.get('input_container')
+    input_sas = emedia_conf_dict.get('input_sas')
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
 
     mapping_account = emedia_conf_dict.get('mapping_blob_account')

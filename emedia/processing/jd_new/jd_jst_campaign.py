@@ -183,7 +183,7 @@ def jd_jst_campaign_etl_new(airflow_execution_date, run_id):
 
     jst_campaign_daily_mapping_fail.dropDuplicates(jd_jst_campaign_pks).write.mode(
         "overwrite"
-    ).option("mergeSchema", "true").insertInto("dwd.jst_campaign_daily_mapping_fail")
+    ).insertInto("dwd.jst_campaign_daily_mapping_fail")
 
     spark.table("dwd.jst_campaign_daily_mapping_success").union(
         spark.table("dwd.jst_campaign_daily_mapping_fail")
@@ -267,8 +267,6 @@ def jd_jst_campaign_etl_new(airflow_execution_date, run_id):
         "dw_batch_id",
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.jst_campaign_daily"
     )

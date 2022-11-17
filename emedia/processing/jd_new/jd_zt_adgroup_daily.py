@@ -197,7 +197,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
 
     jd_zt_adgroup_daily_mapping_fail.dropDuplicates(jd_zt_adgroup_daily_pks).write.mode(
         "overwrite"
-    ).option("mergeSchema", "true").insertInto("dwd.jdzt_adgroup_daily_mapping_fail")
+    ).insertInto("dwd.jdzt_adgroup_daily_mapping_fail")
 
     spark.table("dwd.jdzt_adgroup_daily_mapping_success").union(
         spark.table("dwd.jdzt_adgroup_daily_mapping_fail")
@@ -284,8 +284,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "dw_batch_id",
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.jdzt_adgroup_daily"
     )

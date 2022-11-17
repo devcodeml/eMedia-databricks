@@ -335,14 +335,14 @@ def jdkc_campaign_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_campaign_daily"
     )
 
-    # push_to_dw(spark.table("dwd.jdkc_campaign_daily"), 'dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact', 'overwrite',
-    #            'jdkc_campaign_daily')
-    #
-    #
-    # file_name = 'sem/EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV'
-    # job_name = 'tb_emedia_jd_sem_daily_campaign_report_fact'
-    # push_status(airflow_execution_date, file_name, job_name)
-    #
+    push_to_dw(spark.table("dwd.jdkc_campaign_daily"), 'dbo.tb_emedia_jd_kc_campaign_daily_v202209_fact', 'overwrite',
+               'jdkc_campaign_daily')
+
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CAMPAIGN_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_campaign_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
+
 
 
 

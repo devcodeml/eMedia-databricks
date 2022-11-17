@@ -223,7 +223,7 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
 
     jdkc_keyword_daily_mapping_fail.dropDuplicates(jd_kc_keyword_daily_pks).write.mode(
         "overwrite"
-    ).option("mergeSchema", "true").insertInto("dwd.jdkc_keyword_daily_mapping_fail")
+    ).insertInto("dwd.jdkc_keyword_daily_mapping_fail")
 
     spark.table("dwd.jdkc_keyword_daily_mapping_success").union(
         spark.table("dwd.jdkc_keyword_daily_mapping_fail")
@@ -326,17 +326,17 @@ def jdkc_keyword_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_keyword_daily"
     )
 
-    # push_to_dw(
-    #     spark.table("dwd.jdkc_keyword_daily"),
-    #     "dbo.tb_emedia_jd_kc_keyword_daily_v202209_fact",
-    #     "overwrite",
-    #     "jdkc_keyword_daily",
-    # )
+    push_to_dw(
+        spark.table("dwd.jdkc_keyword_daily"),
+        "dbo.tb_emedia_jd_kc_keyword_daily_v202209_fact",
+        "overwrite",
+        "jdkc_keyword_daily",
+    )
 
-    #
-    # file_name = 'sem/TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV'
-    # job_name = 'tb_emedia_jd_sem_keyword_new_fact'
-    # push_status(airflow_execution_date, file_name, job_name)
+
+    file_name = 'sem/TB_EMEDIA_JD_SEM_KEYWORD_NEW_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_keyword_new_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
 
     spark.sql("delete from dwd.tb_media_emedia_jdkc_daily_fact where report_level = 'keyword' ")

@@ -491,14 +491,14 @@ def jdkc_creative_daily_etl(airflow_execution_date, run_id):
         "dwd.jdkc_creative_daily"
     )
 
-    # push_to_dw(spark.table("dwd.jdkc_creative_daily"), 'dbo.tb_emedia_jd_kc_creative_daily_v202209_fact', 'overwrite',
-    #            'jdkc_creative_daily')
-    #
+    push_to_dw(spark.table("dwd.jdkc_creative_daily"), 'dbo.tb_emedia_jd_kc_creative_daily_v202209_fact', 'overwrite',
+               'jdkc_creative_daily')
 
 
-    # file_name = 'sem/EMEDIA_JD_SEM_DAILY_CREATIVE_REPORT_FACT.CSV'
-    # job_name = 'tb_emedia_jd_sem_daily_creative_report_fact'
-    # push_status(airflow_execution_date, file_name, job_name)
+
+    file_name = 'sem/EMEDIA_JD_SEM_DAILY_CREATIVE_REPORT_FACT.CSV'
+    job_name = 'tb_emedia_jd_sem_daily_creative_report_fact'
+    push_status(airflow_execution_date, file_name, job_name)
 
 
 

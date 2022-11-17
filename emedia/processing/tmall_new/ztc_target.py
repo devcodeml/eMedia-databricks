@@ -28,13 +28,13 @@ def tmall_ztc_target_etl_new(airflow_execution_date, run_id):
 
     days_ago912 = (etl_date - datetime.timedelta(days=912)).strftime("%Y-%m-%d")
 
-    # emedia_conf_dict = get_emedia_conf_dict()
-    # input_account = emedia_conf_dict.get('input_blob_account')
-    # input_container = emedia_conf_dict.get('input_blob_container')
-    # input_sas = emedia_conf_dict.get('input_blob_sas')
-    input_account = 'b2bcdlrawblobprd01'
-    input_container = 'media'
-    input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
+    emedia_conf_dict = get_emedia_conf_dict()
+    input_account = emedia_conf_dict.get('input_account')
+    input_container = emedia_conf_dict.get('input_container')
+    input_sas = emedia_conf_dict.get('input_sas')
+    # input_account = 'b2bcdlrawblobprd01'
+    # input_container = 'media'
+    # input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
     spark.conf.set(f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn", input_sas)
 
     file_date = etl_date - datetime.timedelta(days=1)

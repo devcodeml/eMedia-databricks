@@ -177,7 +177,7 @@ def jd_gwcd_campaign_etl_new(airflow_execution_date, run_id):
 
     jd_gwcd_campaign_daily_mapping_fail.dropDuplicates(jd_gwcd_campaign_pks).write.mode(
         "overwrite"
-    ).option("mergeSchema", "true").insertInto("dwd.gwcd_campaign_daily_mapping_fail")
+    ).insertInto("dwd.gwcd_campaign_daily_mapping_fail")
 
     spark.table("dwd.gwcd_campaign_daily_mapping_success").union(
         spark.table("dwd.gwcd_campaign_daily_mapping_fail")
@@ -261,8 +261,6 @@ def jd_gwcd_campaign_etl_new(airflow_execution_date, run_id):
         "dw_batch_id",
     ).distinct().withColumn("dw_etl_date", current_date()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "dwd.gwcd_campaign_daily"
     )
