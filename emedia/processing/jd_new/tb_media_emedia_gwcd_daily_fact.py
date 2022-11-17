@@ -27,7 +27,7 @@ def jd_gwcd_daily_fact():
             mdm_productline_id,
             campaign_type,
             delivery_version,
-            '' as delivery_type,
+            delivery_type,
             mobile_type,
             source,
             business_type,
