@@ -10,26 +10,26 @@ def jd_gwcd_daily_fact():
     spark = get_spark()
     spark.sql(""" select 
             ad_date,
-            '购物触点' as ad_format_lv2,
+            ad_format_lv2,
             pin_name,
             effect,
             effect_days,
             campaign_id,
             campaign_name,
-            '' as adgroup_id,
-            '' as adgroup_name,
-            'campaign' as report_level,
-            '' as report_level_id,
-            '' as report_level_name,
+            adgroup_id,
+            adgroup_name,
+            report_level,
+            report_level_id,
+            report_level_name,
             '' as sku_id,
             mdm_category_id as emedia_category_id,
             mdm_brand_id as emedia_brand_id,
-            '' as mdm_productline_id,
+            mdm_productline_id,
             campaign_type,
             delivery_version,
             '' as delivery_type,
             mobile_type,
-            '' as source,
+            source,
             business_type,
             gift_flag,
             order_status_category,
@@ -46,12 +46,10 @@ def jd_gwcd_daily_fact():
             dw_source,
             dw_create_time,
             dw_batch_number,
-            'dwd.tb_media_emedia_gwcd_daily_fact' as etl_source_table from dwd.tb_media_emedia_gwcd_daily_fact where (effect='0' or effect='15') and mdm_category_id='214000006'"""
+            'dwd.tb_media_emedia_gwcd_daily_fact' as etl_source_table from dwd.tb_media_emedia_gwcd_daily_fact where (effect='0' or effect='15') and mdm_category_id='214000006' and report_level='campaign'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "overwrite"
-    ).option(
-        "mergeSchema", "true"
     ).insertInto(
         "ds.hc_emedia_gwcd_deep_dive_download_campaign_adgroup_daily_fact"
     )
