@@ -14,7 +14,7 @@ def jdkc_daily_fact():
 
 
 
-    spark.table("dwd.tb_media_emedia_jdkc_daily_fact").drop('audience_name')\
+    spark.table("dwd.tb_media_emedia_jdkc_daily_fact").filter("report_level in ('adgroup','keyword')").drop('audience_name')\
         .filter("mdm_category_id = '214000006' ")\
         .filter("campaign_name not like '%海投%'")\
         .filter("campaign_name not like '%京选店铺%'  ")\
