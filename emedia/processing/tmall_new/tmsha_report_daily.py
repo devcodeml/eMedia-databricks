@@ -161,7 +161,7 @@ def tmsha_report_daily_etl(airflow_execution_date):
             alipay_uv,
             alipay_num,
             alipay_fee,
-            dw_resource,
+            dw_source,
             dw_create_time,
             dw_batch_number,
             etl_source_table,

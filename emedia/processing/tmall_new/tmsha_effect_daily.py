@@ -29,7 +29,7 @@ def tmsha_effect_daily_etl(airflow_execution_date):
 
     tmall_super_effect_path = (
         f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/tmall'
-        "/tmsha_daily_effectreport/tmsha_daily_effectreport_"
+        "/tmsha_daily_effectreport/tmsha_new_daily_effectreport_"
         f'{file_date.strftime("%Y-%m-%d")}.csv.gz'
     )
 

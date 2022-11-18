@@ -58,11 +58,11 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
                 cast(click_uv as bigint) as click_uv,
                 cast(ctr as decimal(19,4)) as ctr,
                 cast(impression as bigint) as impressions,
-                solution_id,
-                solution_name,
+                cast(solution_id as string) as campaign_id,
+                cast(solution_name as string) as campaign_name,
                 cast(target_name as string) as target_name,
-                task_id,
-                task_name,
+                cast(task_id as string) as adgroup_id,
+                cast(task_name as string) as adgroup_name,
                 cast(thedate as date) as ad_date,
                 cast(uv as bigint) as uv,
                 cast(uv_ctr as decimal(19,4)) as uv_ctr,
@@ -135,8 +135,8 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
     tmall_pptx_adgroup_pks = [
         "ad_date",
         "store_id",
-        "solution_id",
-        "task_id",
+        "campaign_id",
+        "adgroup_id",
         "target_name",
     ]
 
@@ -171,7 +171,7 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
             mapping_2.category_id,
             mapping_2.brand_id
         FROM mapping_fail_1 LEFT JOIN mapping_2 ON mapping_fail_1.store_id = mapping_2.account_id
-        AND INSTR(upper(mapping_fail_1.task_name), upper(mapping_2.keyword)) > 0
+        AND INSTR(upper(mapping_fail_1.adgroup_name), upper(mapping_2.keyword)) > 0
     """
     )
 
@@ -193,7 +193,7 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
             mapping_3.category_id,
             mapping_3.brand_id
         FROM mapping_fail_2 LEFT JOIN mapping_3 ON mapping_fail_2.store_id = mapping_3.account_id
-        AND INSTR(upper(mapping_fail_2.task_name), upper(mapping_3.keyword)) > 0
+        AND INSTR(upper(mapping_fail_2.adgroup_name), upper(mapping_3.keyword)) > 0
     """
     )
 
@@ -273,10 +273,10 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
             "ad_date",
             "'品牌特秀' as ad_format_lv2",
             "store_id",
-            "'' as campaign_id",
-            "'' as campaign_name",
-            "'' as adgroup_id",
-            "'' as adgroup_name",
+            "campaign_id",
+            "campaign_name",
+            "adgroup_id",
+            "adgroup_name",
             "target_name",
             "emedia_category_id",
             "emedia_brand_id",
@@ -292,10 +292,6 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
             "dw_source",
             "dw_create_time",
             "dw_batch_number",
-            "solution_id",
-            "solution_name",
-            "task_id",
-            "task_name",
             "req_start_date",
             "req_end_date",
         )
@@ -347,7 +343,7 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
             adgroup_id,
             adgroup_name,
             target_name,
-            '' as report_level,
+            'adgroup' as report_level,
             '' as report_level_id,
             '' as report_level_name,
             emedia_category_id,

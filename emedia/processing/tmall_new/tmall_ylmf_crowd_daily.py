@@ -476,7 +476,6 @@ def tmall_ylmf_crowd_daily_etl(airflow_execution_date):
         "dwd.ylmf_crowd_daily",
         "dwd.feedflow_crowd_daily",
         "dwd.super_zz_crowd_daily",
-        "dwd.zz_target_daily",
     ]
 
     reduce(

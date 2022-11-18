@@ -28,6 +28,14 @@ def jd_fa_order_daily_etl(airflow_execution_date):
         f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
         input_sas,
     )
+
+    mapping_account = emedia_conf_dict.get("mapping_blob_account")
+    mapping_container = emedia_conf_dict.get("mapping_blob_container")
+    mapping_sas = emedia_conf_dict.get("mapping_blob_sas")
+    spark.conf.set(
+        f"fs.azure.sas.{mapping_container}.{mapping_account}.blob.core.chinacloudapi.cn",
+        mapping_sas,
+    )
     # daily report
     jd_finance_order_path = (
         f'fetchResultFiles/{file_date.strftime("%Y-%m-%d")}/jd'

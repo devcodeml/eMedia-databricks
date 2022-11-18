@@ -1,5 +1,6 @@
-from mdl_emedia_etl_dbs import get_spark
 from pyspark.sql.functions import current_timestamp
+
+from emedia import get_spark
 
 
 def tmall_ylmf_daliy_etl():

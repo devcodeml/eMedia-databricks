@@ -18,7 +18,7 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
     """
     file_date = datetime.datetime.strptime(
         airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
-    )
+    ) - datetime.timedelta(days=1)
 
     emedia_conf_dict = get_emedia_conf_dict()
     input_account = emedia_conf_dict.get("input_blob_account")
