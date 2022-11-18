@@ -358,7 +358,7 @@ def tmall_ppzq_adgroup_daily_etl(airflow_execution_date):
     spark.sql(
         """
         delete from dwd.tb_media_emedia_ppzq_daily_fact
-        where `report_level` = '' 
+        where `report_level` = 'adgroup' 
         """
     )
     tables = ["dwd.ppzq_adgroup_daily"]
@@ -386,7 +386,7 @@ def tmall_ppzq_adgroup_daily_etl(airflow_execution_date):
             campaign_name,
             adgroup_id,
             adgroup_name,
-            '' as report_level,
+            'adgroup' as report_level,
             '' as report_level_id,
             '' as report_level_name,
             emedia_category_id,
