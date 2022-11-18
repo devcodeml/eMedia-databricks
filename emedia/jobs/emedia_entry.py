@@ -392,61 +392,89 @@ def emedia_etl(etl_action, airflow_execution_date, run_id):
     elif etl_action == "push_table_to_dw":
         push_table_to_dw()
 
-    elif etl_action == "migration_etl_zf":
+    elif etl_action == "migration_etl_jd_gwcd":
         jd_gwcd_daily_fact()
+    elif etl_action == "migration_etl_jd_jst":
         jd_jst_daily_fact()
         # 以下是运行一次的历史数据处理
         # jd_gwcd_campaign_etl_old
         # jd_ht_campaign_etl_old
         # jd_jst_campaign_etl_old
 
-    elif etl_action == "migration_etl_zw":
-        print("---")
+    elif etl_action == "migration_etl_ylmf_adzone":
         tmall_ylmf_adzone_daily_etl(airflow_execution_date)
-        # tmall_ylmf_promotion_daily_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_crowd":
         tmall_ylmf_crowd_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_campaign_group":
         tmall_ylmf_campaign_group_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_campaign":
         tmall_ylmf_campaign_daily_etl(airflow_execution_date)
-        # tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date)
-
-        # jdzt_account_daily_etl(airflow_execution_date, run_id)
-        # jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
-
-        # jd_zw_campaign_etl(airflow_execution_date, run_id)
-        # jd_zw_creative_etl(airflow_execution_date, run_id)
-
+    elif etl_action == "migration_etl_jd_fa_order":
         jd_fa_order_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_jd_ppzq_campaign":
         jd_ppzq_campaign_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_mxdp_adgroup":
         tmall_mxdp_adgroup_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_pptx_adgroup":
         tmall_pptx_adgroup_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_ppzq_adgroup":
         tmall_ppzq_adgroup_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_tmsha_effect":
         tmsha_effect_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_tmsha_report":
         tmsha_report_daily_etl(airflow_execution_date)
+    elif etl_action == "migration_etl_zw":
+        tmall_ylmf_creativepackage_daily_etl_new(airflow_execution_date)
+        tmall_ylmf_promotion_daily_etl_new(airflow_execution_date)
+        jdzt_account_daily_etl(airflow_execution_date, run_id)
+        jdzt_adgroup_daily_etl(airflow_execution_date, run_id)
+        jd_zw_campaign_etl(airflow_execution_date, run_id)
+        jd_zw_creative_etl(airflow_execution_date, run_id)
 
-    elif etl_action == "migration_etl_yw_cumul":
-        print("ali-cumul")
+
+
+    elif etl_action == "migration_etl_ylmf_campaign_cumul":
         tmall_ylmf_campaign_cumul_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_daliy_adzone_cumul":
         tmall_ylmf_daliy_adzone_cumul_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_campaign_group_cumul":
         tmall_ylmf_campaign_group_cumul_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_daliy_creativepackage_cumul":
         tmall_ylmf_daliy_creativepackage_cumul_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_daliy_crowd_cumul":
         tmall_ylmf_daliy_crowd_cumul_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_daliy_promotion_cumul":
         tmall_ylmf_daliy_promotion_cumul_etl_mew(airflow_execution_date)
+    elif etl_action == "migration_etl_ylmf_cumul":
         ylmf_cumul_daily_fact()
+
+    elif etl_action == "migration_etl_ztc_cumul_adgroup":
         tmall_ztc_cumul_adgroup_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_cumul_campaign":
         tmall_ztc_cumul_campaign_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_cumul_creative":
         tmall_ztc_cumul_creative_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_cumul_keyword":
         tmall_ztc_cumul_keyword_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_cumul_target":
         tmall_ztc_cumul_target_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_cumul":
         ztc_cumul_daily_fact()
-    elif etl_action == "migration_etl_yw":
-        print("ali-cumul")
+
+
+    elif etl_action == "migration_etl_jdkc_target":
         jdkc_target_daily_etl(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_account":
         tmall_ztc_account_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ztc_campaign":
         # tmall_ztc_adgroup_etl_new(airflow_execution_date)
         tmall_ztc_campaign_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_ztc_creative":
         tmall_ztc_creative_etl_new(airflow_execution_date, run_id)
         # tmall_ztc_keyword_etl_new(airflow_execution_date)
+    elif etl_action == "migration_etl_ztc_target":
         tmall_ztc_target_etl_new(airflow_execution_date, run_id)
+    elif etl_action == "migration_etl_emedia_overview":
         emedia_overview_etl()
 
     elif etl_action == "jd_tier_packet":
