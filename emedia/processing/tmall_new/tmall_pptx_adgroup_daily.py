@@ -317,7 +317,7 @@ def tmall_pptx_adgroup_daily_etl(airflow_execution_date):
     spark.sql(
         """
         delete from dwd.tb_media_emedia_pptx_daily_fact
-        where `report_level` = '' 
+        where `report_level` = 'adgroup' 
         """
     )
     tables = ["dwd.pptx_adgroup_daily"]

@@ -368,6 +368,6 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
             """
         )
         .dropDuplicates(jd_ppzq_campaign_daily_fact_pks)
-        .write.mode("append")
+        .write.mode("overwrite")
         .insertInto("dwd.tb_media_emedia_jd_ppzq_daily_fact")
     )
