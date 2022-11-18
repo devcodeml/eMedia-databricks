@@ -1833,3 +1833,55 @@ USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/jdkc_target_daily';
 
 
+DROP TABLE IF EXISTS `dwd`.`tb_media_emedia_jdkc_daily_fact`;
+CREATE TABLE `dwd`.`tb_media_emedia_jdkc_daily_fact` (
+  `ad_date` DATE,
+  `ad_format_lv2` STRING,
+  `pin_name` STRING,
+  `effect` STRING,
+  `effect_days` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `campaign_subtype` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `sku_id` STRING,
+  `keyword_type` STRING,
+  `niname` STRING,
+  `emedia_category_id` STRING,
+  `emedia_brand_id` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `audience_name` STRING,
+  `delivery_version` STRING,
+  `delivery_type` STRING,
+  `mobile_type` STRING,
+  `source` STRING,
+  `business_type` STRING,
+  `gift_flag` STRING,
+  `order_status_category` STRING,
+  `click_or_order_caliber` STRING,
+  `put_type` STRING,
+  `campaign_put_type` STRING,
+  `targeting_type` STRING,
+  `cost` DECIMAL(20,4),
+  `click` BIGINT,
+  `impression` BIGINT,
+  `order_quantity` BIGINT,
+  `order_value` DECIMAL(20,4),
+  `total_cart_quantity` BIGINT,
+  `new_customer_quantity` INT,
+  `dw_source` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+PARTITIONED BY (report_level)
+LOCATION 'dbfs:/mnt/prod/data_warehouse/media_dwd.db/tb_media_emedia_jdkc_daily_fact_new'
+

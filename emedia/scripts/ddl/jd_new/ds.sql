@@ -136,3 +136,80 @@ CREATE TABLE `ds`.`gm_emedia_jdzw_deep_dive_download_daily_fact` (
 USING delta
 PARTITIONED BY (report_level)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_jdzw_deep_dive_download_daily_fact';
+
+
+
+
+
+DROP TABLE IF EXISTS `ds`.`ft_media_emedia_ppzq_adgroup_daily_fact`;
+CREATE TABLE `ds`.`ft_media_emedia_ppzq_adgroup_daily_fact` (
+  `ad_date` DATE,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `effect` STRING,
+  `effect_days` STRING,
+  `traffic_type` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `impression` BIGINT,
+  `click` BIGINT,
+  `cost` DECIMAL(19,4),
+  `favorite_item_quantity` BIGINT,
+  `transaction_shipping_total` DECIMAL(19,4),
+  `favorite_shop_quantity` BIGINT,
+  `total_cart_quantity` BIGINT,
+  `transaction_total` DECIMAL(19,4),
+  `order_quantity` INT,
+  `order_value` DECIMAL(19,4),
+  `click_roi` DECIMAL(19,4),
+  `click_uv` BIGINT,
+  `uv` BIGINT,
+  `uv_new` BIGINT,
+  `dw_source` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/ft_media_emedia_ppzq_adgroup_daily_fact';
+
+
+DROP TABLE IF EXISTS `ds`.`ft_media_emedia_pptx_adgroup_daily_fact`;
+CREATE TABLE `ds`.`ft_media_emedia_pptx_adgroup_daily_fact` (
+  `ad_date` DATE,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `target_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `impression` BIGINT,
+  `click` BIGINT,
+  `ctr` DECIMAL(19,4),
+  `click_uv` BIGINT,
+  `uv` BIGINT,
+  `uv_ctr` DECIMAL(19,4),
+  `dw_source` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/ft_media_emedia_pptx_adgroup_daily_fact';
