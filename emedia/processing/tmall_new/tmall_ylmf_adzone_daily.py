@@ -18,9 +18,9 @@ def tmall_ylmf_adzone_daily_etl(airflow_execution_date):
     ) - datetime.timedelta(days=1)
 
     emedia_conf_dict = get_emedia_conf_dict()
-    input_account = emedia_conf_dict.get("input_blob_account")
-    input_container = emedia_conf_dict.get("input_blob_container")
-    input_sas = emedia_conf_dict.get("input_blob_sas")
+    input_account = emedia_conf_dict["input_blob_account"]
+    input_container = emedia_conf_dict["input_blob_container"]
+    input_sas = emedia_conf_dict["input_blob_sas"]
     spark.conf.set(
         f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
         input_sas,
