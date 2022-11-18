@@ -17,9 +17,9 @@ def tmall_mxdp_adgroup_daily_etl(airflow_execution_date):
     ) - datetime.timedelta(days=1)
 
     emedia_conf_dict = get_emedia_conf_dict()
-    input_account = emedia_conf_dict.get("input_account")
-    input_container = emedia_conf_dict.get("input_container")
-    input_sas = emedia_conf_dict.get("input_sas")
+    input_account = emedia_conf_dict["input_blob_account"]
+    input_container = emedia_conf_dict["input_blob_container"]
+    input_sas = emedia_conf_dict["input_blob_sas"]
     spark.conf.set(
         f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
         input_sas,
@@ -122,9 +122,9 @@ def tmall_mxdp_adgroup_daily_etl(airflow_execution_date):
         "mxdp_adgroup_daily"
     )
     # mxdp_adgroup_daily_df.createOrReplaceTempView("mxdp_adgroup_daily")
-    mapping_blob_account = emedia_conf_dict.get("mapping_blob_account")
-    mapping_blob_container = emedia_conf_dict.get("mapping_blob_container")
-    mapping_sas = emedia_conf_dict.get("mapping_blob_sas")
+    mapping_blob_account = emedia_conf_dict["mapping_blob_account"]
+    mapping_blob_container = emedia_conf_dict["mapping_blob_container"]
+    mapping_sas = emedia_conf_dict["mapping_blob_sas"]
     spark.conf.set(
         f"fs.azure.sas.{mapping_blob_container}.{mapping_blob_account}.blob.core.chinacloudapi.cn",
         mapping_sas,
