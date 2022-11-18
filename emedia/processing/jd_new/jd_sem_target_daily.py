@@ -90,7 +90,8 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
             cast(t1.req_clickOrOrderCaliber as string) as click_or_order_caliber,
             cast(t1.req_startDay as date) as start_day,
             cast(t1.req_endDay as date) as end_day,
-            'stg.jdkc_target_daily' as data_source,
+            dw_resource as dw_source,
+            'stg.jdkc_target_daily' as etl_source_table,
             cast(t1.dw_batch_number as string) as dw_batch_id,
             t1.req_page,
             t1.req_pageSize,
@@ -121,7 +122,7 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
     ]
 
     jdkc_target_df = (
-        spark.table("ods.jdkc_target_daily").drop("dw_etl_date").drop("data_source")
+        spark.table("ods.jdkc_target_daily").drop("dw_etl_date").drop("etl_source_table")
     )
     jdkc_target_fail_df = (
         spark.table("dwd.jdkc_target_daily_mapping_fail")
@@ -327,7 +328,8 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
         "req_page",
         "req_pageSize",
         "dw_create_time",
-        "'ods.jdkc_target_daily' as data_source",
+        "dw_source",
+        "'ods.jdkc_target_daily' as etl_source_table",
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
     ).insertInto(
@@ -376,7 +378,7 @@ def jdkc_target_daily_etl(airflow_execution_date, run_id):
                 ,order_value
                 ,total_cart_quantity
                 ,'' as new_customer_quantity
-                ,'' as dw_source
+                ,dw_source
                 ,dw_create_time
                 ,dw_batch_id as dw_batch_number
                 ,'dwd.jdkc_target_daily' as etl_source_table from dwd.jdkc_target_daily

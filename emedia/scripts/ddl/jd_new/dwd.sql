@@ -1718,6 +1718,7 @@ CREATE TABLE `dwd`.`jdkc_target_daily_mapping_fail` (
   `click_or_order_caliber` STRING,
   `start_day` DATE,
   `end_day` DATE,
+  `dw_source` STRING,
   `dw_batch_id` STRING,
   `req_page` INT,
   `req_pageSize` INT,
@@ -1766,6 +1767,7 @@ CREATE TABLE `dwd`.`jdkc_target_daily_mapping_success` (
   `click_or_order_caliber` STRING,
   `start_day` DATE,
   `end_day` DATE,
+  `dw_source` STRING,
   `dw_batch_id` STRING,
   `req_page` INT,
   `req_pageSize` INT,
@@ -1824,7 +1826,8 @@ CREATE TABLE `dwd`.`jdkc_target_daily` (
   `req_page` INT,
   `req_pageSize` INT,
   `dw_create_time` BIGINT,
-  `data_source` STRING,
+  `dw_source` STRING,
+  `etl_source_table` STRING,
   `dw_etl_date` DATE)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/jdkc_target_daily';
