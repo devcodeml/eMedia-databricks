@@ -720,6 +720,7 @@ CREATE TABLE `dwd`.`tb_media_emedia_jst_daily_fact` (
   `etl_update_time` TIMESTAMP,
   `etl_create_time` TIMESTAMP)
 USING delta
+PARTITIONED BY (`report_level`, `etl_source_table`)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/tb_media_emedia_jst_daily_fact';
 
 DROP TABLE IF EXISTS `ds`.`gm_emedia_jst_download_daily_fact`;
