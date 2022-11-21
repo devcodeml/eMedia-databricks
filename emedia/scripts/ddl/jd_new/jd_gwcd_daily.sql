@@ -732,6 +732,7 @@ CREATE TABLE `dwd`.`tb_media_emedia_gwcd_daily_fact` (
   `etl_update_time` TIMESTAMP,
   `etl_create_time` TIMESTAMP)
 USING delta
+PARTITIONED BY (`report_level`, `etl_source_table`)
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/tb_media_emedia_gwcd_daily_fact';
 
 DROP TABLE IF EXISTS `stg`.`gwcd_campaign_daily_old_v2`;
