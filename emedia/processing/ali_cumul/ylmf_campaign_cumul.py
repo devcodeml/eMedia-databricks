@@ -183,7 +183,7 @@ def tmall_ylmf_campaign_cumul_etl_new(airflow_execution_date):
                 if((isnull(return_pv_cost) or return_pv_cost = '' or return_pv_cost = 0.00000),'0', cast(return_pv_cost as decimal(20,5))) as return_pv_cost,
                 if((isnull(roi) or roi = '' or roi = 0.00000),'0', cast(roi as decimal(20,5))) as roi,
                 if((isnull(search_click_cnt) or search_click_cnt = '' or search_click_cnt = 0.00000),'0', search_click_cnt) as search_click_cnt,
-                if((isnull(search_click_cost) or search_click_cost = '' or search_click_cost = 0.00000),'0', cast(search_click_cost as decimal(20,5))) as search_click_cost,
+                if((isnull(search_click_cost) or search_click_cost = '' or search_click_cost = 0.00000),'0', cast(search_click_cost as decimal(20,5))) as search_click_cost
             from stg.ylmf_campaign_cumul_daily
             """
         )
