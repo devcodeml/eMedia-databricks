@@ -15,7 +15,8 @@ def tmall_ztc_cumul_adgroup_etl_new(airflow_execution_date, run_id):
     '''
     airflow_execution_date: to identify upstream file
     '''
-
+    spark.conf.set("spark.sql.adaptive.enabled", 'false')
+    spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
     etl_year = int(airflow_execution_date[0:4])
     etl_month = int(airflow_execution_date[5:7])
     etl_day = int(airflow_execution_date[8:10])
@@ -246,7 +247,6 @@ def tmall_ztc_cumul_adgroup_etl_new(airflow_execution_date, run_id):
         , 'pv_type_in'
         , 'campaign_type_name'
     ]
-
 
 
     tmall_ztc_adgroup_cumul_daily_df = spark.table("ods.ztc_adgroup_cumul_daily").drop('etl_create_time').drop(
