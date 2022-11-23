@@ -298,69 +298,69 @@ def tmall_ylmf_campaign_cumul_etl_new(airflow_execution_date):
 
 
 
-    # tmall_ylmf_daily_fact_pks = [
-    #     "ad_date",
-    #     "store_id",
-    #     "effect_type",
-    #     "effect",
-    #     "effect_days",
-    #     "campaign_group_id",
-    #     "campaign_id",
-    #     "promotion_entity_id",
-    #     "report_level_id",
-    # ]
-    #
-    # # dwd.tb_media_emedia_ylmf_daily_fact
-    # spark.sql(
-    #     """
-    #     delete from dwd.tb_media_emedia_ylmf_cumul_daily_fact
-    #     where `report_level` = 'campaign'
-    #     """
-    # )
-    #
-    # spark.sql(
-    #     f"""
-    #       SELECT
-    #           ad_date,
-    #           ad_format_lv2,
-    #           req_storeId as store_id,
-    #           effect_type,
-    #           effect,
-    #           effect_days,
-    #           campaign_group_id,
-    #           campaign_group_name,
-    #           campaign_id,
-    #           campaign_name,
-    #           '' as promotion_entity_id,
-    #           '' as promotion_entity_name,
-    #           'campaign' as report_level,
-    #           '' as report_level_id,
-    #           '' as report_level_name,
-    #           '' as sub_crowd_name,
-    #           '' as audience_name,
-    #           emedia_category_id as emedia_category_id,
-    #           emedia_brand_id as emedia_brand_id,
-    #           mdm_category_id as mdm_category_id,
-    #           mdm_brand_id as mdm_brand_id,
-    #           '' as mdm_productline_id,
-    #           round(nvl(charge, 0), 4) as cost,
-    #           nvl(click, 0) as click,
-    #           nvl(impression, 0) as impression,
-    #           nvl(alipay_inshop_num, 0) as order_quantity,
-    #           round(nvl(alipay_inshop_amt, 0), 4) as order_amount,
-    #           nvl(cart_num, 0) as cart_quantity,
-    #           nvl(gmv_inshop_num, 0) as gmv_order_quantity,
-    #           dw_resource,
-    #           dw_create_time,
-    #           dw_batch_number,
-    #           'dwd.ylmf_campaign_cumul_daily' as etl_source_table,
-    #           current_timestamp() as etl_create_time,
-    #           current_timestamp() as etl_update_time
-    #       FROM
-    #           dwd.ylmf_campaign_cumul_daily
-    #       """
-    # ).dropDuplicates(tmall_ylmf_daily_fact_pks).write.mode("append").insertInto(
-    #     "dwd.tb_media_emedia_ylmf_cumul_daily_fact"
-    # )
+    tmall_ylmf_daily_fact_pks = [
+        "ad_date",
+        "store_id",
+        "effect_type",
+        "effect",
+        "effect_days",
+        "campaign_group_id",
+        "campaign_id",
+        "promotion_entity_id",
+        "report_level_id",
+    ]
+
+    # dwd.tb_media_emedia_ylmf_daily_fact
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_ylmf_cumul_daily_fact
+        where `report_level` = 'campaign'
+        """
+    )
+
+    spark.sql(
+        f"""
+          SELECT
+              ad_date,
+              '引力魔方' as ad_format_lv2,
+              req_storeId as store_id,
+              effect_type,
+              effect,
+              effect_days,
+              campaign_group_id,
+              campaign_group_name,
+              campaign_id,
+              campaign_name,
+              '' as promotion_entity_id,
+              '' as promotion_entity_name,
+              'campaign' as report_level,
+              '' as report_level_id,
+              '' as report_level_name,
+              '' as sub_crowd_name,
+              '' as audience_name,
+              emedia_category_id as emedia_category_id,
+              emedia_brand_id as emedia_brand_id,
+              mdm_category_id as mdm_category_id,
+              mdm_brand_id as mdm_brand_id,
+              '' as mdm_productline_id,
+              round(nvl(charge, 0), 4) as cost,
+              nvl(click, 0) as click,
+              nvl(impression, 0) as impression,
+              nvl(alipay_inshop_num, 0) as order_quantity,
+              round(nvl(alipay_inshop_amt, 0), 4) as order_amount,
+              nvl(cart_num, 0) as cart_quantity,
+              nvl(gmv_inshop_num, 0) as gmv_order_quantity,
+              dw_resource,
+              dw_create_time,
+              dw_batch_number,
+              'dwd.ylmf_campaign_cumul_daily' as etl_source_table,
+              current_timestamp() as etl_create_time,
+              current_timestamp() as etl_update_time
+          FROM
+              dwd.ylmf_campaign_cumul_daily
+          """
+    ).dropDuplicates(tmall_ylmf_daily_fact_pks).write.mode("append").insertInto(
+        "dwd.tb_media_emedia_ylmf_cumul_daily_fact"
+    )
 
     return 0

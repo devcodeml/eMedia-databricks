@@ -2,7 +2,7 @@
 
 DROP TABLE IF EXISTS `ods`.`ylmf_adzone_cumul_daily`;
 CREATE TABLE `ods`.`ylmf_adzone_cumul_daily` (
-  `ad_date` STRING,
+  `ad_date` DATE,
   `campaign_group_id` INT,
   `campaign_group_name` STRING,
   `campaign_id` BIGINT,
@@ -398,65 +398,6 @@ USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ods.db/ylmf_promotion_entity_cumul_daily';
 
 
-
-DROP TABLE IF EXISTS `ods`.`ylmf_adzone_cumul_daily`;
-CREATE TABLE `ods`.`ylmf_adzone_cumul_daily` (
-  `ad_date` DATE,
-  `req_storeId` STRING,
-  `effect_type` STRING,
-  `effect` STRING,
-  `effect_days` STRING,
-  `campaign_group_id` STRING,
-  `campaign_group_name` STRING,
-  `campaign_id` STRING,
-  `campaign_name` STRING,
-  `promotion_entity_id` STRING,
-  `promotion_entity_name` STRING,
-  `adzone_id` STRING,
-  `adzone_name` STRING,
-  `add_new_charge` STRING,
-  `add_new_uv` STRING,
-  `alipay_inshop_amt` DECIMAL(20,4),
-  `alipay_inshop_num` BIGINT,
-  `cart_num` BIGINT,
-  `charge` DECIMAL(20,4),
-  `click` BIGINT,
-  `cpm` STRING,
-  `ctr` STRING,
-  `deep_inshop_pv` STRING,
-  `dir_shop_col_num` STRING,
-  `gmv_inshop_amt` STRING,
-  `gmv_inshop_num` BIGINT,
-  `icvr` STRING,
-  `impression` BIGINT,
-  `inshop_item_col_num` STRING,
-  `inshop_potential_uv` STRING,
-  `inshop_pv` STRING,
-  `inshop_pv_rate` STRING,
-  `inshop_uv` STRING,
-  `prepay_inshop_amt` STRING,
-  `prepay_inshop_num` STRING,
-  `return_pv` STRING,
-  `search_click_cnt` STRING,
-  `biz_code` STRING,
-  `offset` STRING,
-  `page_size` STRING,
-  `campaign_id_list` STRING,
-  `query_time_dim` STRING,
-  `query_domain` STRING,
-  `group_by_log_date` STRING,
-  `group_by_campaign_id` STRING,
-  `group_by_promotion_entity_id` STRING,
-  `start_time` STRING,
-  `end_time` STRING,
-  `dw_resource` STRING,
-  `dw_create_time` STRING,
-  `dw_batch_number` STRING,
-  `etl_source_table` STRING,
-  `etl_date` DATE,
-  `etl_create_time` TIMESTAMP)
-USING delta
-LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ods.db/ylmf_adzone_cumul_daily';
 
 
 

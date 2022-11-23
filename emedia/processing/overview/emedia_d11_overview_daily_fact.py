@@ -38,7 +38,7 @@ def emedia_d11_overview_etl():
         ,promotion_entity_name,report_level,report_level_id,report_level_name,sub_crowd_name
         ,audience_name,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id,mdm_productline_id 
         ORDER BY effect_days DESC) as rank from dwd.tb_media_emedia_ylmf_cumul_daily_fact 
-        where report_level = 'promotion' and store_id in (select store_id from  stg.emedia_store_mapping)
+        where report_level = 'promotion' and emedia_category_id is not null and emedia_category_id!='' and store_id in (select store_id from  stg.emedia_store_mapping)
         and cast(effect_days as int) <= 15) 
         where rank = 1) 
         where effect_days = '15'  group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
@@ -73,7 +73,7 @@ def emedia_d11_overview_etl():
         ,report_level,report_level_id,report_level_name,item_id,keyword_type,niname
         ,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id,mdm_productline_id 
         ORDER BY effect_days DESC) as rank from dwd.tb_media_emedia_ztc_cumul_daily_fact
-        where report_level = 'adgroup' 
+        where report_level = 'adgroup' and emedia_category_id is not null and emedia_category_id!=''
         and store_id in (select store_id from  stg.emedia_store_mapping) 
         and cast(effect_days as int) <= 15) 
         where rank = 1)
@@ -98,7 +98,7 @@ def emedia_d11_overview_etl():
         sum(total_cart_quantity) as cart_quantity
         from dwd.tb_media_emedia_ztc_daily_fact
         where report_level = 'adgroup' and ad_date < (select min(ad_date) from dwd.tb_media_emedia_ztc_cumul_daily_fact where report_level = 'adgroup' )
-        and store_id in (select store_id from  stg.emedia_store_mapping) 
+        and store_id in (select store_id from  stg.emedia_store_mapping)  and emedia_category_id is not null and emedia_category_id!=''
         and cast(effect_days as int) = 24 
        group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
     """)
@@ -121,7 +121,7 @@ def emedia_d11_overview_etl():
         sum(gmv_order_quantity) as new_customer_quantity,
         sum(cart_quantity) as cart_quantity
         from  dwd.tb_media_emedia_ylmf_daily_fact
-        where report_level = 'promotion' and store_id in (select store_id from  stg.emedia_store_mapping)
+        where report_level = 'promotion' and store_id in (select store_id from  stg.emedia_store_mapping) and emedia_category_id is not null and emedia_category_id!=''
         and ad_date < (select min(ad_date) from dwd.tb_media_emedia_ylmf_cumul_daily_fact where report_level = 'promotion')
         and effect = '15'  group by ad_date,store_id,ad_format_lv2,emedia_category_id,emedia_brand_id
     """)

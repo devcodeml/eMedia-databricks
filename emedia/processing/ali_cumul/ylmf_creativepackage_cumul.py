@@ -306,77 +306,77 @@ def tmall_ylmf_daliy_creativepackage_cumul_etl_new(airflow_execution_date):
 
 
 
-    # tmall_ylmf_daily_fact_pks = [
-    #     "ad_date",
-    #     "store_id",
-    #     "effect_type",
-    #     "effect",
-    #     "effect_days",
-    #     "campaign_group_id",
-    #     "campaign_id",
-    #     "promotion_entity_id",
-    #     "report_level_id",
-    # ]
-    #
-    # # dwd.tb_media_emedia_ylmf_daily_fact
-    # spark.sql(
-    #     """
-    #     delete from dwd.tb_media_emedia_ylmf_cumul_daily_fact
-    #     where `report_level` = 'creative package'
-    #     """
-    # )
-    #
-    # spark.sql(
-    #     """
-    #     SELECT
-    #         t1.ad_date,
-    #         t1.ad_format_lv2,
-    #         t1.req_storeId as store_id,
-    #         t1.effect_type,
-    #         t1.effect,
-    #         t1.effect_days,
-    #         t1.campaign_group_id,
-    #         t1.campaign_group_name,
-    #         t1.campaign_id,
-    #         t1.campaign_name,
-    #         t1.promotion_entity_id,
-    #         t1.promotion_entity_name,
-    #         'creative package' as report_level,
-    #         t1.creative_package_id as report_level_id,
-    #         t1.creative_package_name as report_level_name,
-    #         '' as sub_crowd_name,
-    #         '' as audience_name,
-    #         t1.emedia_category_id as emedia_category_id,
-    #         t1.emedia_brand_id as emedia_brand_id,
-    #         t1.mdm_category_id as mdm_category_id,
-    #         t1.mdm_brand_id as mdm_brand_id,
-    #         case
-    #             when t2.localProductLineId is null then ''
-    #             when t2.localProductLineId = 'N/A' then ''
-    #             else t2.localProductLineId
-    #         end as mdm_productline_id,
-    #         round(nvl(t1.charge, 0), 4) as cost,
-    #         nvl(t1.click, 0) as click,
-    #         nvl(t1.impression, 0) as impression,
-    #         nvl(t1.alipay_inshop_num, 0) as order_quantity,
-    #         round(nvl(t1.alipay_inshop_amt, 0), 4) as order_amount,
-    #         nvl(t1.cart_num, 0) as cart_quantity,
-    #         nvl(t1.gmv_inshop_num, 0) as gmv_order_quantity,
-    #         t1.dw_resource,
-    #         t1.dw_create_time,
-    #         t1.dw_batch_number,
-    #         'dwd.ylmf_creative_package_cumul_daily' as etl_source_table,
-    #         current_timestamp() as etl_create_time,
-    #         current_timestamp() as etl_update_time
-    #     FROM
-    #         dwd.ylmf_creative_package_cumul_daily t1
-    #     LEFT JOIN
-    #         stg.media_mdl_douyin_cdl t2
-    #     ON
-    #         t1.promotion_entity_id = t2.numIid
-    #     """
-    # ).dropDuplicates(tmall_ylmf_daily_fact_pks).write.mode("append").insertInto(
-    #     "dwd.tb_media_emedia_ylmf_cumul_daily_fact"
-    # )
+    tmall_ylmf_daily_fact_pks = [
+        "ad_date",
+        "store_id",
+        "effect_type",
+        "effect",
+        "effect_days",
+        "campaign_group_id",
+        "campaign_id",
+        "promotion_entity_id",
+        "report_level_id",
+    ]
+
+    # dwd.tb_media_emedia_ylmf_daily_fact
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_ylmf_cumul_daily_fact
+        where `report_level` = 'creative package'
+        """
+    )
+
+    spark.sql(
+        """
+        SELECT
+            t1.ad_date,
+            '引力魔方' as ad_format_lv2,
+            t1.req_storeId as store_id,
+            t1.effect_type,
+            t1.effect,
+            t1.effect_days,
+            t1.campaign_group_id,
+            t1.campaign_group_name,
+            t1.campaign_id,
+            t1.campaign_name,
+            t1.promotion_entity_id,
+            t1.promotion_entity_name,
+            'creative package' as report_level,
+            t1.creative_package_id as report_level_id,
+            t1.creative_package_name as report_level_name,
+            '' as sub_crowd_name,
+            '' as audience_name,
+            t1.emedia_category_id as emedia_category_id,
+            t1.emedia_brand_id as emedia_brand_id,
+            t1.mdm_category_id as mdm_category_id,
+            t1.mdm_brand_id as mdm_brand_id,
+            case
+                when t2.localProductLineId is null then ''
+                when t2.localProductLineId = 'N/A' then ''
+                else t2.localProductLineId
+            end as mdm_productline_id,
+            round(nvl(t1.charge, 0), 4) as cost,
+            nvl(t1.click, 0) as click,
+            nvl(t1.impression, 0) as impression,
+            nvl(t1.alipay_inshop_num, 0) as order_quantity,
+            round(nvl(t1.alipay_inshop_amt, 0), 4) as order_amount,
+            nvl(t1.cart_num, 0) as cart_quantity,
+            nvl(t1.gmv_inshop_num, 0) as gmv_order_quantity,
+            t1.dw_resource,
+            t1.dw_create_time,
+            t1.dw_batch_number,
+            'dwd.ylmf_creative_package_cumul_daily' as etl_source_table,
+            current_timestamp() as etl_create_time,
+            current_timestamp() as etl_update_time
+        FROM
+            dwd.ylmf_creative_package_cumul_daily t1
+        LEFT JOIN
+            stg.media_mdl_douyin_cdl t2
+        ON
+            t1.promotion_entity_id = t2.numIid
+        """
+    ).dropDuplicates(tmall_ylmf_daily_fact_pks).write.mode("append").insertInto(
+        "dwd.tb_media_emedia_ylmf_cumul_daily_fact"
+    )
 
     return 0
