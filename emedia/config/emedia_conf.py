@@ -63,7 +63,7 @@ def get_emedia_conf_dict():
                                    ,'mysql_url': 'jdbc:mysql://consumer-prd-emedia-db-0.mysql.database.chinacloudapi.cn:3306/pg_datalake?useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=true&autoReconnect=true&connectTimeout=0&socketTimeout=0'})
         scope_conf_dict.update({'eab_blob_account': 'consumeremediaprd01',
                                 'eab_blob_container': 'eab',
-                                'eab_blob_sas': 'sr=c&si=PSD57238-racwdl&sig=bZy4qt97jzlKgrGxc053zpTe7U9NrzxmPsXb5BrMZlU%3D&sv=2020-06-12'})
+                                'eab_blob_sas': 'sr=c&si=PSD62285-racwdl&sig=aOY%2B//sjzCNDWwadHtMFNQt1zdkME%2BeUZtIZMy27cm4%3D&sv=2020-06-12'})
         scope_conf_dict.update({'cumul_blob_account': 'b2bmptbiprd01',
                                 'cumul_blob_container': 'emedia-resource-cumul',
                                 'cumul_blob_sas': 'sv=2020-10-02&st=2022-03-16T07%3A42%3A31Z&se=2030-12-31T07%3A42%3A00Z&sr=c&sp=racwdxlt&sig=xYLVtiblre%2BoxxeB%2FljX5iejhDJac4Xj%2BPd6MD1gIVA%3D'})
