@@ -106,4 +106,21 @@ CREATE TABLE `ds`.`gm_emedia_d11_overview_daily_fact` (
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_d11_overview_daily_fact';
 
-
+DROP TABLE IF EXISTS `stg`.`media_emedia_ppzq_cost_mapping`;
+CREATE TABLE `stg`.`media_emedia_ppzq_cost_mapping` (
+  `platform` STRING,
+  `period` STRING,
+  `start_date` DATE,
+  `end_date` DATE,
+  `pin_name` STRING,
+  `brand` STRING,
+  `brand_id` STRING,
+  `category_id` STRING,
+  `cost` DECIMAL(19,4),
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+LOCATION 'dbfs:/mnt/prod/data_warehouse/media_stg.db/media_emedia_ppzq_cost_mapping';
