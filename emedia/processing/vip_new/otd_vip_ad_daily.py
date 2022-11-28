@@ -87,7 +87,7 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
             cast(new_customer_in_24hour as bigint) as new_customer_in_24hour,
             cast(customer_in_24hour as bigint) as customer_in_24hour,
             cast(book_sales_in_24hour as bigint) as book_sales_in_24hour,
-            cast(sales_in_24hour as bigint) as sales_in_24hour,
+            cast(sales_in_24hour as decimal(19,4)) as sales_in_24hour,
             cast(book_orders_in_24hour as bigint) as book_orders_in_24hour,
             cast(orders_in_24hour as bigint) as orders_in_24hour,
             cast(book_roi_in_24hour as decimal(19,4)) as book_roi_in_24hour,
@@ -96,7 +96,7 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
             cast(new_customer_in_14day as bigint) as new_customer_in_14day,
             cast(customer_in_14day as bigint) as customer_in_14day,
             cast(book_sales_in_14day as bigint) as book_sales_in_14day,
-            cast(sales_in_14day as bigint) as sales_in_14day,
+            cast(sales_in_14day as decimal(19,4)) as sales_in_14day,
             cast(book_orders_in_14day as bigint) as book_orders_in_14day,
             cast(orders_in_14day as bigint) as orders_in_14day,
             cast(book_roi_in_14day as decimal(19,4)) as book_roi_in_14day,
@@ -168,6 +168,22 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
 
     spark.sql(
         """
+        select
+          a.*,
+          '' as mdm_productline_id,
+          a.category_id as emedia_category_id,
+          a.brand_id as emedia_brand_id,
+          d.category2_code as mdm_category_id,
+          c.brand_code as mdm_brand_id
+        from vip_otd_ad_daily a
+        left join ods.media_category_brand_mapping c
+          on a.brand_id = c.emedia_brand_code 
+        left join ods.media_category_brand_mapping d on a.category_id = d.emedia_category_code
+        """
+    ).createOrReplaceTempView("vip_otd_ad_daily_mdm")
+
+    spark.sql(
+        """
         select 
             ad_date,
             cast(req_advertiser_id as string) as store_id,
@@ -176,8 +192,10 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
             cast(campaign_title as string) as campaign_name,
             adgroup_id,
             adgroup_name,
-            category_id,
-            brand_id,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
             impression,
             click,
             cast(cost/100 as decimal(19,4)) as cost,
@@ -203,7 +221,7 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
             dw_create_time,
             dw_batch_number,
             "ods.vip_otd_ad_daily_fact" as etl_source_table
-        from vip_otd_ad_daily
+        from vip_otd_ad_daily_mdm
         """
     ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                current_timestamp()).write.mode(
