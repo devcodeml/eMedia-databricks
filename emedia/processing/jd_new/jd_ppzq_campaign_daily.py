@@ -67,16 +67,16 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
         spark.sql(
             """
             select
-              brandName,
-              campaignName,
+              cast(brandName as string) as brand_name,
+              cast(campaignName as string) as campaign_name,
               cast(clicks as bigint) as clicks,
               ctr,
               to_date(cast(`date` as string), "yyyymmdd") as ad_date,
               firstCateName,
               cast(impressions as bigint) as impressions,
               realPrice,
-              spaceName,
-              queries,
+              cast(spaceName as string) as space_name,
+              cast(queries as bigint) as uv_impressions,
               secondCateName,
               cast(totalCartCnt as bigint) as total_cart_cnt,
               cast(totalDealOrderCnt as bigint) as total_deal_order_cnt,
@@ -139,9 +139,9 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
 
     jd_ppzq_campaign_daily_pks = [
         "ad_date",
-        "brandName",
-        "campaignName",
-        "spaceName",
+        "brand_name",
+        "campaign_name",
+        "space_name",
         "pin_name",
     ]
 
@@ -154,7 +154,7 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
             mapping_1.brand_id  
         FROM jd_ppzq_campaign_daily t1
         LEFT JOIN mapping_1
-            ON t1.pin_name = mapping_1.account_id
+        ON t1.pin_name = mapping_1.account_id
     """
     )
 
@@ -178,7 +178,7 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
         FROM mapping_fail_1
         LEFT JOIN mapping_2
         ON mapping_fail_1.pin_name = mapping_2.account_id
-            AND INSTR(upper(mapping_fail_1.campaignName), upper(mapping_2.keyword)) > 0
+            AND INSTR(upper(mapping_fail_1.campaign_name), upper(mapping_2.keyword)) > 0
     """
     )
 
@@ -202,7 +202,7 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
         FROM mapping_fail_2
         LEFT JOIN mapping_3
         ON mapping_fail_2.pin_name = mapping_3.account_id
-            AND INSTR(upper(mapping_fail_2.campaignName), upper(mapping_3.keyword)) > 0
+            AND INSTR(upper(mapping_fail_2.campaign_name), upper(mapping_3.keyword)) > 0
     """
     )
 
@@ -285,6 +285,9 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
             "ad_date",
             "'品牌专区' as ad_format_lv2",
             "pin_name",
+            "brand_name",
+            "campaign_name",
+            "space_name",
             "emedia_category_id",
             "emedia_brand_id",
             "mdm_category_id",
@@ -295,17 +298,13 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
             "total_deal_order_cnt",
             "total_deal_order_sum",
             "total_cart_cnt",
-            "cast(null as bigint) as uv_impressions",
+            "uv_impressions",
             "'' as dw_source",
             "'' as dw_create_time",
             "'' as dw_batch_number",
-            "brandName",
-            "campaignName",
             "ctr",
             "firstCateName",
             "realPrice",
-            "spaceName",
-            "queries",
             "secondCateName",
         )
         .distinct()
@@ -321,11 +320,18 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
     jd_ppzq_campaign_daily_fact_pks = [
         "ad_date",
         "pin_name",
-        "emedia_category_id",
-        "emedia_brand_id",
-        "mdm_category_id",
-        "mdm_brand_id",
+        "brand_name",
+        "campaign_name",
+        "space_name",
+        "report_level_id",
     ]
+
+    spark.sql(
+        """
+        delete from dwd.tb_media_emedia_jd_ppzq_daily_fact
+        where `report_level` = 'campaign' 
+        """
+    )
 
     tables = ["dwd.jd_ppzq_campaign_daily"]
 
@@ -339,35 +345,38 @@ def jd_ppzq_campaign_daily_etl(airflow_execution_date):
         ),
     ).createOrReplaceTempView("jd_ppzq_campaign_daily")
 
-    (
-        spark.sql(
-            f"""
-            SELECT
-                ad_date,
-                ad_format_lv2,
-                pin_name,
-                emedia_category_id,
-                emedia_brand_id,
-                mdm_category_id,
-                mdm_brand_id,
-                cost,
-                clicks as click,
-                impressions as impression,
-                total_deal_order_cnt,
-                total_deal_order_sum,
-                total_cart_cnt,
-                uv_impressions,
-                dw_source,
-                dw_create_time,
-                dw_batch_number,
-                etl_source_table,
-                current_timestamp() as etl_create_time,
-                current_timestamp() as etl_update_time
-            FROM 
-                jd_ppzq_campaign_daily
-            """
-        )
-        .dropDuplicates(jd_ppzq_campaign_daily_fact_pks)
-        .write.mode("overwrite")
-        .insertInto("dwd.tb_media_emedia_jd_ppzq_daily_fact")
+    spark.sql(
+        f"""
+        SELECT
+            ad_date,
+            ad_format_lv2,
+            pin_name,
+            brand_name,
+            campaign_name,
+            space_name,
+            emedia_category_id,
+            emedia_brand_id,
+            mdm_category_id,
+            mdm_brand_id,
+            'campaign' as report_level,
+            '' as report_level_id,
+            '' as report_level_name,
+            cost,
+            clicks,
+            impressions,
+            total_deal_order_cnt,
+            total_deal_order_sum,
+            total_cart_cnt,
+            uv_impressions,
+            dw_source,
+            dw_create_time,
+            dw_batch_number,
+            etl_source_table,
+            current_timestamp() as etl_create_time,
+            current_timestamp() as etl_update_time
+        FROM 
+            jd_ppzq_campaign_daily
+        """
+    ).dropDuplicates(jd_ppzq_campaign_daily_fact_pks).write.mode("append").insertInto(
+        "dwd.tb_media_emedia_jd_ppzq_daily_fact"
     )
