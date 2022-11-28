@@ -18,14 +18,14 @@ def otd_vip_fa_etl(airflow_execution_date, run_id):
         airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
     ) - datetime.timedelta(days=1)
 
-    # emedia_conf_dict = get_emedia_conf_dict()
-    # input_account = emedia_conf_dict.get("input_blob_account")
-    # input_container = emedia_conf_dict.get("input_blob_container")
-    # input_sas = emedia_conf_dict.get("input_blob_sas")
+    emedia_conf_dict = get_emedia_conf_dict()
+    input_account = emedia_conf_dict.get("input_blob_account")
+    input_container = emedia_conf_dict.get("input_blob_container")
+    input_sas = emedia_conf_dict.get("input_blob_sas")
 
-    input_account = "b2bcdlrawblobprd01"
-    input_container = "media"
-    input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
+    # input_account = "b2bcdlrawblobprd01"
+    # input_container = "media"
+    # input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
 
     spark.conf.set(
         f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
@@ -76,7 +76,7 @@ def otd_vip_fa_etl(airflow_execution_date, run_id):
         """
     ).withColumn("dw_etl_date", current_date()).distinct().write.mode(
         "overwrite"
-    ).saveAsTable(
+    ).insertInto(
         "ods.vip_otd_fa_fact"
     )
 
@@ -88,10 +88,10 @@ def otd_vip_fa_etl(airflow_execution_date, run_id):
         "trad_type"
     ]
 
-    spark.sql(
+    data = spark.sql(
         """
         select
-            cast("2022-11-20" as date) as ad_date,
+            ad_date,
             store_id,
             account_type,
             fund_type,
@@ -107,29 +107,20 @@ def otd_vip_fa_etl(airflow_execution_date, run_id):
         from ods.vip_otd_fa_fact
         """
     ).dropDuplicates(vip_otd_fa_pks).withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
-                                                                                                   current_timestamp()).createOrReplaceTempView(
-        "vip_otd_fa_fact")
+                                                                                                   current_timestamp())
 
-    dwd_table = "dwd.tb_media_emedia_vip_otd_fa_fact"
 
-    tmp_table = "vip_otd_fa_fact"
-    and_str = " AND ".join(
-        [f"{dwd_table}.{col} = {tmp_table}.{col}" for col in vip_otd_fa_pks]
-    )
-    spark.sql(
-        f"""
-            MERGE INTO {dwd_table}
-            USING {tmp_table}
-            ON {and_str}
-            WHEN MATCHED THEN
-                UPDATE SET *
-            WHEN NOT MATCHED
-                THEN INSERT *
-            """
+    his_data = spark.table("dwd.tb_media_emedia_vip_otd_fa_fact")
+    data = data.union(his_data)
+    data = data.dropDuplicates(vip_otd_fa_pks)
+    data.distinct().write.mode(
+        "overwrite"
+    ).insertInto(
+        "dwd.tb_media_emedia_vip_otd_fa_fact"
     )
 
-    data = spark.table("dwd.tb_media_emedia_vip_otd_fa_fact")
-    data.distinct().withColumn("etl_source_table", lit("dwd.tb_media_emedia_vip_otd_fa_fact")) \
+    ds_data = spark.table("dwd.tb_media_emedia_vip_otd_fa_fact")
+    ds_data.distinct().withColumn("etl_source_table", lit("dwd.tb_media_emedia_vip_otd_fa_fact")) \
         .withColumn("etl_create_time", current_timestamp()) \
         .withColumn("etl_update_time", current_timestamp()) \
         .write.mode("overwrite") \

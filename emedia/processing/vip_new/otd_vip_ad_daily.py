@@ -18,14 +18,14 @@ def otd_vip_ad_etl(airflow_execution_date, run_id):
         airflow_execution_date[0:19], "%Y-%m-%dT%H:%M:%S"
     ) - datetime.timedelta(days=1)
 
-    # emedia_conf_dict = get_emedia_conf_dict()
-    # input_account = emedia_conf_dict.get("input_blob_account")
-    # input_container = emedia_conf_dict.get("input_blob_container")
-    # input_sas = emedia_conf_dict.get("input_blob_sas")
+    emedia_conf_dict = get_emedia_conf_dict()
+    input_account = emedia_conf_dict.get("input_blob_account")
+    input_container = emedia_conf_dict.get("input_blob_container")
+    input_sas = emedia_conf_dict.get("input_blob_sas")
 
-    input_account = "b2bcdlrawblobprd01"
-    input_container = "media"
-    input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
+    # input_account = "b2bcdlrawblobprd01"
+    # input_container = "media"
+    # input_sas = "sv=2020-10-02&si=media-17F05CA0A8F&sr=c&sig=AbVeAQ%2BcS5aErSDw%2BPUdUECnLvxA2yzItKFGhEwi%2FcA%3D"
 
     spark.conf.set(
         f"fs.azure.sas.{input_container}.{input_account}.blob.core.chinacloudapi.cn",
