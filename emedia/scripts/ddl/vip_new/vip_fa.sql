@@ -62,3 +62,22 @@ CREATE TABLE IF NOT EXISTS `dwd`.`tb_media_emedia_vip_otd_fa_fact` (
   etl_create_time TIMESTAMP)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_dwd.db/tb_media_emedia_vip_otd_fa_fact';
+
+DROP TABLE IF EXISTS `ds`.`gm_media_emedia_vip_otd_fa_fact`;
+CREATE TABLE IF NOT EXISTS `ds`.`gm_media_emedia_vip_otd_fa_fact` (
+  ad_date DATE,
+  store_id STRING,
+  account_type STRING,
+  fund_type STRING,
+  trad_type STRING,
+  start_date DATE,
+  end_date DATE,
+  advertiser_id STRING,
+  cost DECIMAL(19,4),
+  description STRING,
+  dw_create_time TIMESTAMP,
+  dw_batch_number STRING,
+  etl_source_table STRING,
+  etl_update_time TIMESTAMP,
+  etl_create_time TIMESTAMP)
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_media_emedia_vip_otd_fa_fact';
