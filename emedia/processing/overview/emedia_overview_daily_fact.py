@@ -173,7 +173,7 @@ def emedia_overview_etl():
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
         , 'dwd.tb_media_emedia_jdht_daily_fact_campaign' as etl_source_table 
-        from dwd.tb_media_emedia_jdht_daily_fact where report_level = 'campaign' and effect in ('1','15') and pin_name <> 'PGBaylineBC' and pin_name !='PgBraun-pop' and emedia_category_id is not null and emedia_category_id !='' group by ad_date,ad_format_lv2,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id 
+        from dwd.tb_media_emedia_jdht_daily_fact where report_level = 'campaign' and ad_date < '2022-09-26' and effect in ('1','15') and pin_name <> 'PGBaylineBC' and pin_name !='PgBraun-pop' and emedia_category_id is not null and emedia_category_id !='' group by ad_date,ad_format_lv2,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id 
         union all 
         select ad_date,ad_format_lv2
         ,'jd' as platform
@@ -188,7 +188,7 @@ def emedia_overview_etl():
         , 0 as gmv_quantity
         , sum(new_customer_quantity) as new_customer_quantity
         , 'dwd.tb_media_emedia_jst_daily_fact_campaign' as etl_source_table  
-        from dwd.tb_media_emedia_jst_daily_fact where report_level = 'campaign' and effect in ('1','15') and pin_name <> 'PGBaylineBC' and pin_name !='PgBraun-pop' and emedia_category_id is not null and emedia_category_id !='' group by ad_date,ad_format_lv2,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id 
+        from dwd.tb_media_emedia_jst_daily_fact where report_level = 'campaign' and ad_date >= '2022-09-26' and effect in ('1','15') and pin_name <> 'PGBaylineBC' and pin_name !='PgBraun-pop' and emedia_category_id is not null and emedia_category_id !='' group by ad_date,ad_format_lv2,effect,effect_days,emedia_category_id,emedia_brand_id,mdm_category_id,mdm_brand_id 
         union all 
         select ad_date,ad_format_lv2
         ,'jd' as platform
