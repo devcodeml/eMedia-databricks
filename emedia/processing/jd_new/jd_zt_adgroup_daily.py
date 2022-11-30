@@ -71,6 +71,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(campaignName as string) as campaign_name,
             cast(adGroupId as string) as adgroup_id,
             cast(adGroupName as string) as adgroup_name,
+            cast(displayScope as string) as display_scope,
             cast(cost as decimal(20, 4)) as cost,
             cast(clicks as bigint) as clicks,
             cast(impressions as bigint) as impressions,
@@ -93,7 +94,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(visitorCnt as bigint) as visitor_quantity,
             cast(totalPresaleOrderCnt as bigint) as total_presale_order_cnt,
             cast(totalPresaleOrderSum as decimal(20, 4)) as total_presale_order_sum,
-            cast(IR as decimal(20, 4)) as ir,
+            cast(iR as decimal(20, 4)) as ir,
             cast(likeCnt as bigint) as like_cnt,
             cast(commentCnt as bigint) as comment_cnt,
             cast(followCnt as bigint) as follow_cnt,
@@ -105,10 +106,22 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             cast(tencentReadRatio as bigint) as tencent_read_ratio,
             cast(tencentShareCnt as bigint) as tencent_share_cnt,
             cast(tencentFollowCnt as bigint) as tencent_follow_cnt,
-            cast(interactCnt as bigint) as interact_cnt,
+            cast(interActCnt36 as bigint) as interact_cnt,
             cast(liveCost as decimal(20, 4)) as live_cost,
             cast(formCommitCnt as bigint) as form_commit_cnt,
             cast(formCommitCost as decimal(20, 4)) as form_commit_cost,
+            cast(orderUv as bigint) as order_uv,
+            cast(landingPageUv as bigint) as landing_page_uv,
+            cast(marketType as string) as market_type,
+            cast(pullCustomerCPC as decimal(20, 4)) as pull_customer_cpc,
+            cast(newOrderUv as bigint) as new_order_uv,
+            cast(cpVisit as decimal(20, 4)) as cp_visit,
+            cast(deliveryTarget as string) as delivery_target,
+            cast(videoTrendValid as string) as video_trend_valid,
+            cast(cartCPA as decimal(20, 4)) as cart_cpa,
+            cast(controlType as string) as control_type,
+            cast(siteId as string) as site_id, 
+            cast(pullCustomerCnt as bigint) as pull_customer_cnt,
             to_date(cast(clickDate as string), 'yyyyMMdd') as click_date,
             cast(mediaType as string) as media_type,
             cast(req_businessType as string) as business_type,
@@ -143,6 +156,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "order_status_category",
         "click_or_order_caliber",
         "impression_or_click_effect",
+        "display_scope",
     ]
 
     jd_zt_adgroup_df = (
@@ -207,7 +221,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         """
         select
             a.*,
-            '' as mdm_productline_id,
             a.category_id as emedia_category_id,
             a.brand_id as emedia_brand_id,
             c.category2_code as mdm_category_id,
@@ -232,6 +245,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "campaign_name",
         "adgroup_id",
         "adgroup_name",
+        "display_scope",
         "cost",
         "clicks",
         "impressions",
@@ -270,6 +284,18 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "live_cost",
         "form_commit_cnt",
         "form_commit_cost",
+        "order_uv",
+        "landing_page_uv",
+        "market_type",
+        "pull_customer_cpc",
+        "new_order_uv",
+        "cp_visit",
+        "delivery_target",
+        "video_trend_valid",
+        "cart_cpa",
+        "control_type",
+        "site_id",
+        "pull_customer_cnt",
         "click_date",
         "media_type",
         "business_type",
@@ -309,7 +335,6 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
 
     tables = [
         "dwd.jdzt_adgroup_daily",
-        "dwd.jdzt_adgroup_daily_old",
     ]
 
     reduce(
@@ -328,6 +353,8 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
         "effect",
         "effect_days",
         "campaign_id",
+        "adgroup_id",
+        "display_scope",
         "mobile_type",
         "media_type",
         "business_type",
@@ -348,6 +375,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             campaign_name,
             adgroup_id,
             adgroup_name,
+            display_scope,
             'adgroup' as report_level,
             '' as report_level_id,
             '' as report_level_name,
@@ -369,6 +397,7 @@ def jdzt_adgroup_daily_etl(airflow_execution_date, run_id):
             round(nvl(order_value, 0), 4) as order_value,
             nvl(total_cart_quantity, 0) as total_cart_quantity,
             nvl(new_customer_quantity, 0) as new_customer_quantity,
+            nvl(visitor_quantity, 0) as visitor_quantity,
             data_source as dw_source,
             dw_etl_date as dw_create_time,
             dw_batch_id as dw_batch_number,
@@ -422,6 +451,7 @@ def jd_zt_adgroup_daily_old_dwd_etl():
         "order_status_category",
         "click_or_order_caliber",
         "impression_or_click_effect",
+        "display_scope",
     ]
     (
         spark.sql(
@@ -443,6 +473,7 @@ def jd_zt_adgroup_daily_old_dwd_etl():
                 cast(a.campaign_name as string) as campaign_name,
                 cast(a.adgroup_id as string) as adgroup_id,
                 cast(a.adgroup_name as string) as adgroup_name,
+                '' as display_scope,
                 cast(a.cost as decimal(20, 4)) as cost,
                 cast(a.clicks as bigint) as clicks,
                 cast(a.impressions as bigint) as impressions,

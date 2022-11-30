@@ -236,3 +236,36 @@ CREATE TABLE `ds`.`gm_emedia_jdkc_deep_dive_download_daily_fact` (
   `etl_update_time` TIMESTAMP)
 USING delta
 LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_jdkc_deep_dive_download_daily_fact';
+
+DROP TABLE IF EXISTS `ds`.`gm_emedia_pptx_download_daily_fact`;
+CREATE TABLE `ds`.`gm_emedia_pptx_download_daily_fact` (
+  `ad_date` DATE,
+  `ad_format_lv2` STRING,
+  `store_id` STRING,
+  `campaign_id` STRING,
+  `campaign_name` STRING,
+  `adgroup_id` STRING,
+  `adgroup_name` STRING,
+  `target_name` STRING,
+  `report_level` STRING,
+  `report_level_id` STRING,
+  `report_level_name` STRING,
+  `emedia_category_id` STRING,
+  `emedia_brand_id` STRING,
+  `mdm_category_id` STRING,
+  `mdm_brand_id` STRING,
+  `mdm_productline_id` STRING,
+  `impression` BIGINT,
+  `click` BIGINT,
+  `ctr` DECIMAL(19,4),
+  `click_uv` BIGINT,
+  `uv` BIGINT,
+  `uv_ctr` DECIMAL(19,4),
+  `dw_source` STRING,
+  `dw_create_time` STRING,
+  `dw_batch_number` STRING,
+  `etl_source_table` STRING,
+  `etl_create_time` TIMESTAMP,
+  `etl_update_time` TIMESTAMP)
+USING delta
+LOCATION  'dbfs:/mnt/prod/data_warehouse/media_ds.db/gm_emedia_pptx_download_daily_fact';
