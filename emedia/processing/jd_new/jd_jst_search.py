@@ -350,7 +350,7 @@ def tb_media_emedia_jst_daily_fact():
             data_source as dw_source,
             cast(dw_etl_date as string) as dw_create_time,
             dw_batch_id as dw_batch_number,
-            'dwd.jst_search_daily' as etl_source_table from dwd.jst_search_daily where ad_date>'2022-10-12'"""
+            'dwd.jst_search_daily' as etl_source_table from dwd.jst_search_daily where ad_date>'2022-09-26'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
