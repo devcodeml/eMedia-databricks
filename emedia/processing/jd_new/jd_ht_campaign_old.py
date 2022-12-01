@@ -68,9 +68,10 @@ def jd_ht_campaign_etl_old():
             'dwd.jdht_campaign_daily' as dw_source,
             '' as dw_create_time,
             '' as dw_batch_number,
-            'dwd.jdht_campaign_daily' as etl_source_table from jdht_campaign_daily where ad_date>='2022-02-01'"""
-              ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
-                                                                                         current_timestamp()).write.mode(
+            'dwd.jdht_campaign_daily' as etl_source_table from jdht_campaign_daily"""
+              ).createOrReplaceTempView("jdht_campaign_daily_dwd")
+    spark.sql(""" select * from jdht_campaign_daily_dwd where ad_date>='2022-02-01' and ad_date<'2022-09-26' """).distinct().withColumn(
+        "etl_update_time", current_timestamp()).withColumn("etl_create_time", current_timestamp()).write.mode(
         "append"
     ).insertInto(
         "dwd.tb_media_emedia_jdht_daily_fact"
