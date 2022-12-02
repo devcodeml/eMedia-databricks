@@ -95,7 +95,7 @@ def jd_jst_campaign_etl_old():
             'stg.jst_campaign_daily_old' as dw_source,
             '' as dw_create_time,
             '' as dw_batch_number,
-            'dwd.jst_campaign_daily_old' as etl_source_table from dwd.jst_campaign_daily_old where ad_date<='2022-09-26'"""
+            'dwd.jst_campaign_daily_old' as etl_source_table from dwd.jst_campaign_daily_old where ad_date<'2022-09-26'"""
               ).distinct().withColumn("etl_update_time", current_timestamp()).withColumn("etl_create_time",
                                                                                          current_timestamp()).write.mode(
         "append"
